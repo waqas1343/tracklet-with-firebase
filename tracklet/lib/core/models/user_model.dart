@@ -8,6 +8,7 @@ class UserModel {
   final UserRole role;
   final String? companyName;
   final String? address;
+  final String? operatingHours;
   final DateTime createdAt;
   final DateTime? lastLogin;
 
@@ -19,6 +20,7 @@ class UserModel {
     required this.role,
     this.companyName,
     this.address,
+    this.operatingHours,
     required this.createdAt,
     this.lastLogin,
   });
@@ -42,6 +44,7 @@ class UserModel {
       role: parsedRole,
       companyName: json['companyName'],
       address: json['address'],
+      operatingHours: json['operatingHours'],
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -60,6 +63,7 @@ class UserModel {
       'role': role.toString().split('.').last,
       'companyName': companyName,
       'address': address,
+      'operatingHours': operatingHours,
       'createdAt': createdAt.toIso8601String(),
       'lastLogin': lastLogin?.toIso8601String(),
     };
@@ -73,6 +77,7 @@ class UserModel {
     UserRole? role,
     String? companyName,
     String? address,
+    String? operatingHours,
     DateTime? createdAt,
     DateTime? lastLogin,
   }) {
@@ -84,6 +89,7 @@ class UserModel {
       role: role ?? this.role,
       companyName: companyName ?? this.companyName,
       address: address ?? this.address,
+      operatingHours: operatingHours ?? this.operatingHours,
       createdAt: createdAt ?? this.createdAt,
       lastLogin: lastLogin ?? this.lastLogin,
     );

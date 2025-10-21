@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:tracklet/core/utils/app_colors.dart';
+import '../providers/profile_provider.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
@@ -33,16 +35,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final currentUser = profileProvider.currentUser;
+    final displayName = userName ?? currentUser?.name ?? 'User';
+    final initials =
+        userInitials ??
+        (currentUser?.name.isNotEmpty == true
+            ? currentUser!.name.substring(0, 1).toUpperCase()
+            : 'U');
+
     return AppBar(
       backgroundColor: AppColors.background,
       elevation: 0,
       automaticallyImplyLeading: false,
       leading: showBackButton
           ? IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: AppColors.textPrimary,
-              ),
+              icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
               onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
             )
           : null,
@@ -54,7 +62,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               radius: 20,
               backgroundColor: AppColors.primary,
               child: Text(
-                userInitials ?? 'U',
+                initials,
                 style: textTheme.titleMedium?.copyWith(
                   color: AppColors.textOnPrimary,
                 ),
@@ -62,10 +70,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            userName ?? 'User',
-            style: textTheme.titleLarge,
-          ),
+          Text(displayName, style: textTheme.titleLarge),
           const Spacer(),
           if (showNotificationIcon)
             _buildIconButton(
@@ -92,10 +97,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: IconButton(
         onPressed: onPressed,
-        icon: Icon(
-          Icons.notifications,
-          color: AppColors.iconSecondary,
-        ),
+        icon: Icon(Icons.notifications, color: AppColors.iconSecondary),
       ),
     );
   }

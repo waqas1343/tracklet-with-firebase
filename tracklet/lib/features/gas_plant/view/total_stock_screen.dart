@@ -45,7 +45,7 @@ class TotalStockScreen extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Download Report Button
-        Container(
+        SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {

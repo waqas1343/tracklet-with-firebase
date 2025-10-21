@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/providers/user_role_provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../common/view/profile_screen.dart';

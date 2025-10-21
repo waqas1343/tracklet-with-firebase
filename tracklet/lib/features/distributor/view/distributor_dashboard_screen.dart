@@ -1,215 +1,106 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
-import '../../../shared/widgets/section_header_widget.dart';
-import '../widgets/delivery_summary_card.dart';
-import '../widgets/delivery_card.dart';
-import '../dashboard/distributor_request_dashboard.dart';
+import '../../../core/providers/profile_provider.dart';
+import '../../../core/providers/company_provider.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../core/utils/app_text_theme.dart';
+import '../../../core/utils/app_colors.dart';
 
 class DistributorDashboardScreen extends StatelessWidget {
   const DistributorDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ProfileProvider>(context);
+    final companyProvider = Provider.of<CompanyProvider>(context);
+
+    // Load companies when screen builds
+    if (!companyProvider.isLoading && companyProvider.companies.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        companyProvider.loadAllCompanies();
+      });
+    }
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
-        userName: 'Distributor Dashboard',
         showBackButton: false,
+        showNotificationIcon: true,
       ),
-      body: Column(
-        children: [
-          // Top App Bar with User Profile
-          _buildTopAppBar(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Search Bar
+              _buildSearchBar(),
+              const SizedBox(height: 24),
 
-          // Main Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Delivery Summary Section
-                  _buildDeliverySummarySection(),
-                  const SizedBox(height: 24),
+              // Top Plants Section
+              _buildTopPlantsSection(context),
+              const SizedBox(height: 24),
 
-                  // Request Cylinders Button
-                  _buildRequestCylindersButton(context),
-                  const SizedBox(height: 24),
-
-                  // Active Deliveries Section
-                  _buildActiveDeliveriesSection(context),
-                  const SizedBox(height: 24),
-
-                  // Recent Deliveries Section
-                  _buildRecentDeliveriesSection(context),
-                ],
-              ),
-            ),
+              // Previous Orders Section
+              _buildPreviousOrdersSection(context),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeliverySummarySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeaderWidget(
-          title: 'Delivery Summary',
-          onSeeAllPressed: () {
-            // TODO: Navigate to see all deliveries
-          },
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: DeliverySummaryCard(
-                title: 'Active Deliveries',
-                value: '12',
-                icon: Icons.local_shipping,
-                backgroundColor: const Color(0xFF1A2B4C),
-                textColor: Colors.white,
-                iconColor: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DeliverySummaryCard(
-                title: 'Completed Today',
-                value: '08',
-                icon: Icons.check_circle,
-                iconColor: const Color(0xFF4CAF50),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DeliverySummaryCard(
-                title: 'Total Drivers',
-                value: '15',
-                icon: Icons.person,
-                iconColor: const Color(0xFF1A2B4C),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRequestCylindersButton(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const DistributorRequestDashboard(),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A2B4C), Color(0xFF2C4170)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1A2B4C).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.propane_tank,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-            const SizedBox(width: 16),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Request Cylinders',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Request gas cylinders from the plant',
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 20),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildActiveDeliveriesSection(BuildContext context) {
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Builder(
+        builder: (context) {
+          final companyProvider = Provider.of<CompanyProvider>(
+            context,
+            listen: false,
+          );
+          return TextField(
+            onChanged: (value) {
+              companyProvider.searchCompanies(value);
+            },
+            decoration: InputDecoration(
+              hintText: 'Search',
+              hintStyle: AppTextTheme.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              suffixIcon: Icon(Icons.search, color: AppColors.textSecondary),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTopPlantsSection(BuildContext context) {
+    final companyProvider = Provider.of<CompanyProvider>(context);
+    final topPlants = companyProvider.topPlants;
+    final isLoading = companyProvider.isLoading;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Text(
-                  'Active Deliveries',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF333333),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1A2B4C),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '5',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            Text('Top Plants', style: AppTextTheme.displaySmall),
             GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, '/distributor/orders');
+                // TODO: Navigate to see all plants
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -217,14 +108,13 @@ class DistributorDashboardScreen extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Text(
+                child: Text(
                   'See all',
-                  style: TextStyle(
-                    color: Color(0xFF1A2B4C),
-                    fontSize: 14,
+                  style: AppTextTheme.bodySmall.copyWith(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -233,107 +123,327 @@ class DistributorDashboardScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        DeliveryCard(
-          companyName: 'Tech Solutions',
-          address: '123 Main Street, Downtown',
-          deliveryTime: '2:30 PM',
-          driverName: 'Ahmed Ali',
-          status: 'In Transit',
-          specialInstructions: 'Handle with care',
-          onTap: () {
-            // TODO: Handle delivery details
-          },
-        ),
-        DeliveryCard(
-          companyName: 'Green Energy Co.',
-          address: '456 Business Ave, Uptown',
-          deliveryTime: '4:15 PM',
-          driverName: 'Saeed Khan',
-          status: 'Out for Delivery',
-          specialInstructions: 'Call before delivery',
-          onTap: () {
-            // TODO: Handle delivery details
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentDeliveriesSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeaderWidget(
-          title: 'Recent Deliveries',
-          onSeeAllPressed: () {
-            Navigator.pushNamed(context, '/distributor/orders');
-          },
-        ),
-        const SizedBox(height: 16),
-        DeliveryCard(
-          companyName: 'Industrial Gas Ltd.',
-          address: '789 Industrial Zone',
-          deliveryTime: '11:30 AM',
-          driverName: 'Romail Ahmed',
-          status: 'Completed',
-          specialInstructions: 'Delivered successfully',
-          isCompleted: true,
-          onTap: () {
-            // TODO: Handle delivery details
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTopAppBar() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // User Profile
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A2B4C),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text(
-                'DA',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        SizedBox(
+          height: 280,
+          child: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
+              : topPlants.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.business_outlined,
+                        size: 64,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No plants available',
+                        style: AppTextTheme.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: topPlants.length,
+                  itemBuilder: (context, index) {
+                    return _buildPlantCard(context, topPlants[index]);
+                  },
                 ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlantCard(BuildContext context, company) {
+    return Container(
+      width: 200,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Plant Image
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
               ),
+              color: Colors.grey.shade200,
             ),
+            child: company.imageUrl != null && company.imageUrl!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: Image.network(
+                      company.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.landscape,
+                          size: 48,
+                          color: AppColors.primary,
+                        );
+                      },
+                    ),
+                  )
+                : Icon(Icons.landscape, size: 48, color: AppColors.primary),
           ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Distributor Admin',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF333333),
-              ),
-            ),
-          ),
-          // Notifications
-          IconButton(
-            onPressed: () {
-              // TODO: Handle notifications
-            },
-            icon: const Icon(
-              Icons.notifications_outlined,
-              color: Color(0xFF333333),
-              size: 24,
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  company.companyName,
+                  style: AppTextTheme.titleMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  company.address,
+                  style: AppTextTheme.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  company.operatingHours,
+                  style: AppTextTheme.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                CustomButton(
+                  text: 'Request Cylinder',
+                  onPressed: () =>
+                      _requestCylinder(context, company.companyName),
+                  width: double.infinity,
+                  backgroundColor: AppColors.primary,
+                  textColor: AppColors.white,
+                  height: 36,
+                  borderRadius: 8,
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPreviousOrdersSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Previous Orders', style: AppTextTheme.displaySmall),
+            GestureDetector(
+              onTap: () {
+                // TODO: Navigate to see all orders
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  'See all',
+                  style: AppTextTheme.bodySmall.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildOrderCard(
+          context,
+          plantName: 'Tracklet.CO Gas Plant',
+          status: 'In Progress',
+          statusColor: Colors.orange,
+          driverName: 'Romail Ahmed',
+          specialInstructions:
+              'Please deliver after 2 PM. Handle cylinders carefully.',
+          requestedItems: ['45.4 KG (3)', '15 KG (5)'],
+          totalWeight: '225 KG',
+        ),
+        const SizedBox(height: 12),
+        _buildOrderCard(
+          context,
+          plantName: 'Arham Traders',
+          status: 'Completed',
+          statusColor: Colors.green,
+          driverName: 'Romail Ahmed',
+          requestedItems: ['45.4 KG (3)', '15 KG (5)'],
+        ),
+        const SizedBox(height: 12),
+        _buildOrderCard(
+          context,
+          plantName: 'Arham Traders',
+          status: 'Cancel',
+          statusColor: Colors.red,
+          driverName: 'Romail Ahmed',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrderCard(
+    BuildContext context, {
+    required String plantName,
+    required String status,
+    required Color statusColor,
+    required String driverName,
+    String? specialInstructions,
+    List<String>? requestedItems,
+    String? totalWeight,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(plantName, style: AppTextTheme.titleMedium)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status,
+                  style: AppTextTheme.bodySmall.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Driver Name: $driverName',
+            style: AppTextTheme.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          if (specialInstructions != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Special Instructions: $specialInstructions',
+              style: AppTextTheme.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+          if (requestedItems != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Requested Items',
+              style: AppTextTheme.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: requestedItems.map((item) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    item,
+                    style: AppTextTheme.bodySmall.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+          if (totalWeight != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Total Kg: $totalWeight',
+              style: AppTextTheme.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _requestCylinder(BuildContext context, String plantName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Request Cylinder'),
+          content: Text('Request cylinder from $plantName?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Cylinder request sent to $plantName'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              },
+              child: Text('Request'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

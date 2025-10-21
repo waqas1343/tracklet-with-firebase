@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
+import '../providers/navigation_view_model.dart';
+import 'package:provider/provider.dart';
 
 /// UserRoleProvider: Manages user role state across the app
 ///
@@ -50,6 +52,12 @@ class UserRoleProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       print('💾 UserRoleProvider - Setting role: $role');
+      
+      // Reset navigation index when role changes to prevent RangeError
+      if (_currentRole != role) {
+        print('🔄 UserRoleProvider - Role changed, resetting navigation index');
+      }
+      
       _currentRole = role;
       final roleString = role.toString().split('.').last;
       print('💾 UserRoleProvider - Saving to storage: $roleString');

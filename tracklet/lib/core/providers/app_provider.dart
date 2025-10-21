@@ -19,6 +19,8 @@ import '../../features/gas_plant/provider/order_provider.dart';
 import '../../features/gas_plant/provider/employee_provider.dart';
 import 'user_role_provider.dart';
 import 'navigation_view_model.dart';
+import 'profile_provider.dart';
+import 'company_provider.dart';
 import '../services/firebase_auth_provider.dart';
 
 /// AppProvider: Central provider management class
@@ -106,6 +108,12 @@ class AppProvider extends StatelessWidget {
         // --- App-wide Providers ---
         ChangeNotifierProvider<UserRoleProvider>(
           create: (_) => UserRoleProvider(storageService: storageService),
+        ),
+        ChangeNotifierProvider<ProfileProvider>(
+          create: (_) => ProfileProvider(),
+        ),
+        ChangeNotifierProvider<CompanyProvider>(
+          create: (_) => CompanyProvider(),
         ),
         ChangeNotifierProvider<NavigationViewModel>(
           create: (_) => NavigationViewModel(),

@@ -6,42 +6,16 @@ import '../../../core/models/user_model.dart' as user_model;
 import '../../../core/services/firebase_service.dart';
 import '../../../shared/widgets/custom_button.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final ValueNotifier<bool> obscurePassword = ValueNotifier<bool>(true);
-  final ValueNotifier<bool> rememberMe = ValueNotifier<bool>(true);
-  final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
-  final ValueNotifier<String?> errorMessage = ValueNotifier<String?>(null);
-
-  @override
-  void initState() {
-    super.initState();
-    // Pre-fill with test credentials for demonstration
-    // Uncomment the lines below to pre-fill with test credentials
-    // emailController.text = 'distributor@tracklet.com';
-    // passwordController.text = '123123';
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    obscurePassword.dispose();
-    rememberMe.dispose();
-    isLoading.dispose();
-    errorMessage.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleLogin() async {
+  Future<void> _handleLogin(
+    BuildContext context,
+    TextEditingController emailController,
+    TextEditingController passwordController,
+    ValueNotifier<String?> errorMessage,
+    ValueNotifier<bool> isLoading,
+  ) async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       errorMessage.value = 'Please enter both email and password';
       return;
@@ -131,6 +105,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize controllers and notifiers
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final obscurePassword = ValueNotifier<bool>(true);
+    final rememberMe = ValueNotifier<bool>(true);
+    final isLoading = ValueNotifier<bool>(false);
+    final errorMessage = ValueNotifier<String?>(null);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -314,7 +296,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 builder: (context, loading, child) {
                   return CustomButton(
                     text: loading ? 'Logging in...' : 'Login',
-                    onPressed: loading ? null : _handleLogin,
+                    onPressed: loading
+                        ? null
+                        : () => _handleLogin(
+                            context,
+                            emailController,
+                            passwordController,
+                            errorMessage,
+                            isLoading,
+                          ),
                     width: double.infinity,
                     backgroundColor: const Color(0xFF1A2B4C),
                     textColor: Colors.white,

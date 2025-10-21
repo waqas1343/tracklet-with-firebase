@@ -8,9 +8,19 @@ class NavigationViewModel extends ChangeNotifier {
 
   int get currentIndex => _currentIndex;
 
-  /// Navigate to specific tab index
+  /// Navigate to specific tab index with bounds checking
   void navigateToIndex(int index) {
-    if (_currentIndex != index) {
+    // Ensure index is valid (non-negative)
+    if (index >= 0 && _currentIndex != index) {
+      _currentIndex = index;
+      notifyListeners();
+    }
+  }
+
+  /// Navigate to specific tab index with max bounds checking
+  void navigateToIndexWithMax(int index, int maxIndex) {
+    // Ensure index is within valid range
+    if (index >= 0 && index <= maxIndex && _currentIndex != index) {
       _currentIndex = index;
       notifyListeners();
     }

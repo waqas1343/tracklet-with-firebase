@@ -41,9 +41,14 @@ class UnifiedMainScreen extends StatelessWidget {
     // Get pages based on user role
     final pages = _getPages(userRoleProvider.currentRole);
 
+    // Ensure currentIndex is within bounds to prevent RangeError
+    final safeIndex = navigationViewModel.currentIndex < pages.length
+        ? navigationViewModel.currentIndex
+        : 0; // Default to first tab if index is out of bounds
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: pages[navigationViewModel.currentIndex],
+      body: pages[safeIndex],
       bottomNavigationBar: const UnifiedBottomNavBar(),
     );
   }

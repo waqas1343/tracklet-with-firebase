@@ -91,7 +91,6 @@ class AdminService {
       final user = _auth.currentUser;
       if (user != null && user.uid != userId) {
         // Only delete if it's not the current admin user
-        final userToDelete = _auth.currentUser;
         // We can't directly delete another user, this would need to be done
         // through Firebase Admin SDK on a server
       }

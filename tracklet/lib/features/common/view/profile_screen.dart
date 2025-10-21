@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/providers/user_role_provider.dart';
-import '../../../core/models/user_model.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../shared/widgets/custom_button.dart';
 

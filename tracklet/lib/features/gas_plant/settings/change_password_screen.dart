@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/services/firebase_service.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_appbar.dart';
 import '../../../../shared/widgets/custom_button.dart';
 
@@ -10,22 +14,129 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final TextEditingController _currentPasswordController =
-      TextEditingController();
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final currentPasswordController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   bool _isCurrentPasswordVisible = false;
   bool _isNewPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
+  String? _errorMessage;
+  String? _successMessage;
 
   @override
   void dispose() {
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
+    currentPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _changePassword() async {
+    // Clear previous messages
+    setState(() {
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    // Validate inputs
+    if (currentPasswordController.text.isEmpty ||
+        newPasswordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'All fields are required';
+      });
+      return;
+    }
+
+    // Validate new password using the app's standard validator
+    final passwordError = Validators.validatePassword(newPasswordController.text);
+    if (passwordError != null) {
+      setState(() {
+        _errorMessage = passwordError;
+      });
+      return;
+    }
+
+    // Validate password confirmation
+    final confirmPasswordError = Validators.validateConfirmPassword(
+      confirmPasswordController.text,
+      newPasswordController.text,
+    );
+    if (confirmPasswordError != null) {
+      setState(() {
+        _errorMessage = confirmPasswordError;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+      final user = firebaseService.auth.currentUser;
+
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+
+      // Re-authenticate user with current password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPasswordController.text,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // Update password
+      await user.updatePassword(newPasswordController.text);
+
+      // Clear form
+      currentPasswordController.clear();
+      newPasswordController.clear();
+      confirmPasswordController.clear();
+
+      setState(() {
+        _successMessage = 'Password changed successfully';
+        _isLoading = false;
+      });
+
+      // Show success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password changed successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (e.code == 'wrong-password') {
+        setState(() {
+          _errorMessage = 'Current password is incorrect';
+        });
+      } else if (e.code == 'weak-password') {
+        setState(() {
+          _errorMessage = 'New password is too weak';
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to change password: ${e.message}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to change password: ${e.toString()}';
+      });
+    }
   }
 
   @override
@@ -53,10 +164,49 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Error message
+              if (_errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+
+              // Success message
+              if (_successMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green[200]!),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    _successMessage!,
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+
               // Current Password Field
               _buildPasswordField(
+                context: context,
                 label: 'Current Password:',
-                controller: _currentPasswordController,
+                controller: currentPasswordController,
                 hintText: 'Enter Current Password',
                 isVisible: _isCurrentPasswordVisible,
                 onToggleVisibility: () {
@@ -69,8 +219,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
               // New Password Field
               _buildPasswordField(
+                context: context,
                 label: 'New Password:',
-                controller: _newPasswordController,
+                controller: newPasswordController,
                 hintText: 'Enter New Password',
                 isVisible: _isNewPasswordVisible,
                 onToggleVisibility: () {
@@ -83,8 +234,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
               // Confirm Password Field
               _buildPasswordField(
+                context: context,
                 label: 'Confirm Password:',
-                controller: _confirmPasswordController,
+                controller: confirmPasswordController,
                 hintText: 'Confirm New Password',
                 isVisible: _isConfirmPasswordVisible,
                 onToggleVisibility: () {
@@ -97,10 +249,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
               // Save Changes Button
               CustomButton(
-                text: 'Save Changes',
-                onPressed: () {
-                  // TODO: Handle save changes
-                },
+                text: _isLoading ? 'Saving...' : 'Save Changes',
+                onPressed: _isLoading ? null : _changePassword,
                 width: double.infinity,
                 backgroundColor: const Color(0xFF1A2B4C),
                 textColor: Colors.white,
@@ -115,6 +265,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Widget _buildPasswordField({
+    required BuildContext context,
     required String label,
     required TextEditingController controller,
     required String hintText,

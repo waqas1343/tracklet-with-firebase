@@ -61,6 +61,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Home',
           index: 0,
           currentIndex: currentIndex,
+          maxIndex: 4, // 5 tabs (0-4)
         ),
         _buildNavItem(
           context: context,
@@ -68,6 +69,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Gas Rates',
           index: 1,
           currentIndex: currentIndex,
+          maxIndex: 4,
         ),
         _buildNavItem(
           context: context,
@@ -75,6 +77,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Orders',
           index: 2,
           currentIndex: currentIndex,
+          maxIndex: 4,
         ),
         _buildNavItem(
           context: context,
@@ -82,6 +85,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Expenses',
           index: 3,
           currentIndex: currentIndex,
+          maxIndex: 4,
         ),
         _buildNavItem(
           context: context,
@@ -89,6 +93,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Settings',
           index: 4,
           currentIndex: currentIndex,
+          maxIndex: 4,
         ),
       ];
     } else {
@@ -100,6 +105,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Home',
           index: 0,
           currentIndex: currentIndex,
+          maxIndex: 3, // 4 tabs (0-3)
         ),
         _buildNavItem(
           context: context,
@@ -107,6 +113,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Orders',
           index: 1,
           currentIndex: currentIndex,
+          maxIndex: 3,
         ),
         _buildNavItem(
           context: context,
@@ -114,6 +121,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Drivers',
           index: 2,
           currentIndex: currentIndex,
+          maxIndex: 3,
         ),
         _buildNavItem(
           context: context,
@@ -121,6 +129,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           label: 'Settings',
           index: 3,
           currentIndex: currentIndex,
+          maxIndex: 3,
         ),
       ];
     }
@@ -132,6 +141,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
     required String label,
     required int index,
     required int currentIndex,
+    required int maxIndex,
   }) {
     final bool isSelected = index == currentIndex;
 
@@ -141,7 +151,7 @@ class UnifiedBottomNavBar extends StatelessWidget {
           Provider.of<NavigationViewModel>(
             context,
             listen: false,
-          ).navigateToIndex(index);
+          ).navigateToIndexWithMax(index, maxIndex);
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
