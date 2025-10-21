@@ -19,7 +19,7 @@ class OrderProvider extends ChangeNotifier {
       _orders.where((order) => order.status == OrderStatus.pending).toList();
 
   List<OrderModel> get processingOrders =>
-      _orders.where((order) => order.status == OrderStatus.processing).toList();
+      _orders.where((order) => order.status == OrderStatus.inProgress).toList();
 
   List<OrderModel> get completedOrders =>
       _orders.where((order) => order.status == OrderStatus.completed).toList();

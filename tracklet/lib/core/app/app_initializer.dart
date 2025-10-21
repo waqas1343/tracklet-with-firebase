@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../services/firebase_service.dart';
+import '../services/fcm_service.dart';
 
 /// AppInitializer: Handles all application initialization logic
 ///
@@ -17,11 +18,13 @@ class AppInitializer {
   ApiService? _apiService;
   AuthService? _authService;
   FirebaseService? _firebaseService;
+  FCMService? _fcmService;
 
   StorageService get storageService => _storageService!;
   ApiService get apiService => _apiService!;
   AuthService get authService => _authService!;
   FirebaseService get firebaseService => _firebaseService!;
+  FCMService get fcmService => _fcmService!;
 
   /// Initialize all services required by the application
   ///
@@ -31,9 +34,13 @@ class AppInitializer {
     // Ensure Flutter is initialized
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize Firebase Service
+    // Initialize Firebase Service first
     _firebaseService = FirebaseService.instance;
     await _firebaseService!.initialize();
+
+    // Now initialize FCM Service after Firebase is ready
+    _fcmService = FCMService.instance;
+    await _fcmService!.initialize();
 
     // Initialize Storage Service
     _storageService = StorageService();
@@ -54,5 +61,6 @@ class AppInitializer {
       _storageService != null && 
       _apiService != null && 
       _authService != null &&
-      _firebaseService != null;
+      _firebaseService != null &&
+      _fcmService != null;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/firebase_auth_provider.dart';
+import '../../../core/providers/profile_provider.dart'; // Add this import
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,12 +23,17 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     
     final firebaseAuth = Provider.of<FirebaseAuthProvider>(context, listen: false);
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false); // Add this
     await firebaseAuth.checkAuthStatus();
     
     if (!mounted) return;
     
     // Check if user is already authenticated
     if (firebaseAuth.isAuthenticated) {
+      // Initialize profile provider with current user data
+      await profileProvider.loadUserProfile(firebaseAuth.currentUser!.uid);
+      print('✅ Splash - Profile provider initialized for existing user');
+      
       // Navigate to main screen
       Navigator.pushReplacementNamed(context, '/main');
     } else {

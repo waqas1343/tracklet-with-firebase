@@ -3,22 +3,49 @@ import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/company_provider.dart';
+import '../../../core/providers/order_provider.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
+import 'cylinder_request_screen.dart';
 
-class DistributorDashboardScreen extends StatelessWidget {
+class DistributorDashboardScreen extends StatefulWidget {
   const DistributorDashboardScreen({super.key});
 
   @override
+  State<DistributorDashboardScreen> createState() => _DistributorDashboardScreenState();
+}
+
+class _DistributorDashboardScreenState extends State<DistributorDashboardScreen> {
+  bool _isOrdersLoading = false;
+  bool _ordersLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Provider.of<ProfileProvider>(context);
     final companyProvider = Provider.of<CompanyProvider>(context);
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final user = profileProvider.currentUser;
 
     // Load companies when screen builds
     if (!companyProvider.isLoading && companyProvider.companies.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         companyProvider.loadAllCompanies();
+      });
+    }
+
+    // Load orders for distributor only once
+    if (user != null && !_isOrdersLoading && !_ordersLoaded) {
+      setState(() {
+        _isOrdersLoading = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadDistributorOrders(orderProvider, user.id);
       });
     }
 
@@ -43,7 +70,7 @@ class DistributorDashboardScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Previous Orders Section
-              _buildPreviousOrdersSection(context),
+              _buildPreviousOrdersSection(context, orderProvider),
             ],
           ),
         ),
@@ -234,8 +261,7 @@ class DistributorDashboardScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 CustomButton(
                   text: 'Request Cylinder',
-                  onPressed: () =>
-                      _requestCylinder(context, company.companyName),
+                  onPressed: () => _navigateToCylinderRequest(context, company),
                   width: double.infinity,
                   backgroundColor: AppColors.primary,
                   textColor: AppColors.white,
@@ -250,7 +276,9 @@ class DistributorDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPreviousOrdersSection(BuildContext context) {
+  Widget _buildPreviousOrdersSection(BuildContext context, orderProvider) {
+    final orders = orderProvider.distributorOrders;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -283,54 +311,43 @@ class DistributorDashboardScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        _buildOrderCard(
-          context,
-          plantName: 'Tracklet.CO Gas Plant',
-          status: 'In Progress',
-          statusColor: Colors.orange,
-          driverName: 'Romail Ahmed',
-          specialInstructions:
-              'Please deliver after 2 PM. Handle cylinders carefully.',
-          requestedItems: ['45.4 KG (3)', '15 KG (5)'],
-          totalWeight: '225 KG',
-        ),
-        const SizedBox(height: 12),
-        _buildOrderCard(
-          context,
-          plantName: 'Arham Traders',
-          status: 'Completed',
-          statusColor: Colors.green,
-          driverName: 'Romail Ahmed',
-          requestedItems: ['45.4 KG (3)', '15 KG (5)'],
-        ),
-        const SizedBox(height: 12),
-        _buildOrderCard(
-          context,
-          plantName: 'Arham Traders',
-          status: 'Cancel',
-          statusColor: Colors.red,
-          driverName: 'Romail Ahmed',
-        ),
+        if (_isOrdersLoading && orders.isEmpty)
+          const Center(child: CircularProgressIndicator())
+        else if (orders.isEmpty)
+          Center(
+            child: Text(
+              'No previous orders',
+              style: AppTextTheme.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          )
+        else
+          Column(
+            children: orders
+                .take(3) // Show only the first 3 orders
+                .map((order) => _buildOrderCard(order))
+                .toList(),
+          ),
       ],
     );
   }
 
-  Widget _buildOrderCard(
-    BuildContext context, {
-    required String plantName,
-    required String status,
-    required Color statusColor,
-    required String driverName,
-    String? specialInstructions,
-    List<String>? requestedItems,
-    String? totalWeight,
-  }) {
+  Widget _buildOrderCard(order) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.brown, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,17 +355,26 @@ class DistributorDashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(plantName, style: AppTextTheme.titleMedium)),
+              Text(
+                order.plantName,
+                style: AppTextTheme.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
-                  status,
+                  order.statusText,
                   style: AppTextTheme.bodySmall.copyWith(
-                    color: statusColor,
+                    color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -357,93 +383,53 @@ class DistributorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Driver Name: $driverName',
-            style: AppTextTheme.bodyMedium.copyWith(
+            'Total: ${order.finalPrice.toInt()} PKR',
+            style: AppTextTheme.bodyMedium.copyWith(color: Colors.black),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Ordered: ${_formatDateTime(order.createdAt)}',
+            style: AppTextTheme.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
-          if (specialInstructions != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Special Instructions: $specialInstructions',
-              style: AppTextTheme.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-          if (requestedItems != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Requested Items',
-              style: AppTextTheme.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: requestedItems.map((item) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    item,
-                    style: AppTextTheme.bodySmall.copyWith(
-                      color: AppColors.white,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-          if (totalWeight != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Total Kg: $totalWeight',
-              style: AppTextTheme.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 
-  void _requestCylinder(BuildContext context, String plantName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Request Cylinder'),
-          content: Text('Request cylinder from $plantName?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Cylinder request sent to $plantName'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              },
-              child: Text('Request'),
-            ),
-          ],
-        );
-      },
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _navigateToCylinderRequest(BuildContext context, company) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CylinderRequestScreen(company: company),
+      ),
     );
+  }
+
+  Future<void> _loadDistributorOrders(OrderProvider orderProvider, String userId) async {
+    try {
+      await orderProvider.loadOrdersForDistributor(userId);
+    } catch (e) {
+      // Handle error silently or show a snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load orders: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isOrdersLoading = false;
+          _ordersLoaded = true;
+        });
+      }
+    }
   }
 }

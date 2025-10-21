@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 /// Order Model - Represents a cylinder request order
 class OrderModel {
   final String id;
@@ -44,6 +47,11 @@ class OrderModel {
 
   /// Create OrderModel from Firestore JSON
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    // Debug print to see what's coming from Firestore
+    if (kDebugMode) {
+      print('Order from Firestore: $json');
+    }
+    
     return OrderModel(
       id: json['id'] ?? '',
       distributorId: json['distributorId'] ?? '',
@@ -145,8 +153,14 @@ class OrderModel {
 
   static OrderStatus _parseOrderStatus(dynamic status) {
     if (status == null) return OrderStatus.pending;
-    
+
     final statusString = status.toString().toLowerCase();
+    
+    // Debug print to see what status is being parsed
+    if (kDebugMode) {
+      print('Parsing order status: $statusString');
+    }
+    
     switch (statusString) {
       case 'pending':
         return OrderStatus.pending;
@@ -161,6 +175,9 @@ class OrderModel {
       case 'canceled':
         return OrderStatus.cancelled;
       default:
+        if (kDebugMode) {
+          print('Unknown status, defaulting to pending: $statusString');
+        }
         return OrderStatus.pending;
     }
   }
@@ -206,13 +223,4 @@ class OrderModel {
   }
 }
 
-enum OrderStatus {
-  pending,
-  confirmed,
-  inProgress,
-  completed,
-  cancelled,
-}
-
-// Import Flutter material for Color
-import 'package:flutter/material.dart';
+enum OrderStatus { pending, confirmed, inProgress, completed, cancelled }

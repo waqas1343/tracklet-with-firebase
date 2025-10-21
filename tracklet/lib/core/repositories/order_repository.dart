@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/order_model.dart';
 
 /// OrderRepository - Handles all Firestore operations for orders
@@ -22,15 +23,35 @@ class OrderRepository {
   /// Get all orders for a specific plant
   Future<List<OrderModel>> getOrdersForPlant(String plantId) async {
     try {
+      if (kDebugMode) {
+        print('Fetching orders for plant: $plantId');
+      }
+
       final querySnapshot = await _firestore
           .collection(_ordersCollection)
           .where('plantId', isEqualTo: plantId)
-          .orderBy('createdAt', descending: true)
           .get();
 
-      return querySnapshot.docs
+      if (kDebugMode) {
+        print('Found ${querySnapshot.docs.length} orders for plant: $plantId');
+      }
+
+      final orders = querySnapshot.docs
           .map((doc) => OrderModel.fromJson({...doc.data(), 'id': doc.id}))
           .toList();
+
+      // Sort in memory instead of using Firestore orderBy
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      if (kDebugMode) {
+        for (var order in orders) {
+          print(
+            'Order ID: ${order.id}, Status: ${order.statusText}, Plant ID: ${order.plantId}',
+          );
+        }
+      }
+
+      return orders;
     } catch (e) {
       throw Exception('Failed to fetch plant orders: $e');
     }
@@ -42,12 +63,16 @@ class OrderRepository {
       final querySnapshot = await _firestore
           .collection(_ordersCollection)
           .where('distributorId', isEqualTo: distributorId)
-          .orderBy('createdAt', descending: true)
           .get();
 
-      return querySnapshot.docs
+      final orders = querySnapshot.docs
           .map((doc) => OrderModel.fromJson({...doc.data(), 'id': doc.id}))
           .toList();
+
+      // Sort in memory
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      return orders;
     } catch (e) {
       throw Exception('Failed to fetch distributor orders: $e');
     }
@@ -55,34 +80,119 @@ class OrderRepository {
 
   /// Get orders stream for a plant (real-time updates)
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
-    return _firestore
-        .collection(_ordersCollection)
-        .where('plantId', isEqualTo: plantId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => OrderModel.fromJson({...doc.data(), 'id': doc.id}))
-          .toList();
-    });
+    if (kDebugMode) {
+      print('🔄 Creating order stream for plant: $plantId');
+    }
+
+    try {
+      return _firestore
+          .collection(_ordersCollection)
+          .where('plantId', isEqualTo: plantId)
+          .snapshots()
+          .handleError((error) {
+            if (kDebugMode) {
+              print('❌ Stream error for plant $plantId: $error');
+            }
+          })
+          .map((snapshot) {
+            if (kDebugMode) {
+              print(
+                '✅ Order stream update - Plant: $plantId, Docs: ${snapshot.docs.length}',
+              );
+            }
+
+            final orders = snapshot.docs
+                .map((doc) {
+                  try {
+                    return OrderModel.fromJson({...doc.data(), 'id': doc.id});
+                  } catch (e) {
+                    if (kDebugMode) {
+                      print('⚠️ Error parsing order ${doc.id}: $e');
+                    }
+                    return null;
+                  }
+                })
+                .whereType<OrderModel>()
+                .toList();
+
+            // Sort in memory instead of using Firestore orderBy
+            orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+            if (kDebugMode) {
+              print('📦 Parsed ${orders.length} valid orders');
+              for (var order in orders) {
+                print(
+                  '   Order: ${order.id.substring(0, 8)}... | Status: ${order.statusText} | Plant: ${order.plantId.substring(0, 8)}...',
+                );
+              }
+            }
+
+            return orders;
+          });
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Fatal error creating stream: $e');
+      }
+      return Stream.value([]);
+    }
   }
 
   /// Get orders stream for a distributor (real-time updates)
   Stream<List<OrderModel>> getOrdersStreamForDistributor(String distributorId) {
-    return _firestore
-        .collection(_ordersCollection)
-        .where('distributorId', isEqualTo: distributorId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => OrderModel.fromJson({...doc.data(), 'id': doc.id}))
-          .toList();
-    });
+    if (kDebugMode) {
+      print('🔄 Creating order stream for distributor: $distributorId');
+    }
+
+    try {
+      return _firestore
+          .collection(_ordersCollection)
+          .where('distributorId', isEqualTo: distributorId)
+          .snapshots()
+          .handleError((error) {
+            if (kDebugMode) {
+              print('❌ Stream error for distributor $distributorId: $error');
+            }
+          })
+          .map((snapshot) {
+            if (kDebugMode) {
+              print(
+                '✅ Distributor stream update - Docs: ${snapshot.docs.length}',
+              );
+            }
+
+            final orders = snapshot.docs
+                .map((doc) {
+                  try {
+                    return OrderModel.fromJson({...doc.data(), 'id': doc.id});
+                  } catch (e) {
+                    if (kDebugMode) {
+                      print('⚠️ Error parsing order ${doc.id}: $e');
+                    }
+                    return null;
+                  }
+                })
+                .whereType<OrderModel>()
+                .toList();
+
+            // Sort in memory
+            orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+            return orders;
+          });
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Fatal error creating distributor stream: $e');
+      }
+      return Stream.value([]);
+    }
   }
 
   /// Update order status
-  Future<bool> updateOrderStatus(String orderId, OrderStatus status, {String? driverName}) async {
+  Future<bool> updateOrderStatus(
+    String orderId,
+    OrderStatus status, {
+    String? driverName,
+  }) async {
     try {
       final updates = <String, dynamic>{
         'status': status.toString().split('.').last,
@@ -162,10 +272,7 @@ class OrderRepository {
   /// Delete an order
   Future<bool> deleteOrder(String orderId) async {
     try {
-      await _firestore
-          .collection(_ordersCollection)
-          .doc(orderId)
-          .delete();
+      await _firestore.collection(_ordersCollection).doc(orderId).delete();
       return true;
     } catch (e) {
       throw Exception('Failed to delete order: $e');
@@ -173,7 +280,10 @@ class OrderRepository {
   }
 
   /// Get orders by status
-  Future<List<OrderModel>> getOrdersByStatus(String plantId, OrderStatus status) async {
+  Future<List<OrderModel>> getOrdersByStatus(
+    String plantId,
+    OrderStatus status,
+  ) async {
     try {
       final querySnapshot = await _firestore
           .collection(_ordersCollection)

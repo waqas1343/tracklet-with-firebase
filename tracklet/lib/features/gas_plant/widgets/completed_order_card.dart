@@ -112,11 +112,14 @@ class CompletedOrderCard extends StatelessWidget {
             SizedBox(height: screenWidth * 0.03),
 
             // Requested items
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Requested Items', style: AppTextTheme.cardLabel),
-                Row(
+                SizedBox(height: screenWidth * 0.01),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
                   children: requestedItems
                       .map((item) => _buildItemTag(item, screenWidth))
                       .toList(),

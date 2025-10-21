@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
+import '../../../core/providers/order_provider.dart';
+import '../../../core/providers/profile_provider.dart';
+import '../../../core/models/order_model.dart';
 import '../../../shared/widgets/section_header_widget.dart';
 import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
@@ -25,7 +29,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
               _buildPlantSummarySection(context),
               const SizedBox(height: 24),
 
-              _buildNewOrdersSection(),
+                            _buildNewOrdersSection(context),
               const SizedBox(height: 24),
 
               // Previous Orders Section
@@ -93,33 +97,66 @@ class GasPlantDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNewOrdersSection() {
+  Widget _buildNewOrdersSection(BuildContext context) {
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final user = profileProvider.currentUser;
+
+    // Load orders when screen builds
+    if (user != null &&
+        !orderProvider.isLoading &&
+        orderProvider.newOrders.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        orderProvider.loadOrdersForPlant(user.id);
+      });
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeaderWidget(
           title: 'New Orders',
           onSeeAllPressed: () {
-            // TODO: Navigate to see all new orders
+            Navigator.pushNamed(context, '/gas-plant/new-orders');
           },
         ),
         const SizedBox(height: 16),
-        NewOrderCard(
-          companyName: 'Arham Traders',
-          description: 'Arham Traders placed a request for mentioned cylinders',
-          time: '03:45 PM',
-          date: '08-Oct-2025',
-          specialInstructions:
-              'Please deliver after 2 PM.Handle cylinders carefully.',
-          requestedItems: ['45.4 KG (3)', '15 KG (5)'],
-          totalWeight: '225 KG',
-          customerImage: 'assets/images/customer.png',
-          onApprovePressed: () {
-            // TODO: Handle approve
-          },
-        ),
+        if (user == null)
+          const Center(child: Text('User not logged in'))
+        else if (orderProvider.isLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (orderProvider.newOrders.isEmpty)
+          const Center(child: Text('No new orders'))
+        else ...orderProvider.newOrders.take(3).map((order) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: NewOrderCard(
+                companyName: order.distributorName,
+                description: '${order.distributorName} placed a request for mentioned cylinders',
+                time: _formatTime(order.createdAt),
+                date: _formatDate(order.createdAt),
+                specialInstructions: order.specialInstructions ?? '',
+                requestedItems: order.formattedQuantities,
+                totalWeight: '${order.totalKg.toInt()} KG',
+                customerImage: 'assets/images/customer.png',
+                onApprovePressed: () {
+                  // TODO: Handle approve
+                },
+              ),
+            )),
       ],
     );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${dateTime.day}-${months[dateTime.month - 1]}-${dateTime.year}';
   }
 
   Widget _buildPreviousOrdersSection() {

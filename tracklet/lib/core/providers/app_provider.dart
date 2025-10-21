@@ -15,12 +15,15 @@ import '../../features/distributor/provider/driver_provider.dart';
 import '../../features/distributor/provider/plant_request_provider.dart';
 import '../../features/gas_plant/provider/expense_provider.dart';
 import '../../features/gas_plant/provider/gas_rate_provider.dart';
-import '../../features/gas_plant/provider/order_provider.dart';
+import '../../features/gas_plant/provider/order_provider.dart'
+    as GasPlantOrderProvider;
 import '../../features/gas_plant/provider/employee_provider.dart';
 import 'user_role_provider.dart';
 import 'navigation_view_model.dart';
 import 'profile_provider.dart';
 import 'company_provider.dart';
+import 'order_provider.dart';
+import 'notification_provider.dart';
 import '../services/firebase_auth_provider.dart';
 
 /// AppProvider: Central provider management class
@@ -84,8 +87,9 @@ class AppProvider extends StatelessWidget {
         ),
 
         // --- Gas Plant Feature Providers ---
-        ChangeNotifierProvider<OrderProvider>(
-          create: (_) => OrderProvider(apiService: apiService),
+        ChangeNotifierProvider<GasPlantOrderProvider.OrderProvider>(
+          create: (_) =>
+              GasPlantOrderProvider.OrderProvider(apiService: apiService),
         ),
         ChangeNotifierProvider<GasRateProvider>(
           create: (_) => GasRateProvider(apiService: apiService),
@@ -114,6 +118,10 @@ class AppProvider extends StatelessWidget {
         ),
         ChangeNotifierProvider<CompanyProvider>(
           create: (_) => CompanyProvider(),
+        ),
+        ChangeNotifierProvider<OrderProvider>(create: (_) => OrderProvider()),
+        ChangeNotifierProvider<NotificationProvider>(
+          create: (_) => NotificationProvider(),
         ),
         ChangeNotifierProvider<NavigationViewModel>(
           create: (_) => NavigationViewModel(),

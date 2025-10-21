@@ -19,24 +19,39 @@ class ProfileRepository {
       await _firestore
           .collection(_usersCollection)
           .doc(user.id)
-          .set(user.toJson());
+          .set(user.toJson())
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception('Profile creation timeout'),
+          );
       return true;
     } catch (e) {
-      throw Exception('Failed to create profile: $e');
+      print('Error creating profile: $e');
+      // Return false instead of throwing to allow app to continue
+      return false;
     }
   }
 
   /// Get user profile by UID
   Future<UserModel?> getUserProfile(String uid) async {
     try {
-      final doc = await _firestore.collection(_usersCollection).doc(uid).get();
+      final doc = await _firestore
+          .collection(_usersCollection)
+          .doc(uid)
+          .get()
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception('Profile fetch timeout'),
+          );
 
       if (doc.exists && doc.data() != null) {
         return UserModel.fromJson(doc.data()!);
       }
       return null;
     } catch (e) {
-      throw Exception('Failed to get profile: $e');
+      print('Error getting profile: $e');
+      // Return null instead of throwing to allow app to continue
+      return null;
     }
   }
 

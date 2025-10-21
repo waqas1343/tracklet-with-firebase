@@ -5,6 +5,7 @@ import '../settings/sales_summary_screen.dart';
 import '../settings/profile_settings_screen.dart';
 import '../settings/change_password_screen.dart';
 import '../settings/download_reports_screen.dart';
+import 'new_orders_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -36,6 +37,16 @@ class SettingsScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ManagePlantScreen(),
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
+
+              _buildSettingTile('New Orders', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NewOrdersScreen(),
                   ),
                 );
               }),

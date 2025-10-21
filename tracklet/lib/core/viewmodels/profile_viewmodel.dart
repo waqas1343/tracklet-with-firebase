@@ -33,10 +33,21 @@ class ProfileViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      if (kDebugMode) {
+        print('Loading user profile for UID: $uid');
+      }
+
       _currentUser = await _repository.getUserProfile(uid);
 
       if (_currentUser == null) {
+        if (kDebugMode) {
+          print('Profile not found, creating default profile');
+        }
         await _createDefaultProfile(uid);
+      } else {
+        if (kDebugMode) {
+          print('Profile loaded successfully: ${_currentUser!.name}');
+        }
       }
 
       notifyListeners();
@@ -45,6 +56,8 @@ class ProfileViewModel extends ChangeNotifier {
       if (kDebugMode) {
         print('Error loading profile: $e');
       }
+      // Create default profile as fallback
+      await _createDefaultProfile(uid);
     } finally {
       _setLoading(false);
     }
@@ -63,13 +76,36 @@ class ProfileViewModel extends ChangeNotifier {
         lastLogin: DateTime.now(),
       );
 
-      await _repository.createProfile(defaultUser);
-      _currentUser = defaultUser;
+      final success = await _repository.createProfile(defaultUser);
+
+      if (success) {
+        _currentUser = defaultUser;
+        if (kDebugMode) {
+          print('✅ Default profile created successfully');
+        }
+      } else {
+        // Even if creation fails, set the user locally to allow app to work
+        _currentUser = defaultUser;
+        if (kDebugMode) {
+          print('⚠️ Profile creation failed, using local profile');
+        }
+      }
     } catch (e) {
       _setError('Failed to create profile: ${e.toString()}');
       if (kDebugMode) {
         print('Error creating profile: $e');
       }
+
+      // Fallback: Create a temporary local profile
+      _currentUser = UserModel(
+        id: uid,
+        name: 'User',
+        email: '',
+        phone: '',
+        role: UserRole.gasPlant,
+        createdAt: DateTime.now(),
+        lastLogin: DateTime.now(),
+      );
     }
   }
 

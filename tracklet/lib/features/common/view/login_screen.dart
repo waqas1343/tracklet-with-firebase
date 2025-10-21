@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/providers/user_role_provider.dart' as user_role;
 import '../../../core/models/user_model.dart' as user_model;
 import '../../../core/services/firebase_service.dart';
+import '../../../core/providers/profile_provider.dart'; // Add this import
 import '../../../shared/widgets/custom_button.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -30,6 +31,10 @@ class LoginScreen extends StatelessWidget {
         listen: false,
       );
       final userRoleProvider = Provider.of<user_role.UserRoleProvider>(
+        context,
+        listen: false,
+      );
+      final profileProvider = Provider.of<ProfileProvider>( // Add this
         context,
         listen: false,
       );
@@ -74,6 +79,10 @@ class LoginScreen extends StatelessWidget {
 
           await userRoleProvider.setUserRole(role);
           print('✅ Login - Role set successfully: $role');
+
+          // Initialize profile provider with current user data
+          await profileProvider.loadUserProfile(userCredential.user!.uid);
+          print('✅ Login - Profile provider initialized');
 
           // Update last login time
           await firebaseService.firestore

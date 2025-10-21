@@ -4,6 +4,7 @@ import '../providers/user_role_provider.dart';
 import '../providers/navigation_view_model.dart';
 import '../widgets/unified_bottom_nav_bar.dart';
 import '../utils/app_colors.dart';
+import '../providers/profile_provider.dart'; // Add this import
 
 // Gas Plant Screens
 import '../../features/gas_plant/view/gas_plant_dashboard_screen.dart';
@@ -32,6 +33,7 @@ class UnifiedMainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userRoleProvider = Provider.of<UserRoleProvider>(context);
     final navigationViewModel = Provider.of<NavigationViewModel>(context);
+    final profileProvider = Provider.of<ProfileProvider>(context); // Add this
 
     // Debug: Print current role
     print(

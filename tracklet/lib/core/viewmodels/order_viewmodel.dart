@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import '../models/order_model.dart';
 import '../repositories/order_repository.dart';
+import '../repositories/notification_repository.dart';
+import '../services/fcm_service.dart';
 
 /// OrderViewModel - Handles order-related business logic
 /// Follows MVVM pattern for separation of concerns
 class OrderViewModel extends ChangeNotifier {
   final OrderRepository _repository;
+  final NotificationRepository _notificationRepository;
 
   List<OrderModel> _orders = [];
   List<OrderModel> _newOrders = [];
@@ -14,7 +17,8 @@ class OrderViewModel extends ChangeNotifier {
   String? _error;
   int _pendingOrdersCount = 0;
 
-  OrderViewModel(this._repository);
+  OrderViewModel(this._repository)
+    : _notificationRepository = NotificationRepository();
 
   // Getters
   List<OrderModel> get orders => _orders;
@@ -31,8 +35,51 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      if (kDebugMode) {
+        print('Creating order for plant: ${order.plantId}');
+        print('Order details: ${order.toJson()}');
+      }
+
       final orderId = await _repository.createOrder(order);
       if (orderId.isNotEmpty) {
+        if (kDebugMode) {
+          print('Order created with ID: $orderId');
+        }
+
+        // Create notification for gas plant
+        await _notificationRepository.createOrderNotification(
+          plantId: order.plantId,
+          distributorName: order.distributorName,
+          orderId: orderId,
+        );
+
+        if (kDebugMode) {
+          print('Notification created for plant: ${order.plantId}');
+        }
+
+        // Send push notification
+        try {
+          final fcmService = FCMService.instance;
+          await fcmService.sendNotificationToUser(
+            userId: order.plantId,
+            title: 'New Order Request',
+            body: '${order.distributorName} has requested cylinders from your plant',
+            data: {
+              'type': 'order',
+              'orderId': orderId,
+              'plantId': order.plantId,
+            },
+          );
+          
+          if (kDebugMode) {
+            print('✅ Push notification sent to plant: ${order.plantId}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('⚠️ Failed to send push notification: $e');
+          }
+        }
+
         // Reload orders to include the new one
         await loadOrdersForPlant(order.plantId);
         return true;
@@ -55,7 +102,19 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      if (kDebugMode) {
+        print('Loading orders for plant: $plantId');
+      }
+
       _orders = await _repository.getOrdersForPlant(plantId);
+
+      if (kDebugMode) {
+        print('Loaded ${_orders.length} orders for plant: $plantId');
+        for (var order in _orders) {
+          print('Order: ${order.id} - Status: ${order.statusText} - Plant ID: ${order.plantId}');
+        }
+      }
+
       _updateNewOrders();
 
       notifyListeners();
@@ -75,7 +134,9 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      _distributorOrders = await _repository.getOrdersForDistributor(distributorId);
+      _distributorOrders = await _repository.getOrdersForDistributor(
+        distributorId,
+      );
 
       notifyListeners();
     } catch (e) {
@@ -100,7 +161,9 @@ class OrderViewModel extends ChangeNotifier {
 
   /// Listen to real-time order updates for a distributor
   Stream<List<OrderModel>> getOrdersStreamForDistributor(String distributorId) {
-    return _repository.getOrdersStreamForDistributor(distributorId).map((orders) {
+    return _repository.getOrdersStreamForDistributor(distributorId).map((
+      orders,
+    ) {
       _distributorOrders = orders;
       notifyListeners();
       return orders;
@@ -108,18 +171,34 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   /// Update order status
-  Future<bool> updateOrderStatus(String orderId, OrderStatus status, {String? driverName}) async {
+  Future<bool> updateOrderStatus(
+    String orderId,
+    OrderStatus status, {
+    String? driverName,
+  }) async {
     try {
       _setLoading(true);
       _clearError();
 
-      final success = await _repository.updateOrderStatus(orderId, status, driverName: driverName);
+      final success = await _repository.updateOrderStatus(
+        orderId,
+        status,
+        driverName: driverName,
+      );
 
       if (success) {
-        // Update local order
+        // Create notification for distributor about status update
         final orderIndex = _orders.indexWhere((order) => order.id == orderId);
         if (orderIndex != -1) {
-          _orders[orderIndex] = _orders[orderIndex].copyWith(
+          final order = _orders[orderIndex];
+          await _notificationRepository.createOrderStatusNotification(
+            distributorId: order.distributorId,
+            plantName: order.plantName,
+            orderId: orderId,
+            status: status.toString().split('.').last,
+          );
+
+          _orders[orderIndex] = order.copyWith(
             status: status,
             driverName: driverName,
             updatedAt: DateTime.now(),
@@ -155,7 +234,10 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   /// Get orders by status
-  Future<List<OrderModel>> getOrdersByStatus(String plantId, OrderStatus status) async {
+  Future<List<OrderModel>> getOrdersByStatus(
+    String plantId,
+    OrderStatus status,
+  ) async {
     try {
       return await _repository.getOrdersByStatus(plantId, status);
     } catch (e) {
@@ -213,10 +295,20 @@ class OrderViewModel extends ChangeNotifier {
 
   /// Update new orders (pending and confirmed orders)
   void _updateNewOrders() {
-    _newOrders = _orders.where((order) => 
-      order.status == OrderStatus.pending || 
-      order.status == OrderStatus.confirmed
-    ).toList();
+    _newOrders = _orders
+        .where(
+          (order) =>
+              order.status == OrderStatus.pending ||
+              order.status == OrderStatus.confirmed,
+        )
+        .toList();
+        
+    if (kDebugMode) {
+      print('Updated new orders list with ${_newOrders.length} items');
+      for (var order in _newOrders) {
+        print('New Order: ${order.id} - Status: ${order.statusText}');
+      }
+    }
   }
 
   /// Clear all data
