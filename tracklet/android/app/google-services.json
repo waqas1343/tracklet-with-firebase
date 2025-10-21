@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "862271235339",
+    "project_id": "tracklet-4db05",
+    "storage_bucket": "tracklet-4db05.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:862271235339:android:5c8c581756453d8e03ae0e",
+        "android_client_info": {
+          "package_name": "com.example.tracklet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUsQJqwqMNunBYxfFJmxjEfLLZodjC-gM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
