@@ -159,7 +159,7 @@ class OrderModel {
   static OrderStatus _parseOrderStatus(dynamic status) {
     if (status == null) return OrderStatus.pending;
 
-    final statusString = status.toString().toLowerCase();
+    final statusString = status.toString().toLowerCase().trim();
     
     // Debug print to see what status is being parsed
     if (kDebugMode) {
@@ -169,6 +169,14 @@ class OrderModel {
       print('   Status as string: $statusString');
     }
     
+    // Handle different possible formats for inProgress status
+    if (statusString == 'in_progress' || 
+        statusString == 'inprogress' || 
+        statusString == 'in progress') {
+      if (kDebugMode) print('   Matched: in progress');
+      return OrderStatus.inProgress;
+    }
+    
     switch (statusString) {
       case 'pending':
         if (kDebugMode) print('   Matched: pending');
@@ -176,23 +184,12 @@ class OrderModel {
       case 'confirmed':
         if (kDebugMode) print('   Matched: confirmed');
         return OrderStatus.confirmed;
-      case 'in_progress':
-        if (kDebugMode) print('   Matched: in_progress');
-        return OrderStatus.inProgress;
-      case 'inprogress':
-        if (kDebugMode) print('   Matched: inprogress');
-        return OrderStatus.inProgress;
-      case 'in progress':
-        if (kDebugMode) print('   Matched: in progress');
-        return OrderStatus.inProgress;
       case 'completed':
         if (kDebugMode) print('   Matched: completed');
         return OrderStatus.completed;
       case 'cancelled':
-        if (kDebugMode) print('   Matched: cancelled');
-        return OrderStatus.cancelled;
       case 'canceled':
-        if (kDebugMode) print('   Matched: canceled');
+        if (kDebugMode) print('   Matched: cancelled');
         return OrderStatus.cancelled;
       default:
         if (kDebugMode) {

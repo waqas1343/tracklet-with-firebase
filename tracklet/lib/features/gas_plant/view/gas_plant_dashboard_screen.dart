@@ -11,8 +11,20 @@ import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
 import '../widgets/new_order_card.dart';
 
-class GasPlantDashboardScreen extends StatelessWidget {
+class GasPlantDashboardScreen extends StatefulWidget {
   const GasPlantDashboardScreen({super.key});
+
+  @override
+  State<GasPlantDashboardScreen> createState() => _GasPlantDashboardScreenState();
+}
+
+class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
+  bool _initialLoadCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,11 +113,16 @@ class GasPlantDashboardScreen extends StatelessWidget {
     final profileProvider = Provider.of<ProfileProvider>(context);
     final user = profileProvider.currentUser;
 
-    if (user != null &&
-        !orderProvider.isLoading &&
-        orderProvider.newOrders.isEmpty) {
+    // Load orders only once when the screen is first displayed
+    if (user != null && !_initialLoadCompleted && !orderProvider.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        orderProvider.loadOrdersForPlant(user.id);
+        orderProvider.loadOrdersForPlant(user.id).then((_) {
+          if (mounted) {
+            setState(() {
+              _initialLoadCompleted = true;
+            });
+          }
+        });
       });
     }
 
@@ -121,9 +138,11 @@ class GasPlantDashboardScreen extends StatelessWidget {
         const SizedBox(height: 16),
         if (user == null)
           const Center(child: Text('User not logged in'))
-        else if (orderProvider.isLoading)
-          const Center(child: CircularProgressIndicator())
+        else if (orderProvider.isLoading && !_initialLoadCompleted)
+          // Show loading state only during initial load
+          _buildLoadingState()
         else if (orderProvider.newOrders.isEmpty)
+          // Show empty state when no orders exist
           Center(
             child: EmptyStateWidget(
               icon: Icons.shopping_cart_outlined,
@@ -156,7 +175,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
               totalWeight: '${order.totalKg.toInt()} KG',
               customerImage: 'assets/images/customer.png',
               onApprovePressed: () {
-                // Update the order status to inProgress
+                // Update the order status to inProgress and send notification for driver assignment
                 if (kDebugMode) {
                   print('=== Approving Order ===');
                   print('Order ID: ${order.id}');
@@ -166,8 +185,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
                 
                 orderProvider.updateOrderStatus(
                   order.id, 
-                  OrderStatus.inProgress,
-                  driverName: 'Romail Ahmed', // Default driver
+                  OrderStatus.inProgress, // Changed to inProgress to match user requirements
                 ).then((success) {
                   if (kDebugMode) {
                     print('Order update result: $success');
@@ -184,7 +202,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
                     // Show success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Order approved successfully!'),
+                        content: Text('Order approved successfully! Please assign a driver.'),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -245,6 +263,47 @@ class GasPlantDashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLoadingState() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 60,
+              color: Colors.blue.shade700,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Loading Orders',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please wait while we fetch your new orders',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _formatTime(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
@@ -279,7 +338,8 @@ class _PreviousOrdersSection extends StatelessWidget {
     
     // Trigger initial load if needed
     if (user != null &&
-        !orderProvider.isLoading) {  // Remove the empty check to ensure orders are always loaded
+        !orderProvider.isLoading && 
+        !orderProvider.isInitialLoadCompleted) {  // Check if initial load is completed
       if (kDebugMode) {
         print('PreviousOrdersSection - Triggering load for user: ${user.id}');
       }
@@ -318,7 +378,7 @@ class _PreviousOrdersSection extends StatelessWidget {
         const SizedBox(height: 16),
         if (user == null)
           const Center(child: Text('User not logged in'))
-        else if (orderProvider.isLoading && orderProvider.orders.isEmpty)
+        else if (orderProvider.isLoading && !orderProvider.isInitialLoadCompleted)
           const Center(child: CircularProgressIndicator())
         else if (previousOrders.isEmpty)
           Center(

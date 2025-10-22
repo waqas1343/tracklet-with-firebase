@@ -103,7 +103,7 @@ class AppProvider extends StatelessWidget {
 
         // --- Distributor Feature Providers ---
         ChangeNotifierProvider<DriverProvider>(
-          create: (_) => DriverProvider(apiService: apiService),
+          create: (_) => DriverProvider(),
         ),
         ChangeNotifierProvider<PlantRequestProvider>(
           create: (_) => PlantRequestProvider(apiService: apiService),

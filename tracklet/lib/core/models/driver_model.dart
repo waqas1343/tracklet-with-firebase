@@ -34,10 +34,7 @@ class DriverModel {
       phone: json['phone'] ?? '',
       licenseNumber: json['licenseNumber'] ?? '',
       vehicleNumber: json['vehicleNumber'] ?? '',
-      status: DriverStatus.values.firstWhere(
-        (e) => e.toString() == 'DriverStatus.${json['status']}',
-        orElse: () => DriverStatus.offline,
-      ),
+      status: _parseDriverStatus(json['status']),
       currentLatitude: json['currentLatitude']?.toDouble(),
       currentLongitude: json['currentLongitude']?.toDouble(),
       completedDeliveries: json['completedDeliveries'] ?? 0,
@@ -46,6 +43,18 @@ class DriverModel {
           : DateTime.now(),
       isActive: json['isActive'] ?? true,
     );
+  }
+
+  static DriverStatus _parseDriverStatus(String? status) {
+    if (status == null) return DriverStatus.offline;
+    
+    try {
+      return DriverStatus.values.firstWhere(
+        (e) => e.toString().split('.').last == status,
+      );
+    } catch (e) {
+      return DriverStatus.offline;
+    }
   }
 
   Map<String, dynamic> toJson() {

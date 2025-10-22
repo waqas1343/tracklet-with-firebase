@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/models/driver_model.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/repositories/driver_repository.dart';
 
 class DriverProvider extends ChangeNotifier {
-  final ApiService _apiService;
+  final DriverRepository _repository;
 
-  DriverProvider({required ApiService apiService}) : _apiService = apiService;
+  DriverProvider() : _repository = DriverRepository();
 
   List<DriverModel> _drivers = [];
   bool _isLoading = false;
@@ -34,9 +34,7 @@ class DriverProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.get('/drivers');
-      final driversData = response['drivers'] as List;
-      _drivers = driversData.map((json) => DriverModel.fromJson(json)).toList();
+      _drivers = await _repository.getAllDrivers();
       _errorMessage = null;
     } catch (e) {
       _errorMessage = 'Failed to fetch drivers: $e';
@@ -52,13 +50,14 @@ class DriverProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.post('/drivers', driver.toJson());
-      final newDriver = DriverModel.fromJson(response['driver']);
-      _drivers.insert(0, newDriver);
+      final success = await _repository.saveDriver(driver);
+      if (success) {
+        _drivers.insert(0, driver);
+      }
       _errorMessage = null;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return success;
     } catch (e) {
       _errorMessage = 'Failed to create driver: $e';
       _isLoading = false;
@@ -73,19 +72,17 @@ class DriverProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.put(
-        '/drivers/${driver.id}',
-        driver.toJson(),
-      );
-      final updatedDriver = DriverModel.fromJson(response['driver']);
-      final index = _drivers.indexWhere((d) => d.id == driver.id);
-      if (index != -1) {
-        _drivers[index] = updatedDriver;
+      final success = await _repository.saveDriver(driver);
+      if (success) {
+        final index = _drivers.indexWhere((d) => d.id == driver.id);
+        if (index != -1) {
+          _drivers[index] = driver;
+        }
       }
       _errorMessage = null;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return success;
     } catch (e) {
       _errorMessage = 'Failed to update driver: $e';
       _isLoading = false;
@@ -100,12 +97,14 @@ class DriverProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _apiService.delete('/drivers/$driverId');
-      _drivers.removeWhere((driver) => driver.id == driverId);
+      final success = await _repository.deleteDriver(driverId);
+      if (success) {
+        _drivers.removeWhere((driver) => driver.id == driverId);
+      }
       _errorMessage = null;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return success;
     } catch (e) {
       _errorMessage = 'Failed to delete driver: $e';
       _isLoading = false;
@@ -115,8 +114,11 @@ class DriverProvider extends ChangeNotifier {
   }
 
   Future<bool> updateDriverStatus(String driverId, DriverStatus status) async {
-    final driver = _drivers.firstWhere((d) => d.id == driverId);
-    return await updateDriver(driver.copyWith(status: status));
+    final driverIndex = _drivers.indexWhere((d) => d.id == driverId);
+    if (driverIndex == -1) return false;
+    
+    final updatedDriver = _drivers[driverIndex].copyWith(status: status);
+    return await updateDriver(updatedDriver);
   }
 
   void clearError() {

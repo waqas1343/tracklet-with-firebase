@@ -9,11 +9,13 @@ import '../services/fcm_service.dart';
 class OrderViewModel extends ChangeNotifier {
   final OrderRepository _repository;
   final NotificationRepository _notificationRepository;
+  final FCMService _fcmService = FCMService.instance;
 
   List<OrderModel> _orders = [];
   List<OrderModel> _newOrders = [];
   List<OrderModel> _distributorOrders = [];
   bool _isLoading = false;
+  bool _isInitialLoadCompleted = false;
   String? _error;
   int _pendingOrdersCount = 0;
 
@@ -25,9 +27,31 @@ class OrderViewModel extends ChangeNotifier {
   List<OrderModel> get newOrders => _newOrders;
   List<OrderModel> get distributorOrders => _distributorOrders;
   bool get isLoading => _isLoading;
+  bool get isInitialLoadCompleted => _isInitialLoadCompleted;
   String? get error => _error;
   int get pendingOrdersCount => _pendingOrdersCount;
   bool get hasOrders => _orders.isNotEmpty;
+  
+  // Additional getters for specific order types
+  List<OrderModel> get pendingOrders => _orders
+      .where((order) => order.status == OrderStatus.pending)
+      .toList();
+
+  List<OrderModel> get processingOrders => _orders
+      .where((order) => order.status == OrderStatus.inProgress)
+      .toList();
+
+  List<OrderModel> get confirmedOrders => _orders
+      .where((order) => order.status == OrderStatus.confirmed)
+      .toList();
+
+  List<OrderModel> get completedOrders => _orders
+      .where((order) => order.status == OrderStatus.completed)
+      .toList();
+
+  List<OrderModel> get cancelledOrders => _orders
+      .where((order) => order.status == OrderStatus.cancelled)
+      .toList();
 
   /// Create a new order
   Future<bool> createOrder(OrderModel order) async {
@@ -59,8 +83,7 @@ class OrderViewModel extends ChangeNotifier {
 
         // Send push notification
         try {
-          final fcmService = FCMService.instance;
-          await fcmService.sendNotificationToUser(
+          await _fcmService.sendNotificationToUser(
             userId: order.plantId,
             title: 'New Order Request',
             body: '${order.distributorName} has requested cylinders from your plant',
@@ -125,6 +148,7 @@ class OrderViewModel extends ChangeNotifier {
       }
     } finally {
       _setLoading(false);
+      _isInitialLoadCompleted = true;
     }
   }
 
@@ -146,6 +170,7 @@ class OrderViewModel extends ChangeNotifier {
       }
     } finally {
       _setLoading(false);
+      _isInitialLoadCompleted = true;
     }
   }
 
@@ -161,6 +186,7 @@ class OrderViewModel extends ChangeNotifier {
       
       _orders = orders;
       _updateNewOrders();
+      // Don't set loading to false here as this is a real-time stream update
       notifyListeners();
       return orders;
     });
@@ -172,6 +198,7 @@ class OrderViewModel extends ChangeNotifier {
       orders,
     ) {
       _distributorOrders = orders;
+      // Don't set loading to false here as this is a real-time stream update
       notifyListeners();
       return orders;
     });
@@ -202,6 +229,38 @@ class OrderViewModel extends ChangeNotifier {
       if (success) {
         if (kDebugMode) {
           print('✅ Repository update successful for order $orderId');
+        }
+        
+        // Send notification to distributor when order is approved (status changed to inProgress)
+        if (status == OrderStatus.inProgress) {
+          final orderIndex = _orders.indexWhere((order) => order.id == orderId);
+          if (orderIndex != -1) {
+            final order = _orders[orderIndex];
+            if (kDebugMode) {
+              print('   Found order in local list, sending notification to distributor: ${order.distributorId}');
+            }
+            
+            try {
+              await _fcmService.sendNotificationToUser(
+                userId: order.distributorId,
+                title: 'Order Approved',
+                body: 'Your order is approved, please assign a driver.',
+                data: {
+                  'type': 'order_approved',
+                  'orderId': orderId,
+                  'distributorId': order.distributorId,
+                },
+              );
+              
+              if (kDebugMode) {
+                print('✅ Order approval notification sent to distributor: ${order.distributorId}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('⚠️ Failed to send order approval notification: $e');
+              }
+            }
+          }
         }
         
         // Create notification for distributor about status update
@@ -372,6 +431,7 @@ class OrderViewModel extends ChangeNotifier {
     _pendingOrdersCount = 0;
     _error = null;
     _isLoading = false;
+    _isInitialLoadCompleted = false;
     notifyListeners();
   }
 

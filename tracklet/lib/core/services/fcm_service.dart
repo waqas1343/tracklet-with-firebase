@@ -3,6 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+// Callback type for handling notification taps
+typedef NotificationTapCallback = void Function(String orderId);
 
 // Top-level function for background message handling
 @pragma('vm:entry-point')
@@ -39,6 +44,9 @@ class FCMService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String? _fcmToken;
+  
+  // Callback for handling notification taps
+  NotificationTapCallback? _onNotificationTap;
 
   FCMService._();
 
@@ -48,6 +56,11 @@ class FCMService {
   }
 
   String? get fcmToken => _fcmToken;
+  
+  // Setter for notification tap callback
+  set onNotificationTap(NotificationTapCallback? callback) {
+    _onNotificationTap = callback;
+  }
 
   /// Initialize FCM service
   Future<void> initialize() async {
@@ -249,7 +262,34 @@ class FCMService {
     }
 
     // Navigate to appropriate screen based on notification data
-    // You can implement navigation logic here
+    _handleNotificationAction(message.data);
+  }
+
+  /// Handle notification action based on data
+  void _handleNotificationAction(Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    
+    if (type == 'order_approved') {
+      final orderId = data['orderId'] as String?;
+      if (orderId != null) {
+        // Call the callback if set
+        if (_onNotificationTap != null) {
+          _onNotificationTap!(orderId);
+        } else {
+          // Fallback to showing driver assignment dialog directly
+          _showDriverAssignmentDialog(orderId);
+        }
+      }
+    }
+  }
+
+  /// Show driver assignment dialog
+  void _showDriverAssignmentDialog(String orderId) {
+    // This method would be called when we have access to the context
+    // For now, we'll handle this in the main app widget
+    if (kDebugMode) {
+      print('🔔 Order approved notification tapped for order: $orderId');
+    }
   }
 
   /// Show local notification
@@ -301,7 +341,33 @@ class FCMService {
       print('Payload: ${response.payload}');
     }
 
-    // Implement navigation logic here
+    // Parse payload and handle action
+    if (response.payload != null) {
+      try {
+        // This is a simplified parsing, in real app you might want to use JSON
+        final payload = response.payload!;
+        if (payload.contains('order_approved') && payload.contains('orderId')) {
+          // Extract order ID from payload (simplified approach)
+          final startIndex = payload.indexOf('orderId') + 9;
+          final endIndex = payload.indexOf(',', startIndex);
+          final orderId = payload.substring(startIndex, endIndex).replaceAll("'", "").trim();
+          
+          if (orderId.isNotEmpty) {
+            // Call the callback if set
+            if (_onNotificationTap != null) {
+              _onNotificationTap!(orderId);
+            } else {
+              // Fallback to showing driver assignment dialog directly
+              _showDriverAssignmentDialog(orderId);
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error parsing notification payload: $e');
+        }
+      }
+    }
   }
 
   /// Save FCM token to Firestore for a user
@@ -361,14 +427,39 @@ class FCMService {
         print('📤 Sending notification to user: $userId');
         print('Title: $title');
         print('Body: $body');
+        print('Data: $data');
       }
 
-      // Note: Sending notifications requires a server-side implementation
-      // You can use Firebase Cloud Functions or your own backend
-      // This is just a placeholder for the client-side logic
+      // Send notification using HTTP request to Firebase Cloud Messaging API
+      // Note: In a production app, this should be done through a secure backend
+      // to protect your Firebase credentials
+      final response = await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'key=YOUR_SERVER_KEY_HERE', // Replace with your actual server key
+        },
+        body: jsonEncode({
+          'to': fcmToken,
+          'notification': {
+            'title': title,
+            'body': body,
+            'sound': 'default',
+          },
+          'data': data ?? {},
+        }),
+      );
 
-      if (kDebugMode) {
-        print('✅ Notification sent successfully');
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('✅ Notification sent successfully');
+          print('Response: ${response.body}');
+        }
+      } else {
+        if (kDebugMode) {
+          print('❌ Failed to send notification. Status code: ${response.statusCode}');
+          print('Response: ${response.body}');
+        }
       }
     } catch (e) {
       if (kDebugMode) {

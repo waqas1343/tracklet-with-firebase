@@ -4,7 +4,14 @@ import '../providers/user_role_provider.dart';
 import '../providers/navigation_view_model.dart';
 import '../widgets/unified_bottom_nav_bar.dart';
 import '../utils/app_colors.dart';
-import '../providers/profile_provider.dart'; // Add this import
+import '../providers/profile_provider.dart';
+import '../providers/company_provider.dart';
+import '../models/company_model.dart';
+import '../services/fcm_service.dart';
+import '../../features/distributor/widgets/driver_assignment_dialog.dart';
+import '../providers/order_provider.dart';
+import '../models/order_model.dart';
+import '../../features/distributor/provider/driver_provider.dart';
 
 // Gas Plant Screens
 import '../../features/gas_plant/view/gas_plant_dashboard_screen.dart';
@@ -19,15 +26,99 @@ import '../../features/distributor/view/distributor_orders_screen.dart';
 import '../../features/distributor/view/drivers_screen.dart';
 import '../../features/distributor/view/distributor_settings_screen.dart';
 
-class UnifiedMainScreen extends StatelessWidget {
+class UnifiedMainScreen extends StatefulWidget {
   const UnifiedMainScreen({super.key});
+
+  @override
+  State<UnifiedMainScreen> createState() => _UnifiedMainScreenState();
+}
+
+class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
+  CompanyModel? _company;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set up notification tap handler
+    _setupNotificationHandler();
+  }
+
+  void _setupNotificationHandler() {
+    // Set up callback for notification taps
+    FCMService.instance.onNotificationTap = (String orderId) {
+      // Show driver assignment dialog when notification is tapped
+      _showDriverAssignmentDialog(orderId);
+    };
+  }
+
+  void _showDriverAssignmentDialog(String orderId) {
+    // Get the order from the repository
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    
+    // We need to fetch the order by ID
+    orderProvider.getOrderById(orderId).then((order) {
+      if (order != null && mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return ChangeNotifierProvider(
+              create: (context) => DriverProvider(),
+              child: DriverAssignmentDialog(
+                order: order,
+                onAssignmentComplete: () {
+                  // Refresh orders after assignment
+                  final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+                  if (profileProvider.currentUser != null) {
+                    orderProvider.loadOrdersForDistributor(profileProvider.currentUser!.id);
+                  }
+                },
+              ),
+            );
+          },
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to load order details'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }).catchError((error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading order: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final userRoleProvider = Provider.of<UserRoleProvider>(context);
     final navigationViewModel = Provider.of<NavigationViewModel>(context);
-    Provider.of<ProfileProvider>(context); 
-    final pages = _getPages(userRoleProvider.currentRole);
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final companyProvider = Provider.of<CompanyProvider>(context);
+    
+    // Load company data if not already loaded
+    if (_company == null && 
+        profileProvider.currentUser != null && 
+        companyProvider.companies.isNotEmpty) {
+      // Try to find the company that matches the current user
+      final userCompany = companyProvider.companies.firstWhere(
+        (company) => company.id == profileProvider.currentUser!.id,
+        orElse: () => companyProvider.companies.first,
+      );
+      
+      setState(() {
+        _company = userCompany;
+      });
+    }
+    
+    final pages = _getPages(userRoleProvider.currentRole, profileProvider, companyProvider);
     final safeIndex = navigationViewModel.currentIndex < pages.length
         ? navigationViewModel.currentIndex
         : 0;
@@ -39,14 +130,42 @@ class UnifiedMainScreen extends StatelessWidget {
     );
   }
 
-  List<Widget> _getPages(UserRole role) {
+  List<Widget> _getPages(UserRole role, ProfileProvider profileProvider, CompanyProvider companyProvider) {
     if (role == UserRole.gasPlant) {
-      return const [
-        GasPlantDashboardScreen(),
-        GasRateScreen(),
-        OrdersScreen(),
-        ExpensesScreen(),
-        SettingsScreen(),
+      // Get company data for the current user
+      CompanyModel companyToUse;
+      
+      if (_company != null) {
+        companyToUse = _company!;
+      } else if (profileProvider.currentUser != null) {
+        // Create a company model from user data
+        companyToUse = CompanyModel(
+          id: profileProvider.currentUser!.id,
+          companyName: profileProvider.currentUser!.companyName ?? '',
+          contactNumber: profileProvider.currentUser!.phone,
+          address: profileProvider.currentUser!.address ?? '',
+          operatingHours: profileProvider.currentUser!.operatingHours ?? '',
+          createdAt: profileProvider.currentUser!.createdAt,
+          updatedAt: DateTime.now(),
+        );
+      } else {
+        // Fallback company model with empty ID
+        companyToUse = CompanyModel(
+          id: '',
+          companyName: '',
+          contactNumber: '',
+          address: '',
+          operatingHours: '',
+          createdAt: DateTime.now(),
+        );
+      }
+      
+      return [
+        const GasPlantDashboardScreen(),
+        GasRateScreen(company: companyToUse),
+        const OrdersScreen(),
+        const ExpensesScreen(),
+        const SettingsScreen(),
       ];
     } else {
       return const [
@@ -56,5 +175,12 @@ class UnifiedMainScreen extends StatelessWidget {
         DistributorSettingsScreen(),
       ];
     }
+  }
+
+  @override
+  void dispose() {
+    // Clear the callback when widget is disposed
+    FCMService.instance.onNotificationTap = null;
+    super.dispose();
   }
 }

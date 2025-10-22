@@ -17,9 +17,17 @@ class OrderProvider extends ChangeNotifier {
   List<OrderModel> get newOrders => _viewModel.newOrders;
   List<OrderModel> get distributorOrders => _viewModel.distributorOrders;
   bool get isLoading => _viewModel.isLoading;
+  bool get isInitialLoadCompleted => _viewModel.isInitialLoadCompleted;
   String? get error => _viewModel.error;
   int get pendingOrdersCount => _viewModel.pendingOrdersCount;
   bool get hasOrders => _viewModel.hasOrders;
+  
+  // Additional getters for specific order types
+  List<OrderModel> get pendingOrders => _viewModel.pendingOrders;
+  List<OrderModel> get processingOrders => _viewModel.processingOrders;
+  List<OrderModel> get confirmedOrders => _viewModel.confirmedOrders;
+  List<OrderModel> get completedOrders => _viewModel.completedOrders;
+  List<OrderModel> get cancelledOrders => _viewModel.cancelledOrders;
 
   /// Create a new order
   Future<bool> createOrder(OrderModel order) async {

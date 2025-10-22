@@ -580,18 +580,6 @@ class OrderCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 8),
-          if (order.driverName == null || order.driverName!.isEmpty) ...[
-            SizedBox(height: 8),
-            CustomButton(
-              text: 'Assign Driver',
-              onPressed: () => _showDriverAssignmentDialog(context, order),
-              backgroundColor: AppColors.primary,
-              textColor: AppColors.white,
-              height: 40,
-              borderRadius: 8,
-            ),
-            SizedBox(height: 8),
-          ],
           Row(
             children: [
               Expanded(
@@ -640,74 +628,6 @@ class OrderCard extends StatelessWidget {
 
   String _formatTime(DateTime date) {
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  void _showDriverAssignmentDialog(BuildContext context, OrderModel order) {
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    final TextEditingController driverController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Assign Driver'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Enter the name of the driver for this order:'),
-              SizedBox(height: 16),
-              TextField(
-                controller: driverController,
-                decoration: InputDecoration(
-                  hintText: 'Driver Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (driverController.text.trim().isNotEmpty) {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  Navigator.pop(context);
-                  
-                  final success = await orderProvider.updateOrderStatus(
-                    order.id,
-                    OrderStatus.inProgress,
-                    driverName: driverController.text.trim(),
-                  );
-                                    if (context.mounted) {
-                    if (success) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Driver assigned successfully'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to assign driver'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
-                } else {
-                  Navigator.pop(context);
-                }
-              },
-              child: Text('Assign'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _showCancelDialog(BuildContext context, OrderModel order) {
@@ -761,6 +681,18 @@ class OrderCard extends StatelessWidget {
 
   void _markOrderCompleted(BuildContext context, OrderModel order) {
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    
+    // Check if driver is assigned before allowing completion
+    if (order.driverName == null || order.driverName!.isEmpty) {
+      // Show error message that driver must be assigned first
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please assign a driver before completing the order'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     
     showDialog(
       context: context,

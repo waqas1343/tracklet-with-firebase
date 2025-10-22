@@ -17,6 +17,7 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _initialLoadCompleted = false;
 
   final Color navy = const Color(0xFF0C2340);
   final Color tabGrey = const Color(0xFFF0F0F0);
@@ -29,7 +30,6 @@ class _OrdersScreenState extends State<OrdersScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     
-    // Show highlight message if there's a highlighted order
     if (widget.highlightedOrderId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -72,27 +72,19 @@ class _OrdersScreenState extends State<OrdersScreen>
         builder: (context, orderProvider, profileProvider, _) {
           final user = profileProvider.currentUser;
           
-          // Debug information
-          if (kDebugMode) {
-            print('OrdersScreen - User ID: ${user?.id}');
-            print('OrdersScreen - Is loading: ${orderProvider.isLoading}');
-            print('OrdersScreen - Total orders: ${orderProvider.orders.length}');
-            if (widget.highlightedOrderId != null) {
-              print('OrdersScreen - Highlighted Order ID: ${widget.highlightedOrderId}');
-            }
-          }
-          
-          // Load orders if user is available and not already loading
-          if (user != null && !orderProvider.isLoading) {
-            if (kDebugMode) {
-              print('OrdersScreen - Triggering load for user: ${user.id}');
-            }
+          // Load orders only once when the screen is first displayed
+          if (user != null && !_initialLoadCompleted && !orderProvider.isLoading) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              orderProvider.loadOrdersForPlant(user.id);
+              orderProvider.loadOrdersForPlant(user.id).then((_) {
+                if (mounted) {
+                  setState(() {
+                    _initialLoadCompleted = true;
+                  });
+                }
+              });
             });
           }
           
-          // Filter orders by status
           final completedOrders = orderProvider.orders
               .where((order) => order.status == OrderStatus.completed)
               .toList();
@@ -100,12 +92,6 @@ class _OrdersScreenState extends State<OrdersScreen>
           final cancelledOrders = orderProvider.orders
               .where((order) => order.status == OrderStatus.cancelled)
               .toList();
-          
-          // Debug information
-          if (kDebugMode) {
-            print('OrdersScreen - Completed orders: ${completedOrders.length}');
-            print('OrdersScreen - Cancelled orders: ${cancelledOrders.length}');
-          }
           
           // Sort by updated date, newest first
           completedOrders.sort((a, b) => 
@@ -140,7 +126,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                             const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                       ),
                       onPressed: () {
-                        // TODO: Implement download report functionality
                       },
                       icon: Icon(Icons.file_download, size: 20, color: navy),
                       label: Text(
@@ -159,7 +144,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                 /// ✅ TabBar (Completed / Cancelled)
                 Container(
                   decoration: BoxDecoration(
-                    color: tabGrey,
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: TabBar(
@@ -227,7 +211,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                       /// ✅ Completed Orders
                       user == null
                           ? const Center(child: Text('User not logged in'))
-                          : orderProvider.isLoading && orderProvider.orders.isEmpty
+                          : orderProvider.isLoading && !_initialLoadCompleted
                               ? const Center(child: CircularProgressIndicator())
                               : completedOrders.isEmpty
                                   ? Center(
@@ -269,7 +253,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                       /// ❌ Cancelled Orders
                       user == null
                           ? const Center(child: Text('User not logged in'))
-                          : orderProvider.isLoading && orderProvider.orders.isEmpty
+                          : orderProvider.isLoading && !_initialLoadCompleted
                               ? const Center(child: CircularProgressIndicator())
                               : cancelledOrders.isEmpty
                                   ? Center(

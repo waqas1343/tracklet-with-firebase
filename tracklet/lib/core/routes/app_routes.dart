@@ -15,6 +15,7 @@ import '../../features/distributor/view/distributor_dashboard_screen.dart';
 import '../../features/distributor/view/distributor_orders_screen.dart';
 import '../../features/distributor/view/drivers_screen.dart';
 import '../../features/distributor/view/distributor_settings_screen.dart';
+import '../../core/models/company_model.dart'; // Added import
 import '../screens/unified_main_screen.dart';
 
 class AppRoutes {
@@ -56,7 +57,14 @@ class AppRoutes {
 
       // Gas Plant Routes
       gasPlantDashboard: (context) => const GasPlantDashboardScreen(),
-      gasPlantGasRate: (context) => const GasRateScreen(),
+      gasPlantGasRate: (context) => GasRateScreen(company: CompanyModel(
+        id: '',
+        companyName: '',
+        contactNumber: '',
+        address: '',
+        operatingHours: '',
+        createdAt: DateTime.now(),
+      )), // Updated to pass a default company
       gasPlantOrders: (context) => const OrdersScreen(),
       gasPlantExpenses: (context) => const ExpensesScreen(),
       gasPlantSettings: (context) => const SettingsScreen(),
@@ -90,6 +98,15 @@ class AppRoutes {
           highlightedOrderId: args?['highlightedOrderId'] as String?,
         ),
       );
+    }
+    
+    if (settings.name == gasPlantGasRate) {
+      final args = settings.arguments as CompanyModel?;
+      if (args != null) {
+        return MaterialPageRoute(
+          builder: (context) => GasRateScreen(company: args),
+        );
+      }
     }
 
     // Handle unknown routes

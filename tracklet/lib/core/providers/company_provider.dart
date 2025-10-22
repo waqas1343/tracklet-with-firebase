@@ -10,6 +10,8 @@ class CompanyProvider extends ChangeNotifier {
 
   CompanyProvider() : _viewModel = CompanyViewModel(CompanyRepository()) {
     _viewModel.addListener(_onViewModelChanged);
+    // Start listening to real-time updates
+    _listenToRealTimeUpdates();
   }
 
   // Getters - Delegate to ViewModel
@@ -60,6 +62,15 @@ class CompanyProvider extends ChangeNotifier {
   /// Clear all data
   void clearData() {
     _viewModel.clearData();
+  }
+
+  /// Listen to real-time updates
+  void _listenToRealTimeUpdates() {
+    // Subscribe to real-time updates
+    _viewModel.companiesStream.listen((companies) {
+      // The companies are automatically updated through the view model
+      // We just need to ensure the subscription is active
+    });
   }
 
   /// Handle ViewModel changes

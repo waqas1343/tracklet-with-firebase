@@ -2,8 +2,175 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
 
-class TotalStockScreen extends StatelessWidget {
+// Tank model to store tank information
+class Tank {
+  final String id;
+  final String name;
+  final double capacity;
+  final double availableGas;
+  final double freezeGas;
+  final String lastRecordedDate;
+
+  Tank({
+    required this.id,
+    required this.name,
+    required this.capacity,
+    required this.availableGas,
+    required this.freezeGas,
+    required this.lastRecordedDate,
+  });
+}
+
+class TotalStockScreen extends StatefulWidget {
   const TotalStockScreen({super.key});
+
+  @override
+  State<TotalStockScreen> createState() => _TotalStockScreenState();
+}
+
+class _TotalStockScreenState extends State<TotalStockScreen> {
+  // List to store tanks - initially empty
+  List<Tank> _tanks = [];
+  
+  // Controllers for the dialog form
+  final TextEditingController _tankNameController = TextEditingController();
+  final TextEditingController _capacityController = TextEditingController();
+  final TextEditingController _initialGasController = TextEditingController();
+
+  @override
+  void dispose() {
+    _tankNameController.dispose();
+    _capacityController.dispose();
+    _initialGasController.dispose();
+    super.dispose();
+  }
+
+  // Method to show add tank dialog
+  void _showAddTankDialog() {
+    // Clear controllers
+    _tankNameController.clear();
+    _capacityController.clear();
+    _initialGasController.clear();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add New Tank'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _tankNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Tank Name',
+                  hintText: 'Enter tank name',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _capacityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Capacity (Tons)',
+                  hintText: 'Enter tank capacity',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _initialGasController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Initial Gas (Tons)',
+                  hintText: 'Enter initial gas amount',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _addTank();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Method to add a new tank
+  void _addTank() {
+    final String name = _tankNameController.text.trim();
+    final String capacityText = _capacityController.text.trim();
+    final String initialGasText = _initialGasController.text.trim();
+    
+    // Validate inputs
+    if (name.isEmpty || capacityText.isEmpty || initialGasText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    final double? capacity = double.tryParse(capacityText);
+    final double? initialGas = double.tryParse(initialGasText);
+    
+    if (capacity == null || initialGas == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter valid numbers for capacity and gas'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    if (initialGas > capacity) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Initial gas cannot exceed tank capacity'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    // Create new tank with unique ID
+    final String id = DateTime.now().millisecondsSinceEpoch.toString();
+    final String date = DateTime.now().toString().split(' ')[0];
+    
+    setState(() {
+      _tanks.add(
+        Tank(
+          id: id,
+          name: name,
+          capacity: capacity,
+          availableGas: initialGas,
+          freezeGas: 0.0,
+          lastRecordedDate: date,
+        ),
+      );
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tank added successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +198,15 @@ class TotalStockScreen extends StatelessWidget {
   }
 
   Widget _buildTanksStatusSummarySection() {
+    // Calculate total stock and freeze gas
+    double totalStock = 0.0;
+    double freezeGas = 0.0;
+    
+    for (var tank in _tanks) {
+      totalStock += tank.availableGas;
+      freezeGas += tank.freezeGas;
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -73,7 +249,7 @@ class TotalStockScreen extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 'Total Stock',
-                '12.5 Tons',
+                '${totalStock.toStringAsFixed(1)} Tons',
                 Icons.local_drink,
                 const Color(0xFF1A2B4C),
                 Colors.white,
@@ -83,7 +259,7 @@ class TotalStockScreen extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 'Freeze Gas',
-                '0.0 Tons',
+                '${freezeGas.toStringAsFixed(1)} Tons',
                 Icons.ac_unit,
                 Colors.white,
                 const Color(0xFF333333),
@@ -96,9 +272,7 @@ class TotalStockScreen extends StatelessWidget {
         // Add Tank Button
         CustomButton(
           text: 'Add Tank',
-          onPressed: () {
-            // TODO: Handle add tank
-          },
+          onPressed: _showAddTankDialog,
           width: double.infinity,
           backgroundColor: const Color(0xFF1A2B4C),
           textColor: Colors.white,
@@ -173,27 +347,43 @@ class TotalStockScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _buildTankCard(
-          'Tank 1',
-          '4.2 Tons',
-          '0.0 Tons',
-          '12.5 Tons',
-          '08-Oct-2025',
-        ),
-        _buildTankCard(
-          'Tank 2',
-          '4.2 Tons',
-          '0.0 Tons',
-          '12.5 Tons',
-          '08-Oct-2025',
-        ),
-        _buildTankCard(
-          'Tank 3',
-          '4.2 Tons',
-          '0.0 Tons',
-          '12.5 Tons',
-          '08-Oct-2025',
-        ),
+        // Display tanks dynamically
+        if (_tanks.isEmpty)
+          Center(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.local_drink_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'No tanks added yet',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF666666),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Click "Add Tank" to create a new tank',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF999999),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ..._tanks.map((tank) => _buildTankCard(
+                tank.name,
+                '${tank.availableGas.toStringAsFixed(1)} Tons',
+                '${tank.freezeGas.toStringAsFixed(1)} Tons',
+                '${tank.capacity.toStringAsFixed(1)} Tons',
+                tank.lastRecordedDate,
+              )),
       ],
     );
   }
