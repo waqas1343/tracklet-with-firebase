@@ -49,7 +49,12 @@ class OrderModel {
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     // Debug print to see what's coming from Firestore
     if (kDebugMode) {
-      print('Order from Firestore: $json');
+      print('🔍 Order from Firestore:');
+      print('   JSON data: $json');
+      if (json.containsKey('id')) print('   ID: ${json['id']}');
+      if (json.containsKey('status')) print('   Status: ${json['status']} (type: ${json['status'].runtimeType})');
+      if (json.containsKey('plantId')) print('   Plant ID: ${json['plantId']}');
+      if (json.containsKey('distributorName')) print('   Distributor: ${json['distributorName']}');
     }
     
     return OrderModel(
@@ -158,25 +163,40 @@ class OrderModel {
     
     // Debug print to see what status is being parsed
     if (kDebugMode) {
-      print('Parsing order status: $statusString');
+      print('🔍 Parsing order status:');
+      print('   Input status: $status');
+      print('   Status type: ${status.runtimeType}');
+      print('   Status as string: $statusString');
     }
     
     switch (statusString) {
       case 'pending':
+        if (kDebugMode) print('   Matched: pending');
         return OrderStatus.pending;
       case 'confirmed':
+        if (kDebugMode) print('   Matched: confirmed');
         return OrderStatus.confirmed;
       case 'in_progress':
+        if (kDebugMode) print('   Matched: in_progress');
+        return OrderStatus.inProgress;
       case 'inprogress':
+        if (kDebugMode) print('   Matched: inprogress');
+        return OrderStatus.inProgress;
+      case 'in progress':
+        if (kDebugMode) print('   Matched: in progress');
         return OrderStatus.inProgress;
       case 'completed':
+        if (kDebugMode) print('   Matched: completed');
         return OrderStatus.completed;
       case 'cancelled':
+        if (kDebugMode) print('   Matched: cancelled');
+        return OrderStatus.cancelled;
       case 'canceled':
+        if (kDebugMode) print('   Matched: canceled');
         return OrderStatus.cancelled;
       default:
         if (kDebugMode) {
-          print('Unknown status, defaulting to pending: $statusString');
+          print('   ❌ Unknown status, defaulting to pending: $statusString');
         }
         return OrderStatus.pending;
     }

@@ -19,13 +19,6 @@ import '../../features/distributor/view/distributor_orders_screen.dart';
 import '../../features/distributor/view/drivers_screen.dart';
 import '../../features/distributor/view/distributor_settings_screen.dart';
 
-/// UnifiedMainScreen: Automatically detects user role and shows appropriate screens
-///
-/// Features:
-/// - Role-based screen switching
-/// - Unified navigation
-/// - Provider-based state management
-/// - Responsive design
 class UnifiedMainScreen extends StatelessWidget {
   const UnifiedMainScreen({super.key});
 
@@ -33,20 +26,11 @@ class UnifiedMainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userRoleProvider = Provider.of<UserRoleProvider>(context);
     final navigationViewModel = Provider.of<NavigationViewModel>(context);
-    final profileProvider = Provider.of<ProfileProvider>(context); // Add this
-
-    // Debug: Print current role
-    print(
-      '🏠 UnifiedMainScreen - Current role: ${userRoleProvider.currentRole}',
-    );
-
-    // Get pages based on user role
+    Provider.of<ProfileProvider>(context); 
     final pages = _getPages(userRoleProvider.currentRole);
-
-    // Ensure currentIndex is within bounds to prevent RangeError
     final safeIndex = navigationViewModel.currentIndex < pages.length
         ? navigationViewModel.currentIndex
-        : 0; // Default to first tab if index is out of bounds
+        : 0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,12 +39,8 @@ class UnifiedMainScreen extends StatelessWidget {
     );
   }
 
-  /// Get pages based on user role
   List<Widget> _getPages(UserRole role) {
-    print('📱 _getPages called with role: $role');
-
     if (role == UserRole.gasPlant) {
-      print('✅ Loading GAS PLANT screens (5 tabs)');
       return const [
         GasPlantDashboardScreen(),
         GasRateScreen(),
@@ -69,8 +49,6 @@ class UnifiedMainScreen extends StatelessWidget {
         SettingsScreen(),
       ];
     } else {
-      print('✅ Loading DISTRIBUTOR screens (4 tabs)');
-      // Distributor - Only 4 screens for 4 tabs
       return const [
         DistributorDashboardScreen(),
         DistributorOrdersScreen(),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
+import '../../../core/models/order_model.dart';
 import '../../../shared/widgets/section_header_widget.dart';
 import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
@@ -123,20 +125,116 @@ class GasPlantDashboardScreen extends StatelessWidget {
           const Center(child: CircularProgressIndicator())
         else if (orderProvider.newOrders.isEmpty)
           const Center(child: Text('No new orders'))
-        else ...orderProvider.newOrders.take(3).map((order) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: NewOrderCard(
-                companyName: order.distributorName,
-                description: '${order.distributorName} placed a request for mentioned cylinders',
-                time: _formatTime(order.createdAt),
-                date: _formatDate(order.createdAt),
-                specialInstructions: order.specialInstructions ?? '',
-                requestedItems: order.formattedQuantities,
-                totalWeight: '${order.totalKg.toInt()} KG',
-                customerImage: 'assets/images/customer.png',
-                onApprovePressed: () {                },
-              ),
-            )),
+        else ...[
+          // Debug information
+          if (kDebugMode) ...[
+            Builder(
+              builder: (context) {
+                print('Dashboard - New orders count: ${orderProvider.newOrders.length}');
+                for (var order in orderProvider.newOrders) {
+                  print('New Order ID: ${order.id}, Status: ${order.statusText} (${order.status}), Plant ID: ${order.plantId}');
+                }
+                return const SizedBox.shrink();
+              }
+            )
+          ],
+          ...orderProvider.newOrders.take(3).map((order) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: NewOrderCard(
+              companyName: order.distributorName,
+              description: '${order.distributorName} placed a request for mentioned cylinders',
+              time: _formatTime(order.createdAt),
+              date: _formatDate(order.createdAt),
+              specialInstructions: order.specialInstructions ?? '',
+              requestedItems: order.formattedQuantities,
+              totalWeight: '${order.totalKg.toInt()} KG',
+              customerImage: 'assets/images/customer.png',
+              onApprovePressed: () {
+                // Update the order status to inProgress
+                if (kDebugMode) {
+                  print('=== Approving Order ===');
+                  print('Order ID: ${order.id}');
+                  print('Current status: ${order.statusText} (${order.status})');
+                  print('Updating to: ${OrderStatus.inProgress} (${OrderStatus.inProgress.toString().split('.').last})');
+                }
+                
+                orderProvider.updateOrderStatus(
+                  order.id, 
+                  OrderStatus.inProgress,
+                  driverName: 'Romail Ahmed', // Default driver
+                ).then((success) {
+                  if (kDebugMode) {
+                    print('Order update result: $success');
+                    if (success) {
+                      print('✅ Order approved successfully!');
+                      print('   Order ID: ${order.id}');
+                      print('   New status should be: inProgress');
+                    } else {
+                      print('❌ Order approval failed');
+                    }
+                  }
+                  
+                  if (success) {
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Order approved successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(orderProvider.error ?? 'Failed to approve order'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }).catchError((error) {
+                  if (kDebugMode) {
+                    print('❌ Error approving order: $error');
+                    print('   Stack trace: ${error is Error ? error.stackTrace : 'N/A'}');
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error approving order: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                });
+              },
+              onCancelPressed: () {
+                // Update the order status to cancelled
+                orderProvider.updateOrderStatus(
+                  order.id, 
+                  OrderStatus.cancelled
+                ).then((success) {
+                  if (success) {
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Order cancelled successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(orderProvider.error ?? 'Failed to cancel order'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                });
+              },
+              onTap: () {
+                // Navigate to order details if needed
+              },
+            ),
+          ))
+        ]
       ],
     );
   }

@@ -10,7 +10,6 @@ import '../../features/gas_plant/view/expenses_screen.dart';
 import '../../features/gas_plant/view/settings_screen.dart';
 import '../../features/gas_plant/view/total_stock_screen.dart';
 import '../../features/gas_plant/view/active_employees_screen.dart';
-import '../../features/gas_plant/view/new_orders_screen.dart';
 import '../../features/gas_plant/view/orders_in_progress_screen.dart';
 import '../../features/distributor/view/distributor_dashboard_screen.dart';
 import '../../features/distributor/view/distributor_orders_screen.dart';
@@ -63,7 +62,6 @@ class AppRoutes {
       gasPlantSettings: (context) => const SettingsScreen(),
       gasPlantTotalStock: (context) => const TotalStockScreen(),
       gasPlantActiveEmployees: (context) => const ActiveEmployeesScreen(),
-      gasPlantNewOrders: (context) => const NewOrdersScreen(),
       gasPlantOrdersInProgress: (context) => const OrdersInProgressScreen(),
 
       // Distributor Routes

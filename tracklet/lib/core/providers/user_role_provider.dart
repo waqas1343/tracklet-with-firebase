@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
-import '../providers/navigation_view_model.dart';
-import 'package:provider/provider.dart';
 
-/// UserRoleProvider: Manages user role state across the app
-///
-/// Handles role-based navigation and UI state management
 class UserRoleProvider extends ChangeNotifier {
   final StorageService _storageService;
 
@@ -18,18 +13,14 @@ class UserRoleProvider extends ChangeNotifier {
     _loadUserRole();
   }
 
-  // Getters
   UserRole get currentRole => _currentRole;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Check if user is Gas Plant
   bool get isGasPlant => _currentRole == UserRole.gasPlant;
 
-  // Check if user is Distributor
   bool get isDistributor => _currentRole == UserRole.distributor;
 
-  /// Load user role from storage
   Future<void> _loadUserRole() async {
     _setLoading(true);
     try {
@@ -47,32 +38,23 @@ class UserRoleProvider extends ChangeNotifier {
     }
   }
 
-  /// Set user role and save to storage
   Future<void> setUserRole(UserRole role) async {
     _setLoading(true);
     try {
-      print('💾 UserRoleProvider - Setting role: $role');
       
-      // Reset navigation index when role changes to prevent RangeError
       if (_currentRole != role) {
-        print('🔄 UserRoleProvider - Role changed, resetting navigation index');
       }
       
       _currentRole = role;
       final roleString = role.toString().split('.').last;
-      print('💾 UserRoleProvider - Saving to storage: $roleString');
       await _storageService.setString('user_role', roleString);
-      print('✅ UserRoleProvider - Role saved successfully');
       notifyListeners();
     } catch (e) {
-      print('❌ UserRoleProvider - Error: $e');
       _setError('Failed to save user role: $e');
     } finally {
       _setLoading(false);
     }
   }
-
-  /// Get the appropriate dashboard route based on role
   String get dashboardRoute {
     switch (_currentRole) {
       case UserRole.gasPlant:
@@ -81,8 +63,6 @@ class UserRoleProvider extends ChangeNotifier {
         return '/distributor/dashboard';
     }
   }
-
-  /// Get the appropriate bottom navigation tabs based on role
   List<NavigationTab> get navigationTabs {
     switch (_currentRole) {
       case UserRole.gasPlant:
@@ -154,11 +134,7 @@ class UserRoleProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-
-/// User role enumeration
 enum UserRole { gasPlant, distributor }
-
-/// Navigation tab model
 class NavigationTab {
   final IconData icon;
   final String title;

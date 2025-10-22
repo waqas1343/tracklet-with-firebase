@@ -75,8 +75,13 @@ class NewOrderCard extends StatelessWidget {
                 if (customerImage != null)
                   CircleAvatar(
                     radius: screenWidth * 0.06,
-                    backgroundImage: AssetImage(customerImage!),
+                    backgroundColor: AppColors.background,
+                    child: Icon(
+                      Icons.person,
+                      color: AppColors.black,
+                    ),
                   ),
+
               ],
             ),
             SizedBox(height: screenWidth * 0.02),

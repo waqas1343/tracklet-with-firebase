@@ -152,6 +152,13 @@ class OrderViewModel extends ChangeNotifier {
   /// Listen to real-time order updates for a plant
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
     return _repository.getOrdersStreamForPlant(plantId).map((orders) {
+      if (kDebugMode) {
+        print('OrderViewModel - Orders updated for plant $plantId, count: ${orders.length}');
+        for (var order in orders) {
+          print('  Order ID: ${order.id}, Status: ${order.statusText} (${order.status}), Plant ID: ${order.plantId}');
+        }
+      }
+      
       _orders = orders;
       _updateNewOrders();
       notifyListeners();
@@ -180,6 +187,12 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      if (kDebugMode) {
+        print('🔄 ViewModel updating order $orderId status to: ${status.toString().split('.').last}');
+        print('   OrderStatus enum: $status');
+        print('   Driver name: $driverName');
+      }
+
       final success = await _repository.updateOrderStatus(
         orderId,
         status,
@@ -187,10 +200,18 @@ class OrderViewModel extends ChangeNotifier {
       );
 
       if (success) {
+        if (kDebugMode) {
+          print('✅ Repository update successful for order $orderId');
+        }
+        
         // Create notification for distributor about status update
         final orderIndex = _orders.indexWhere((order) => order.id == orderId);
         if (orderIndex != -1) {
           final order = _orders[orderIndex];
+          if (kDebugMode) {
+            print('   Found order in local list, updating local copy');
+          }
+          
           await _notificationRepository.createOrderStatusNotification(
             distributorId: order.distributorId,
             plantName: order.plantName,
@@ -203,16 +224,46 @@ class OrderViewModel extends ChangeNotifier {
             driverName: driverName,
             updatedAt: DateTime.now(),
           );
-          _updateNewOrders();
-          notifyListeners();
+          
+          if (kDebugMode) {
+            print('   Updated local order ${order.id} status to: ${status.toString().split('.').last}');
+            print('   Updated order driver name: $driverName');
+            print('   Updated order status enum: ${_orders[orderIndex].status}');
+          }
+        } else {
+          if (kDebugMode) {
+            print('   ⚠️ Order $orderId not found in local list, but update was successful in Firestore');
+            print('   Local orders count: ${_orders.length}');
+            for (var i = 0; i < _orders.length; i++) {
+              print('     Order $i: ${_orders[i].id} - Status: ${_orders[i].statusText}');
+            }
+          }
+        }
+        
+        // Always refresh the orders list to ensure UI consistency
+        // This fixes the issue where orders weren't appearing in the right sections
+        _updateNewOrders();
+        notifyListeners();
+        
+        if (kDebugMode) {
+          print('   Notified listeners of changes');
+          print('   New orders count after update: ${_newOrders.length}');
+          for (var i = 0; i < _newOrders.length; i++) {
+            print('     New Order $i: ${_newOrders[i].id} - Status: ${_newOrders[i].statusText}');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('❌ Repository update failed for order $orderId');
         }
       }
 
       return success;
-    } catch (e) {
+    } catch (e, stackTrace) {
       _setError('Failed to update order status: ${e.toString()}');
       if (kDebugMode) {
-        print('Error updating order status: $e');
+        print('❌ Error updating order status: $e');
+        print('   Stack trace: $stackTrace');
       }
       return false;
     } finally {

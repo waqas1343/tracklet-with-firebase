@@ -5,14 +5,13 @@ import '../settings/sales_summary_screen.dart';
 import '../settings/profile_settings_screen.dart';
 import '../settings/change_password_screen.dart';
 import '../settings/download_reports_screen.dart';
-import 'new_orders_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -36,7 +35,6 @@ class SettingsScreen extends StatelessWidget {
               // 🔹 Settings Options
               ...[
                 _buildSettingTile(context, 'Manage Plant', const ManagePlantScreen()),
-                _buildSettingTile(context, 'New Orders', const NewOrdersScreen()),
                 _buildSettingTile(context, 'Sales Summary', const SalesSummaryScreen()),
                 _buildSettingTile(context, 'Profile Settings', const ProfileSettingsScreen()),
                 _buildSettingTile(context, 'Change Password', const ChangePasswordScreen()),
@@ -61,12 +59,11 @@ class SettingsScreen extends StatelessWidget {
                   const Text('Eng', style: TextStyle(fontSize: 14, color: Colors.black)),
                   const SizedBox(width: 8),
                   Switch(
-                    value: true, // Urdu active
+                    value: true, 
                     onChanged: (value) {
-                      // TODO: Language switch
                     },
                     activeThumbColor: Colors.blue,
-                    activeTrackColor: Colors.blue.withOpacity(0.3),
+                    activeTrackColor: Colors.blue,
                     inactiveThumbColor: Colors.grey,
                     inactiveTrackColor: Colors.grey.shade300,
                   ),

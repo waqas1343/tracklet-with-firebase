@@ -85,9 +85,14 @@ class OrderRepository {
     }
 
     try {
-      return _firestore
-          .collection(_ordersCollection)
-          .where('plantId', isEqualTo: plantId)
+      final collectionRef = _firestore.collection(_ordersCollection);
+      final query = collectionRef.where('plantId', isEqualTo: plantId);
+      
+      if (kDebugMode) {
+        print('   Firestore query: plantId == $plantId');
+      }
+      
+      final stream = query
           .snapshots()
           .handleError((error) {
             if (kDebugMode) {
@@ -99,15 +104,42 @@ class OrderRepository {
               print(
                 '✅ Order stream update - Plant: $plantId, Docs: ${snapshot.docs.length}',
               );
+              // Print all document IDs to see what we're getting
+              if (snapshot.docs.isEmpty) {
+                print('   No documents found for plant: $plantId');
+              } else {
+                for (var doc in snapshot.docs) {
+                  print('  Document ID: ${doc.id}');
+                  final data = doc.data();
+                  print('    Data: $data');
+                  if (data.containsKey('status')) {
+                    print('    Status: ${data['status']}');
+                  } else {
+                    print('    ❌ No status field found');
+                  }
+                  if (data.containsKey('plantId')) {
+                    print('    Plant ID: ${data['plantId']}');
+                  } else {
+                    print('    ❌ No plantId field found');
+                  }
+                }
+              }
             }
 
             final orders = snapshot.docs
                 .map((doc) {
                   try {
-                    return OrderModel.fromJson({...doc.data(), 'id': doc.id});
+                    final data = {...doc.data(), 'id': doc.id};
+                    if (kDebugMode) {
+                      print('  Processing document ID: ${doc.id}');
+                      print('    Status from Firestore: ${data['status']}');
+                      print('    Status type: ${data['status'].runtimeType}');
+                    }
+                    return OrderModel.fromJson(data);
                   } catch (e) {
                     if (kDebugMode) {
                       print('⚠️ Error parsing order ${doc.id}: $e');
+                      print('    Document data: ${doc.data()}');
                     }
                     return null;
                   }
@@ -119,19 +151,31 @@ class OrderRepository {
             orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
             if (kDebugMode) {
-              print('📦 Parsed ${orders.length} valid orders');
-              for (var order in orders) {
-                print(
-                  '   Order: ${order.id.substring(0, 8)}... | Status: ${order.statusText} | Plant: ${order.plantId.substring(0, 8)}...',
-                );
+              print('📦 Parsed ${orders.length} valid orders for plant $plantId');
+              if (orders.isEmpty) {
+                print('   ❌ No valid orders parsed');
+              } else {
+                for (var i = 0; i < orders.length; i++) {
+                  var order = orders[i];
+                  print(
+                    '   Order #$i: ${order.id.substring(0, 8)}... | Status: ${order.statusText} (${order.status}) | Plant: ${order.plantId.substring(0, 8)}...',
+                  );
+                }
               }
             }
 
             return orders;
           });
-    } catch (e) {
+          
+      if (kDebugMode) {
+        print('✅ Stream created successfully for plant: $plantId');
+      }
+      
+      return stream;
+    } catch (e, stackTrace) {
       if (kDebugMode) {
         print('❌ Fatal error creating stream: $e');
+        print('   Stack trace: $stackTrace');
       }
       return Stream.value([]);
     }
@@ -194,25 +238,76 @@ class OrderRepository {
     String? driverName,
   }) async {
     try {
+      final statusString = status.toString().split('.').last;
+      
+      if (kDebugMode) {
+        print('🔄 Updating order $orderId status to: $statusString');
+        print('   OrderStatus enum value: $status');
+        print('   Status string for Firestore: $statusString');
+      }
+      
       final updates = <String, dynamic>{
-        'status': status.toString().split('.').last,
+        'status': statusString,
         'updatedAt': DateTime.now().toIso8601String(),
       };
 
       if (driverName != null) {
         updates['driverName'] = driverName;
+        if (kDebugMode) {
+          print('   Setting driver name to: $driverName');
+        }
       }
 
       if (status == OrderStatus.completed) {
         updates['deliveryDate'] = DateTime.now().toIso8601String();
       }
 
+      if (kDebugMode) {
+        print('   Update data: $updates');
+      }
+
       await _firestore
           .collection(_ordersCollection)
           .doc(orderId)
           .update(updates);
+      
+      if (kDebugMode) {
+        print('✅ Successfully updated order $orderId');
+        print('   Updated fields: $updates');
+      }
+      
+      // Verify the update was successful by reading the document back
+      try {
+        final docSnapshot = await _firestore
+            .collection(_ordersCollection)
+            .doc(orderId)
+            .get();
+            
+        if (docSnapshot.exists) {
+          final data = docSnapshot.data();
+          if (kDebugMode) {
+            print('   Verification - Document data after update: $data');
+            if (data != null && data.containsKey('status')) {
+              print('   Verification - Status in document: ${data['status']}');
+            }
+          }
+        } else {
+          if (kDebugMode) {
+            print('   ❌ Verification failed - Document does not exist after update');
+          }
+        }
+      } catch (verifyError) {
+        if (kDebugMode) {
+          print('   ⚠️ Verification error: $verifyError');
+        }
+      }
+      
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('❌ Error updating order status: $e');
+        print('   Stack trace: $stackTrace');
+      }
       throw Exception('Failed to update order status: $e');
     }
   }
