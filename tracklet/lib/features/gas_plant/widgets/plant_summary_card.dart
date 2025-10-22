@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils/app_colors.dart';
 
-/// PlantSummaryCard: Reusable card for plant summary metrics
-///
-/// Displays key metrics with icon, title, and value
 class PlantSummaryCard extends StatelessWidget {
   final String title;
+  final String subtitle;
   final String value;
   final IconData icon;
   final Color backgroundColor;
@@ -16,6 +14,7 @@ class PlantSummaryCard extends StatelessWidget {
   const PlantSummaryCard({
     super.key,
     required this.title,
+    required this.subtitle,
     required this.value,
     required this.icon,
     this.backgroundColor = Colors.white,
@@ -29,50 +28,49 @@ class PlantSummaryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 120,
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, size: 20, color: iconColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textColor.withValues(alpha: 0.1),
-                      fontWeight: FontWeight.w500,
+                Column(
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textColor,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
-                // Arrow icon to indicate clickable
-                if (onTap != null)
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14,
-                    color: textColor.withValues(alpha: 0.1),
-                  ),
+                              Icon(icon, size: 20, color: iconColor),
+
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
             Text(
               value,
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: textColor,
               ),

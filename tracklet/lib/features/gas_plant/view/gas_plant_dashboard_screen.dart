@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
-import '../../../core/models/order_model.dart';
 import '../../../shared/widgets/section_header_widget.dart';
 import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
@@ -19,20 +18,15 @@ class GasPlantDashboardScreen extends StatelessWidget {
       appBar: const CustomAppBar(showBackButton: false),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top App Bar with User Profile
-
-              // Main Content
               _buildPlantSummarySection(context),
-              const SizedBox(height: 24),
-
+              const SizedBox(height: 14),
                             _buildNewOrdersSection(context),
               const SizedBox(height: 24),
 
-              // Previous Orders Section
               _buildPreviousOrdersSection(),
             ],
           ),
@@ -48,15 +42,14 @@ class GasPlantDashboardScreen extends StatelessWidget {
         SectionHeaderWidget(
           title: 'Plant Summary',
           onSeeAllPressed: () {
-            // TODO: Navigate to see all summary
           },
         ),
-        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: PlantSummaryCard(
-                title: 'Total Stock',
+                title: 'Total',
+                subtitle: "card",
                 value: '12.5 Tons',
                 icon: Icons.local_drink,
                 backgroundColor: const Color(0xFF1A2B4C),
@@ -70,7 +63,8 @@ class GasPlantDashboardScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: PlantSummaryCard(
-                title: 'Active Employees',
+                title: 'Active',
+                subtitle: "Employees",   
                 value: '20',
                 icon: Icons.person,
                 iconColor: const Color(0xFF1A2B4C),
@@ -82,7 +76,9 @@ class GasPlantDashboardScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: PlantSummaryCard(
-                title: 'Orders in progress',
+                title: 'Orders',  
+                subtitle: "in progress",
+
                 value: '07',
                 icon: Icons.shopping_cart,
                 iconColor: const Color(0xFF1A2B4C),
@@ -102,7 +98,6 @@ class GasPlantDashboardScreen extends StatelessWidget {
     final profileProvider = Provider.of<ProfileProvider>(context);
     final user = profileProvider.currentUser;
 
-    // Load orders when screen builds
     if (user != null &&
         !orderProvider.isLoading &&
         orderProvider.newOrders.isEmpty) {
@@ -138,9 +133,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
                 requestedItems: order.formattedQuantities,
                 totalWeight: '${order.totalKg.toInt()} KG',
                 customerImage: 'assets/images/customer.png',
-                onApprovePressed: () {
-                  // TODO: Handle approve
-                },
+                onApprovePressed: () {                },
               ),
             )),
       ],

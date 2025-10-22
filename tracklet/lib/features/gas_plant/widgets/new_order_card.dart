@@ -35,7 +35,7 @@ class NewOrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final cardPadding = screenWidth * 0.04; // 4% of screen width
+    final cardPadding = screenWidth * 0.04; 
 
     return GestureDetector(
       onTap: onTap,
@@ -43,21 +43,14 @@ class NewOrderCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: screenWidth * 0.04),
         padding: EdgeInsets.all(cardPadding),
         decoration: BoxDecoration(
-          color: AppColors.backgroundDark,
+          color: AppColors.border,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.borderDark, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.cardShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+       
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with company name and customer image
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -84,7 +77,6 @@ class NewOrderCard extends StatelessWidget {
                 if (customerImage != null)
                   CircleAvatar(
                     radius: screenWidth * 0.06,
-                    // Fallback to a colored circle if image fails to load
                     backgroundImage: AssetImage(customerImage!),
                     child: Container(
                       decoration: BoxDecoration(
