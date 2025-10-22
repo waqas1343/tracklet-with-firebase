@@ -3,6 +3,7 @@ import '../models/order_model.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/notification_repository.dart';
 import '../services/fcm_service.dart';
+import '../services/notification_service.dart';
 
 /// OrderViewModel - Handles order-related business logic
 /// Follows MVVM pattern for separation of concerns
@@ -31,27 +32,22 @@ class OrderViewModel extends ChangeNotifier {
   String? get error => _error;
   int get pendingOrdersCount => _pendingOrdersCount;
   bool get hasOrders => _orders.isNotEmpty;
-  
+
   // Additional getters for specific order types
-  List<OrderModel> get pendingOrders => _orders
-      .where((order) => order.status == OrderStatus.pending)
-      .toList();
+  List<OrderModel> get pendingOrders =>
+      _orders.where((order) => order.status == OrderStatus.pending).toList();
 
-  List<OrderModel> get processingOrders => _orders
-      .where((order) => order.status == OrderStatus.inProgress)
-      .toList();
+  List<OrderModel> get processingOrders =>
+      _orders.where((order) => order.status == OrderStatus.inProgress).toList();
 
-  List<OrderModel> get confirmedOrders => _orders
-      .where((order) => order.status == OrderStatus.confirmed)
-      .toList();
+  List<OrderModel> get confirmedOrders =>
+      _orders.where((order) => order.status == OrderStatus.confirmed).toList();
 
-  List<OrderModel> get completedOrders => _orders
-      .where((order) => order.status == OrderStatus.completed)
-      .toList();
+  List<OrderModel> get completedOrders =>
+      _orders.where((order) => order.status == OrderStatus.completed).toList();
 
-  List<OrderModel> get cancelledOrders => _orders
-      .where((order) => order.status == OrderStatus.cancelled)
-      .toList();
+  List<OrderModel> get cancelledOrders =>
+      _orders.where((order) => order.status == OrderStatus.cancelled).toList();
 
   /// Create a new order
   Future<bool> createOrder(OrderModel order) async {
@@ -86,14 +82,15 @@ class OrderViewModel extends ChangeNotifier {
           await _fcmService.sendNotificationToUser(
             userId: order.plantId,
             title: 'New Order Request',
-            body: '${order.distributorName} has requested cylinders from your plant',
+            body:
+                '${order.distributorName} has requested cylinders from your plant',
             data: {
               'type': 'order',
               'orderId': orderId,
               'plantId': order.plantId,
             },
           );
-          
+
           if (kDebugMode) {
             print('✅ Push notification sent to plant: ${order.plantId}');
           }
@@ -134,7 +131,9 @@ class OrderViewModel extends ChangeNotifier {
       if (kDebugMode) {
         print('Loaded ${_orders.length} orders for plant: $plantId');
         for (var order in _orders) {
-          print('Order: ${order.id} - Status: ${order.statusText} - Plant ID: ${order.plantId}');
+          print(
+            'Order: ${order.id} - Status: ${order.statusText} - Plant ID: ${order.plantId}',
+          );
         }
       }
 
@@ -174,16 +173,53 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
+  /// Load orders for a specific driver
+  Future<void> loadOrdersForDriver(String driverName) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      if (kDebugMode) {
+        print('Loading orders for driver: $driverName');
+      }
+
+      _orders = await _repository.getOrdersForDriver(driverName);
+
+      if (kDebugMode) {
+        print('Loaded ${_orders.length} orders for driver: $driverName');
+        for (var order in _orders) {
+          print(
+            'Order: ${order.id} - Status: ${order.statusText} - Driver: ${order.driverName}',
+          );
+        }
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _setError('Failed to load driver orders: ${e.toString()}');
+      if (kDebugMode) {
+        print('Error loading driver orders: $e');
+      }
+    } finally {
+      _setLoading(false);
+      _isInitialLoadCompleted = true;
+    }
+  }
+
   /// Listen to real-time order updates for a plant
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
     return _repository.getOrdersStreamForPlant(plantId).map((orders) {
       if (kDebugMode) {
-        print('OrderViewModel - Orders updated for plant $plantId, count: ${orders.length}');
+        print(
+          'OrderViewModel - Orders updated for plant $plantId, count: ${orders.length}',
+        );
         for (var order in orders) {
-          print('  Order ID: ${order.id}, Status: ${order.statusText} (${order.status}), Plant ID: ${order.plantId}');
+          print(
+            '  Order ID: ${order.id}, Status: ${order.statusText} (${order.status}), Plant ID: ${order.plantId}',
+          );
         }
       }
-      
+
       _orders = orders;
       _updateNewOrders();
       // Don't set loading to false here as this is a real-time stream update
@@ -215,7 +251,9 @@ class OrderViewModel extends ChangeNotifier {
       _clearError();
 
       if (kDebugMode) {
-        print('🔄 ViewModel updating order $orderId status to: ${status.toString().split('.').last}');
+        print(
+          '🔄 ViewModel updating order $orderId status to: ${status.toString().split('.').last}',
+        );
         print('   OrderStatus enum: $status');
         print('   Driver name: $driverName');
       }
@@ -230,17 +268,53 @@ class OrderViewModel extends ChangeNotifier {
         if (kDebugMode) {
           print('✅ Repository update successful for order $orderId');
         }
-        
+
         // Send notification to distributor when order is approved (status changed to inProgress)
         if (status == OrderStatus.inProgress) {
           final orderIndex = _orders.indexWhere((order) => order.id == orderId);
           if (orderIndex != -1) {
             final order = _orders[orderIndex];
             if (kDebugMode) {
-              print('   Found order in local list, sending notification to distributor: ${order.distributorId}');
+              print(
+                '   Found order in local list, sending notification to distributor: ${order.distributorId}',
+              );
+              print('   Order details: ${order.toJson()}');
             }
-            
+
+            // Log the data we're sending
+            if (kDebugMode) {
+              print('   Notification data:');
+              print('     Type: order_approved');
+              print('     Order ID: $orderId');
+              print('     Distributor ID: ${order.distributorId}');
+            }
+
+            // Use the new notification service for order approval
             try {
+              await NotificationService.instance
+                  .createOrderApprovalNotification(
+                    distributorId: order.distributorId,
+                    plantName: order.plantName,
+                    orderId: orderId,
+                  );
+
+              if (kDebugMode) {
+                print(
+                  '✅ Order approval notification sent via NotificationService to distributor: ${order.distributorId}',
+                );
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('❌ Failed to send order approval notification: $e');
+              }
+            }
+
+            // Also try FCM notification as backup
+            try {
+              if (kDebugMode) {
+                print('🔍 Attempting to send FCM notification...');
+              }
+              
               await _fcmService.sendNotificationToUser(
                 userId: order.distributorId,
                 title: 'Order Approved',
@@ -251,64 +325,75 @@ class OrderViewModel extends ChangeNotifier {
                   'distributorId': order.distributorId,
                 },
               );
-              
+
               if (kDebugMode) {
-                print('✅ Order approval notification sent to distributor: ${order.distributorId}');
+                print(
+                  '✅ FCM notification sent to distributor: ${order.distributorId}',
+                );
               }
             } catch (e) {
               if (kDebugMode) {
-                print('⚠️ Failed to send order approval notification: $e');
+                print('⚠️ FCM notification failed: $e');
               }
+            }
+          } else {
+            if (kDebugMode) {
+              print(
+                '⚠️ Order not found in local list, cannot send notification',
+              );
             }
           }
         }
-        
-        // Create notification for distributor about status update
+
+        // Update local order data
         final orderIndex = _orders.indexWhere((order) => order.id == orderId);
         if (orderIndex != -1) {
           final order = _orders[orderIndex];
           if (kDebugMode) {
             print('   Found order in local list, updating local copy');
           }
-          
-          await _notificationRepository.createOrderStatusNotification(
-            distributorId: order.distributorId,
-            plantName: order.plantName,
-            orderId: orderId,
-            status: status.toString().split('.').last,
-          );
 
           _orders[orderIndex] = order.copyWith(
             status: status,
             driverName: driverName,
             updatedAt: DateTime.now(),
           );
-          
+
           if (kDebugMode) {
-            print('   Updated local order ${order.id} status to: ${status.toString().split('.').last}');
+            print(
+              '   Updated local order ${order.id} status to: ${status.toString().split('.').last}',
+            );
             print('   Updated order driver name: $driverName');
-            print('   Updated order status enum: ${_orders[orderIndex].status}');
+            print(
+              '   Updated order status enum: ${_orders[orderIndex].status}',
+            );
           }
         } else {
           if (kDebugMode) {
-            print('   ⚠️ Order $orderId not found in local list, but update was successful in Firestore');
+            print(
+              '   ⚠️ Order $orderId not found in local list, but update was successful in Firestore',
+            );
             print('   Local orders count: ${_orders.length}');
             for (var i = 0; i < _orders.length; i++) {
-              print('     Order $i: ${_orders[i].id} - Status: ${_orders[i].statusText}');
+              print(
+                '     Order $i: ${_orders[i].id} - Status: ${_orders[i].statusText}',
+              );
             }
           }
         }
-        
+
         // Always refresh all order lists to ensure UI consistency
         // This fixes the issue where orders weren't appearing in the right sections
         _updateNewOrders();
         notifyListeners();
-        
+
         if (kDebugMode) {
           print('   Notified listeners of changes');
           print('   New orders count after update: ${_newOrders.length}');
           for (var i = 0; i < _newOrders.length; i++) {
-            print('     New Order $i: ${_newOrders[i].id} - Status: ${_newOrders[i].statusText}');
+            print(
+              '     New Order $i: ${_newOrders[i].id} - Status: ${_newOrders[i].statusText}',
+            );
           }
           // Also log the total orders to verify all lists are updated
           print('   Total orders count: ${_orders.length}');
@@ -363,6 +448,9 @@ class OrderViewModel extends ChangeNotifier {
 
   /// Get a specific order by ID
   Future<OrderModel?> getOrderById(String orderId) async {
+    if (kDebugMode) {
+      print('🔍 OrderViewModel: Fetching order by ID: $orderId');
+    }
     try {
       return await _repository.getOrderById(orderId);
     } catch (e) {
@@ -414,7 +502,7 @@ class OrderViewModel extends ChangeNotifier {
               order.status == OrderStatus.confirmed,
         )
         .toList();
-        
+
     if (kDebugMode) {
       print('Updated new orders list with ${_newOrders.length} items');
       for (var order in _newOrders) {

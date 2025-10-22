@@ -9,8 +9,8 @@ import '../../../core/models/order_model.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
-import '../../gas_plant/view/orders_in_progress_screen.dart';
-import '../../gas_plant/view/orders_screen.dart';
+import '../../distributor/provider/driver_provider.dart';
+import '../../distributor/widgets/driver_assignment_dialog.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -205,6 +205,15 @@ class NotificationScreen extends StatelessWidget {
     NotificationModel notification,
     NotificationProvider notificationProvider,
   ) async {
+    if (kDebugMode) {
+      print('🔔 Notification tapped:');
+      print('   Title: ${notification.title}');
+      print('   Message: ${notification.message}');
+      print('   Type: ${notification.type}');
+      print('   Related ID: ${notification.relatedId}');
+      print('   Is Read: ${notification.isRead}');
+    }
+
     // Mark as read if not already read
     if (!notification.isRead) {
       notificationProvider.markAsRead(notification.id);
@@ -215,63 +224,155 @@ class NotificationScreen extends StatelessWidget {
         notification.relatedId != null) {
       // Get the order to determine its status and navigate accordingly
       final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+      final profileProvider = Provider.of<ProfileProvider>(
+        context,
+        listen: false,
+      );
       final user = profileProvider.currentUser;
-      
+
       if (user != null) {
         try {
-          final order = await orderProvider.getOrderById(notification.relatedId!);
-          
+          final order = await orderProvider.getOrderById(
+            notification.relatedId!,
+          );
+
           if (order != null) {
-            // Navigate to the appropriate screen based on order status
-            switch (order.status) {
-              case OrderStatus.pending:
-              case OrderStatus.confirmed:
-                // Navigate to new orders screen (dashboard)
-                if (context.mounted) {
-                  Navigator.pushNamed(context, '/gas-plant/dashboard');
-                  // Show a snackbar to indicate which order was selected
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Check new orders for order from ${order.distributorName}'),
-                        backgroundColor: AppColors.primary,
-                        duration: const Duration(seconds: 3),
+            if (kDebugMode) {
+              print('🔍 Notification tap - User role: ${user.role}');
+              print('🔍 Notification tap - Order status: ${order.status}');
+              print('🔍 Notification tap - Order ID: ${order.id}');
+            }
+
+            // Check if this is a Distributor user and the order is approved (inProgress)
+            if ((user.role == 'distributor' || user.role == 'Distributor') &&
+                order.status == OrderStatus.inProgress) {
+              if (kDebugMode) {
+                print('✅ Showing driver assignment dialog for distributor');
+              }
+
+              // Show driver assignment dialog for Distributor users
+              if (context.mounted) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return ChangeNotifierProvider(
+                      create: (context) => DriverProvider(),
+                      child: DriverAssignmentDialog(
+                        order: order,
+                        onAssignmentComplete: () {
+                          // Refresh orders after assignment
+                          orderProvider.loadOrdersForDistributor(user.id);
+                        },
                       ),
                     );
+                  },
+                );
+              }
+              return;
+            }
+
+            // Fallback: Check if this is an order approval notification for any user
+            if (notification.title == 'Order Approved' &&
+                notification.message.contains('assign a driver') &&
+                order.status == OrderStatus.inProgress) {
+              if (kDebugMode) {
+                print(
+                  '✅ Showing driver assignment dialog for order approval notification',
+                );
+              }
+
+              // Show driver assignment dialog
+              if (context.mounted) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return ChangeNotifierProvider(
+                      create: (context) => DriverProvider(),
+                      child: DriverAssignmentDialog(
+                        order: order,
+                        onAssignmentComplete: () {
+                          // Refresh orders after assignment
+                          if (user.role == 'distributor' ||
+                              user.role == 'Distributor') {
+                            orderProvider.loadOrdersForDistributor(user.id);
+                          }
+                        },
+                      ),
+                    );
+                  },
+                );
+              }
+              return;
+            }
+
+            // Navigate to the appropriate screen based on order status and user role
+            if (user.role == 'gas_plant') {
+              // Gas Plant user navigation
+              switch (order.status) {
+                case OrderStatus.pending:
+                case OrderStatus.confirmed:
+                  // Navigate to new orders screen (dashboard)
+                  if (context.mounted) {
+                    Navigator.pushNamed(context, '/gas-plant/dashboard');
+                    // Show a snackbar to indicate which order was selected
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Check new orders for order from ${order.distributorName}',
+                          ),
+                          backgroundColor: AppColors.primary,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   }
-                }
-                break;
-              case OrderStatus.inProgress:
-                // Navigate to orders in progress screen with highlighted order
+                  break;
+                case OrderStatus.inProgress:
+                  // Navigate to orders in progress screen with highlighted order
+                  if (context.mounted) {
+                    Navigator.pushNamed(
+                      context,
+                      '/gas-plant/orders-in-progress',
+                      arguments: {'highlightedOrderId': order.id},
+                    );
+                  }
+                  break;
+                case OrderStatus.completed:
+                case OrderStatus.cancelled:
+                  // Navigate to orders history screen with highlighted order
+                  if (context.mounted) {
+                    Navigator.pushNamed(
+                      context,
+                      '/gas-plant/orders',
+                      arguments: {'highlightedOrderId': order.id},
+                    );
+                  }
+                  break;
+              }
+            } else if (user.role == 'distributor') {
+              // Distributor user navigation
+              if (context.mounted) {
+                Navigator.pushNamed(context, '/distributor/orders');
                 if (context.mounted) {
-                  Navigator.pushNamed(
-                    context,
-                    '/gas-plant/orders-in-progress',
-                    arguments: {
-                      'highlightedOrderId': order.id,
-                    },
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Showing order from ${order.plantName}'),
+                      backgroundColor: AppColors.primary,
+                      duration: const Duration(seconds: 3),
+                    ),
                   );
                 }
-                break;
-              case OrderStatus.completed:
-              case OrderStatus.cancelled:
-                // Navigate to orders history screen with highlighted order
-                if (context.mounted) {
-                  Navigator.pushNamed(
-                    context,
-                    '/gas-plant/orders',
-                    arguments: {
-                      'highlightedOrderId': order.id,
-                    },
-                  );
-                }
-                break;
+              }
             }
           } else {
-            // If order not found, navigate to the main orders screen
+            // If order not found, navigate to the appropriate screen based on user role
             if (context.mounted) {
-              Navigator.pushNamed(context, '/gas-plant/orders');
+              if (user.role == 'gas_plant') {
+                Navigator.pushNamed(context, '/gas-plant/orders');
+              } else if (user.role == 'distributor') {
+                Navigator.pushNamed(context, '/distributor/orders');
+              }
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -287,9 +388,13 @@ class NotificationScreen extends StatelessWidget {
           if (kDebugMode) {
             print('Error fetching order: $e');
           }
-          // Navigate to orders screen as fallback
+          // Navigate to appropriate orders screen as fallback
           if (context.mounted) {
-            Navigator.pushNamed(context, '/gas-plant/orders');
+            if (user.role == 'gas_plant') {
+              Navigator.pushNamed(context, '/gas-plant/orders');
+            } else if (user.role == 'distributor') {
+              Navigator.pushNamed(context, '/distributor/orders');
+            }
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

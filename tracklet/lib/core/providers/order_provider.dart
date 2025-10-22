@@ -21,7 +21,7 @@ class OrderProvider extends ChangeNotifier {
   String? get error => _viewModel.error;
   int get pendingOrdersCount => _viewModel.pendingOrdersCount;
   bool get hasOrders => _viewModel.hasOrders;
-  
+
   // Additional getters for specific order types
   List<OrderModel> get pendingOrders => _viewModel.pendingOrders;
   List<OrderModel> get processingOrders => _viewModel.processingOrders;
@@ -44,6 +44,11 @@ class OrderProvider extends ChangeNotifier {
     await _viewModel.loadOrdersForDistributor(distributorId);
   }
 
+  /// Load orders for a specific driver
+  Future<void> loadOrdersForDriver(String driverName) async {
+    await _viewModel.loadOrdersForDriver(driverName);
+  }
+
   /// Listen to real-time order updates for a plant
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
     return _viewModel.getOrdersStreamForPlant(plantId);
@@ -55,8 +60,16 @@ class OrderProvider extends ChangeNotifier {
   }
 
   /// Update order status
-  Future<bool> updateOrderStatus(String orderId, OrderStatus status, {String? driverName}) async {
-    return await _viewModel.updateOrderStatus(orderId, status, driverName: driverName);
+  Future<bool> updateOrderStatus(
+    String orderId,
+    OrderStatus status, {
+    String? driverName,
+  }) async {
+    return await _viewModel.updateOrderStatus(
+      orderId,
+      status,
+      driverName: driverName,
+    );
   }
 
   /// Load pending orders count for a plant
@@ -65,12 +78,18 @@ class OrderProvider extends ChangeNotifier {
   }
 
   /// Get orders by status
-  Future<List<OrderModel>> getOrdersByStatus(String plantId, OrderStatus status) async {
+  Future<List<OrderModel>> getOrdersByStatus(
+    String plantId,
+    OrderStatus status,
+  ) async {
     return await _viewModel.getOrdersByStatus(plantId, status);
   }
 
   /// Get a specific order by ID
   Future<OrderModel?> getOrderById(String orderId) async {
+    if (kDebugMode) {
+      print('🔍 OrderProvider: Fetching order by ID: $orderId');
+    }
     return await _viewModel.getOrderById(orderId);
   }
 

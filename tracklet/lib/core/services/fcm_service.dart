@@ -57,6 +57,9 @@ class FCMService {
 
   String? get fcmToken => _fcmToken;
   
+  // Getter for local notifications plugin
+  FlutterLocalNotificationsPlugin get localNotifications => _localNotifications;
+  
   // Setter for notification tap callback
   set onNotificationTap(NotificationTapCallback? callback) {
     _onNotificationTap = callback;
@@ -95,6 +98,7 @@ class FCMService {
 
       if (kDebugMode) {
         print('✅ FCM Service initialized successfully');
+        print('✅ FCM Token: $_fcmToken');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -269,16 +273,39 @@ class FCMService {
   void _handleNotificationAction(Map<String, dynamic> data) {
     final type = data['type'] as String?;
     
+    if (kDebugMode) {
+      print('🔍 Handling notification action');
+      print('   Type: $type');
+      print('   Data: $data');
+    }
+    
     if (type == 'order_approved') {
       final orderId = data['orderId'] as String?;
-      if (orderId != null) {
+      if (kDebugMode) {
+        print('   Order ID: $orderId');
+      }
+      if (orderId != null && orderId.isNotEmpty) {
         // Call the callback if set
         if (_onNotificationTap != null) {
+          if (kDebugMode) {
+            print('   Calling notification tap callback');
+          }
           _onNotificationTap!(orderId);
         } else {
           // Fallback to showing driver assignment dialog directly
+          if (kDebugMode) {
+            print('   Using fallback driver assignment dialog');
+          }
           _showDriverAssignmentDialog(orderId);
         }
+      } else {
+        if (kDebugMode) {
+          print('   Order ID is null or empty: $orderId');
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('   Unknown notification type: $type');
       }
     }
   }
@@ -289,6 +316,8 @@ class FCMService {
     // For now, we'll handle this in the main app widget
     if (kDebugMode) {
       print('🔔 Order approved notification tapped for order: $orderId');
+      print('⚠️ Fallback _showDriverAssignmentDialog called - this should not happen in normal operation');
+      print('   This indicates that the notification tap callback was not properly set');
     }
   }
 
@@ -316,16 +345,20 @@ class FCMService {
         iOS: iosDetails,
       );
 
+      // Format payload as JSON for better parsing
+      final payload = jsonEncode(message.data);
+
       await _localNotifications.show(
         message.hashCode,
         message.notification?.title ?? 'New Notification',
         message.notification?.body ?? '',
         notificationDetails,
-        payload: message.data.toString(),
+        payload: payload,
       );
 
       if (kDebugMode) {
         print('✅ Local notification shown');
+        print('   Payload: $payload');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -344,28 +377,81 @@ class FCMService {
     // Parse payload and handle action
     if (response.payload != null) {
       try {
-        // This is a simplified parsing, in real app you might want to use JSON
-        final payload = response.payload!;
-        if (payload.contains('order_approved') && payload.contains('orderId')) {
-          // Extract order ID from payload (simplified approach)
-          final startIndex = payload.indexOf('orderId') + 9;
-          final endIndex = payload.indexOf(',', startIndex);
-          final orderId = payload.substring(startIndex, endIndex).replaceAll("'", "").trim();
-          
-          if (orderId.isNotEmpty) {
-            // Call the callback if set
-            if (_onNotificationTap != null) {
-              _onNotificationTap!(orderId);
-            } else {
-              // Fallback to showing driver assignment dialog directly
-              _showDriverAssignmentDialog(orderId);
-            }
+        // Try to parse as JSON first
+        final payloadData = jsonDecode(response.payload!);
+        if (kDebugMode) {
+          print('🔍 Parsing payload as JSON: $payloadData');
+        }
+        
+        final type = payloadData['type'] as String?;
+        final orderId = payloadData['orderId'] as String?;
+        
+        if (type == 'order_approved' && orderId != null && orderId.isNotEmpty) {
+          if (kDebugMode) {
+            print('✅ Extracted order ID: $orderId');
+          }
+          // Call the callback if set
+          if (_onNotificationTap != null) {
+            _onNotificationTap!(orderId);
+          } else {
+            // Fallback to showing driver assignment dialog directly
+            _showDriverAssignmentDialog(orderId);
+          }
+        } else {
+          if (kDebugMode) {
+            print('❌ Payload does not contain valid order_approved data');
+            print('   Type: $type');
+            print('   Order ID: $orderId');
           }
         }
       } catch (e) {
         if (kDebugMode) {
-          print('❌ Error parsing notification payload: $e');
+          print('❌ Error parsing notification payload as JSON: $e');
         }
+        
+        // Fallback to string parsing
+        try {
+          final payload = response.payload!;
+          if (kDebugMode) {
+            print('🔍 Parsing payload as string: $payload');
+          }
+          
+          if (payload.contains('order_approved') && payload.contains('orderId')) {
+            // Extract order ID from payload (simplified approach)
+            final startIndex = payload.indexOf('orderId') + 9;
+            final endIndex = payload.indexOf(',', startIndex);
+            final orderId = payload.substring(startIndex, endIndex).replaceAll("'", "").trim();
+            
+            if (orderId.isNotEmpty) {
+              if (kDebugMode) {
+                print('✅ Extracted order ID from string: $orderId');
+              }
+              // Call the callback if set
+              if (_onNotificationTap != null) {
+                _onNotificationTap!(orderId);
+              } else {
+                // Fallback to showing driver assignment dialog directly
+                _showDriverAssignmentDialog(orderId);
+              }
+            } else {
+              if (kDebugMode) {
+                print('❌ Order ID is empty');
+              }
+            }
+          } else {
+            if (kDebugMode) {
+              print('❌ Payload does not contain order_approved or orderId');
+            }
+          }
+        } catch (e2) {
+          if (kDebugMode) {
+            print('❌ Error parsing notification payload as string: $e2');
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('❌ Payload is null');
       }
     }
   }
@@ -380,6 +466,11 @@ class FCMService {
     }
 
     try {
+      if (kDebugMode) {
+        print('💾 Saving FCM token for user: $userId');
+        print('   Token: $_fcmToken');
+      }
+      
       await _firestore.collection('users').doc(userId).update({
         'fcmToken': _fcmToken,
         'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
@@ -428,6 +519,17 @@ class FCMService {
         print('Title: $title');
         print('Body: $body');
         print('Data: $data');
+        print('FCM Token: $fcmToken');
+      }
+
+      // Check if we have a valid server key
+      const serverKey = 'YOUR_SERVER_KEY_HERE'; // Replace with your actual server key
+      if (serverKey == 'YOUR_SERVER_KEY_HERE') {
+        if (kDebugMode) {
+          print('❌ ERROR: Server key not configured! Notifications will not be sent.');
+          print('Please replace YOUR_SERVER_KEY_HERE with your actual Firebase server key.');
+        }
+        return;
       }
 
       // Send notification using HTTP request to Firebase Cloud Messaging API
@@ -437,7 +539,7 @@ class FCMService {
         Uri.parse('https://fcm.googleapis.com/fcm/send'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'key=YOUR_SERVER_KEY_HERE', // Replace with your actual server key
+          'Authorization': 'key=$serverKey',
         },
         body: jsonEncode({
           'to': fcmToken,

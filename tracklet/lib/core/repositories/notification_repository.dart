@@ -194,27 +194,42 @@ class NotificationRepository {
     required String status,
   }) async {
     try {
+      print(
+        '🔔 Creating order status notification for distributor: $distributorId',
+      );
+      print('   Plant: $plantName, Order: $orderId, Status: $status');
+
       String message = '';
+      String title = '';
+
       switch (status.toLowerCase()) {
         case 'confirmed':
+          title = 'Order Confirmed';
           message = 'Your order from $plantName has been confirmed';
           break;
         case 'in_progress':
-          message = 'Your order from $plantName is being processed';
+          title = 'Order Approved';
+          message = 'Your order is approved, please assign a driver.';
           break;
         case 'completed':
+          title = 'Order Completed';
           message = 'Your order from $plantName has been completed';
           break;
         case 'cancelled':
+          title = 'Order Cancelled';
           message = 'Your order from $plantName has been cancelled';
           break;
         default:
+          title = 'Order Update';
           message = 'Your order from $plantName status has been updated';
       }
 
+      print('   Notification title: $title');
+      print('   Notification message: $message');
+
       final notification = NotificationModel(
         id: '',
-        title: 'Order Update',
+        title: title,
         message: message,
         type: NotificationType.order,
         relatedId: orderId,
@@ -223,10 +238,43 @@ class NotificationRepository {
         createdAt: DateTime.now(),
       );
 
-      await createNotification(notification);
+      final notificationId = await createNotification(notification);
+      print('✅ Order status notification created with ID: $notificationId');
+
+      // Also print the notification details for debugging
+      print('📋 Notification details:');
+      print('   ID: $notificationId');
+      print('   Title: ${notification.title}');
+      print('   Message: ${notification.message}');
+      print('   Recipient: ${notification.recipientId}');
+      print('   Type: ${notification.type}');
+      print('   Related ID: ${notification.relatedId}');
     } catch (e) {
-      print('Error creating order status notification: $e');
+      print('❌ Error creating order status notification: $e');
       throw Exception('Failed to create order status notification: $e');
+    }
+  }
+
+  /// Test notification creation (for debugging)
+  Future<void> testNotificationCreation(String distributorId) async {
+    try {
+      print('🧪 Testing notification creation for distributor: $distributorId');
+
+      final notification = NotificationModel(
+        id: '',
+        title: 'Test Notification',
+        message: 'This is a test notification to verify the system is working.',
+        type: NotificationType.order,
+        relatedId: 'test-order-123',
+        recipientId: distributorId,
+        senderId: null,
+        createdAt: DateTime.now(),
+      );
+
+      final notificationId = await createNotification(notification);
+      print('✅ Test notification created with ID: $notificationId');
+    } catch (e) {
+      print('❌ Error creating test notification: $e');
     }
   }
 }

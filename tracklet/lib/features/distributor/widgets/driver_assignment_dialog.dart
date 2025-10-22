@@ -45,8 +45,10 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
               });
             }
 
-            // Get available drivers
-            final availableDrivers = driverProvider.availableDrivers;
+            // Get all active drivers (not just available ones)
+            final allDrivers = driverProvider.drivers
+                .where((driver) => driver.isActive)
+                .toList();
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -54,7 +56,15 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
               children: [
                 Text(
                   'Select a driver to assign to order #${widget.order.id.substring(0, 8)}',
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Order: ${widget.order.distributorName} → ${widget.order.plantName}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
                 if (_isLoading)
@@ -64,33 +74,67 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
                     driverProvider.errorMessage!,
                     style: const TextStyle(color: Colors.red),
                   )
-                else if (availableDrivers.isEmpty)
-                  const Text('No available drivers found')
+                else if (allDrivers.isEmpty)
+                  const Text('No drivers found')
                 else ...[
                   const Text(
-                    'Available Drivers:',
+                    'All Drivers:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 200,
+                    height: 300,
                     child: ListView.builder(
-                      itemCount: availableDrivers.length,
+                      itemCount: allDrivers.length,
                       itemBuilder: (context, index) {
-                        final driver = availableDrivers[index];
-                        return RadioListTile<DriverModel?>(
-                          title: Text(driver.name),
-                          subtitle: Text(
-                            '${driver.licenseNumber} • ${driver.vehicleNumber}',
-                            style: const TextStyle(fontSize: 12),
+                        final driver = allDrivers[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: RadioListTile<DriverModel?>(
+                            title: Text(
+                              driver.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'License: ${driver.licenseNumber}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  'Vehicle: ${driver.vehicleNumber}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  'Status: ${driver.status.toString().split('.').last.toUpperCase()}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        driver.status == DriverStatus.available
+                                        ? Colors.green
+                                        : driver.status == DriverStatus.busy
+                                        ? Colors.orange
+                                        : Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  'Completed Deliveries: ${driver.completedDeliveries}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            value: driver,
+                            groupValue: _selectedDriver,
+                            onChanged: (DriverModel? value) {
+                              setState(() {
+                                _selectedDriver = value;
+                              });
+                            },
                           ),
-                          value: driver,
-                          groupValue: _selectedDriver,
-                          onChanged: (DriverModel? value) {
-                            setState(() {
-                              _selectedDriver = value;
-                            });
-                          },
                         );
                       },
                     ),
@@ -122,9 +166,7 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
               : () async {
                   await _assignDriver();
                 },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
           child: const Text('Assign Driver'),
         ),
       ],
@@ -141,7 +183,11 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
 
     try {
       final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-      
+      final driverProvider = Provider.of<DriverProvider>(
+        context,
+        listen: false,
+      );
+
       // Update the order with the selected driver and keep status as inProgress
       final success = await orderProvider.updateOrderStatus(
         widget.order.id,
@@ -150,13 +196,21 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
       );
 
       if (success) {
+        // Update driver status to busy
+        await driverProvider.updateDriverStatus(
+          _selectedDriver!.id,
+          DriverStatus.busy,
+        );
+
         if (mounted) {
           Navigator.of(context).pop();
           widget.onAssignmentComplete();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Driver ${_selectedDriver!.name} assigned successfully'),
+              content: Text(
+                'Driver ${_selectedDriver!.name} assigned successfully',
+              ),
               backgroundColor: Colors.green,
             ),
           );

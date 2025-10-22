@@ -78,6 +78,45 @@ class OrderRepository {
     }
   }
 
+  /// Get all orders for a specific driver
+  Future<List<OrderModel>> getOrdersForDriver(String driverName) async {
+    try {
+      if (kDebugMode) {
+        print('Fetching orders for driver: $driverName');
+      }
+
+      final querySnapshot = await _firestore
+          .collection(_ordersCollection)
+          .where('driverName', isEqualTo: driverName)
+          .get();
+
+      if (kDebugMode) {
+        print(
+          'Found ${querySnapshot.docs.length} orders for driver: $driverName',
+        );
+      }
+
+      final orders = querySnapshot.docs
+          .map((doc) => OrderModel.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      // Sort in memory
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      if (kDebugMode) {
+        for (var order in orders) {
+          print(
+            'Order ID: ${order.id}, Status: ${order.statusText}, Driver: ${order.driverName}',
+          );
+        }
+      }
+
+      return orders;
+    } catch (e) {
+      throw Exception('Failed to fetch driver orders: $e');
+    }
+  }
+
   /// Get orders stream for a plant (real-time updates)
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
     if (kDebugMode) {
@@ -87,11 +126,11 @@ class OrderRepository {
     try {
       final collectionRef = _firestore.collection(_ordersCollection);
       final query = collectionRef.where('plantId', isEqualTo: plantId);
-      
+
       if (kDebugMode) {
         print('   Firestore query: plantId == $plantId');
       }
-      
+
       final stream = query
           .snapshots()
           .handleError((error) {
@@ -151,7 +190,9 @@ class OrderRepository {
             orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
             if (kDebugMode) {
-              print('📦 Parsed ${orders.length} valid orders for plant $plantId');
+              print(
+                '📦 Parsed ${orders.length} valid orders for plant $plantId',
+              );
               if (orders.isEmpty) {
                 print('   ❌ No valid orders parsed');
               } else {
@@ -166,11 +207,11 @@ class OrderRepository {
 
             return orders;
           });
-          
+
       if (kDebugMode) {
         print('✅ Stream created successfully for plant: $plantId');
       }
-      
+
       return stream;
     } catch (e, stackTrace) {
       if (kDebugMode) {
@@ -239,13 +280,13 @@ class OrderRepository {
   }) async {
     try {
       final statusString = status.toString().split('.').last;
-      
+
       if (kDebugMode) {
         print('🔄 Updating order $orderId status to: $statusString');
         print('   OrderStatus enum value: $status');
         print('   Status string for Firestore: $statusString');
       }
-      
+
       final updates = <String, dynamic>{
         'status': statusString,
         'updatedAt': DateTime.now().toIso8601String(),
@@ -270,19 +311,19 @@ class OrderRepository {
           .collection(_ordersCollection)
           .doc(orderId)
           .update(updates);
-      
+
       if (kDebugMode) {
         print('✅ Successfully updated order $orderId');
         print('   Updated fields: $updates');
       }
-      
+
       // Verify the update was successful by reading the document back
       try {
         final docSnapshot = await _firestore
             .collection(_ordersCollection)
             .doc(orderId)
             .get();
-            
+
         if (docSnapshot.exists) {
           final data = docSnapshot.data();
           if (kDebugMode) {
@@ -293,7 +334,9 @@ class OrderRepository {
           }
         } else {
           if (kDebugMode) {
-            print('   ❌ Verification failed - Document does not exist after update');
+            print(
+              '   ❌ Verification failed - Document does not exist after update',
+            );
           }
         }
       } catch (verifyError) {
@@ -301,7 +344,7 @@ class OrderRepository {
           print('   ⚠️ Verification error: $verifyError');
         }
       }
-      
+
       return true;
     } catch (e, stackTrace) {
       if (kDebugMode) {
@@ -315,20 +358,36 @@ class OrderRepository {
   /// Get a specific order by ID
   Future<OrderModel?> getOrderById(String orderId) async {
     try {
+      if (kDebugMode) {
+        print('🔍 OrderRepository: Fetching order by ID: $orderId');
+      }
+      
       final docSnapshot = await _firestore
           .collection(_ordersCollection)
           .doc(orderId)
           .get();
 
       if (!docSnapshot.exists) {
+        if (kDebugMode) {
+          print('❌ OrderRepository: Order not found for ID: $orderId');
+        }
         return null;
       }
 
-      return OrderModel.fromJson({
+      final order = OrderModel.fromJson({
         ...docSnapshot.data()!,
         'id': docSnapshot.id,
       });
+      
+      if (kDebugMode) {
+        print('✅ OrderRepository: Order found - ID: ${order.id}, Status: ${order.statusText}');
+      }
+      
+      return order;
     } catch (e) {
+      if (kDebugMode) {
+        print('❌ OrderRepository: Error fetching order: $e');
+      }
       throw Exception('Failed to fetch order: $e');
     }
   }

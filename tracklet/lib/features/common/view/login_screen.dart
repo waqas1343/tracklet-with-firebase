@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart'; // Add this import
 import '../../../core/providers/user_role_provider.dart' as user_role;
 import '../../../core/models/user_model.dart' as user_model;
 import '../../../core/services/firebase_service.dart';
 import '../../../core/providers/profile_provider.dart'; // Add this import
+import '../../../core/services/fcm_service.dart'; // Add this import
 import '../../../shared/widgets/custom_button.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -83,6 +85,18 @@ class LoginScreen extends StatelessWidget {
           // Initialize profile provider with current user data
           await profileProvider.loadUserProfile(userCredential.user!.uid);
           print('✅ Login - Profile provider initialized');
+
+          // Save FCM token to Firestore for push notifications
+          try {
+            final fcmService = Provider.of<FCMService>(
+              context,
+              listen: false,
+            );
+            await fcmService.saveFCMToken(userCredential.user!.uid);
+            print('✅ Login - FCM token saved to Firestore');
+          } catch (e) {
+            print('⚠️ Login - Failed to save FCM token: $e');
+          }
 
           // Update last login time
           await firebaseService.firestore

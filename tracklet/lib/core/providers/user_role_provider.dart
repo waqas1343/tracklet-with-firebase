@@ -41,10 +41,8 @@ class UserRoleProvider extends ChangeNotifier {
   Future<void> setUserRole(UserRole role) async {
     _setLoading(true);
     try {
-      
-      if (_currentRole != role) {
-      }
-      
+      if (_currentRole != role) {}
+
       _currentRole = role;
       final roleString = role.toString().split('.').last;
       await _storageService.setString('user_role', roleString);
@@ -55,14 +53,18 @@ class UserRoleProvider extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
   String get dashboardRoute {
     switch (_currentRole) {
       case UserRole.gasPlant:
         return '/gas-plant/dashboard';
       case UserRole.distributor:
         return '/distributor/dashboard';
+      case UserRole.driver:
+        return '/driver/dashboard';
     }
   }
+
   List<NavigationTab> get navigationTabs {
     switch (_currentRole) {
       case UserRole.gasPlant:
@@ -116,6 +118,29 @@ class UserRoleProvider extends ChangeNotifier {
             route: '/distributor/settings',
           ),
         ];
+      case UserRole.driver:
+        return [
+          NavigationTab(
+            icon: Icons.home,
+            title: 'Home',
+            route: '/driver/dashboard',
+          ),
+          NavigationTab(
+            icon: Icons.local_shipping,
+            title: 'Orders',
+            route: '/driver/orders',
+          ),
+          NavigationTab(
+            icon: Icons.history,
+            title: 'History',
+            route: '/driver/history',
+          ),
+          NavigationTab(
+            icon: Icons.settings,
+            title: 'Settings',
+            route: '/driver/settings',
+          ),
+        ];
     }
   }
 
@@ -134,7 +159,9 @@ class UserRoleProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-enum UserRole { gasPlant, distributor }
+
+enum UserRole { gasPlant, distributor, driver }
+
 class NavigationTab {
   final IconData icon;
   final String title;
