@@ -46,10 +46,19 @@ class NotificationScreen extends StatelessWidget {
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               )
-            : notificationProvider.notifications.isEmpty
-            ? _buildEmptyState()
             : Column(
                 children: [
+                  // Test button for notification tap
+                  if (user.role == 'distributor' || user.role == 'Distributor')
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      child: ElevatedButton(
+                        onPressed: () => _testNotificationTap(context, user),
+                        child: const Text('Test Driver Assignment Dialog'),
+                      ),
+                    ),
+
                   // Mark all as read button
                   if (notificationProvider.unreadCount > 0)
                     Container(
@@ -427,6 +436,76 @@ class NotificationScreen extends StatelessWidget {
           backgroundColor: AppColors.success,
         ),
       );
+    }
+  }
+
+  void _testNotificationTap(BuildContext context, dynamic user) async {
+    if (kDebugMode) {
+      print('🧪 Testing notification tap');
+    }
+
+    // Get the order provider
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    
+    // Get the first inProgress order for testing
+    try {
+      // Load orders for distributor
+      await orderProvider.loadOrdersForDistributor(user.id);
+      
+      // Find an inProgress order
+      final inProgressOrders = orderProvider.distributorOrders
+          .where((order) => order.status == OrderStatus.inProgress)
+          .toList();
+      
+      if (inProgressOrders.isNotEmpty) {
+        final order = inProgressOrders.first;
+        if (kDebugMode) {
+          print('✅ Found inProgress order: ${order.id}');
+        }
+        
+        // Show driver assignment dialog
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return ChangeNotifierProvider(
+                create: (context) => DriverProvider(),
+                child: DriverAssignmentDialog(
+                  order: order,
+                  onAssignmentComplete: () {
+                    // Refresh orders after assignment
+                    orderProvider.loadOrdersForDistributor(user.id);
+                  },
+                ),
+              );
+            },
+          );
+        }
+      } else {
+        if (kDebugMode) {
+          print('❌ No inProgress orders found');
+        }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No in-progress orders found for testing'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error testing notification tap: $e');
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 }
