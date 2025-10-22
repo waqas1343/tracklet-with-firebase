@@ -10,7 +10,7 @@ class SalesSummaryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
-        userName: 'Sales & Reports',
+        title: 'Sales & Reports',
         showBackButton: true,
       ),
       body: SafeArea(

@@ -5,6 +5,7 @@ import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/company_provider.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/section_header_widget.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
 import 'cylinder_request_screen.dart';
@@ -51,9 +52,9 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        showBackButton: false,
-        showNotificationIcon: true,
+      appBar: CustomAppBar(
+        title: 'Notifications',
+        showBackButton: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -125,27 +126,10 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Top Plants', style: AppTextTheme.displaySmall),
-            GestureDetector(
+            SeeAllButton(
               onTap: () {
                 // TODO: Navigate to see all plants
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'See all',
-                  style: AppTextTheme.bodySmall.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -286,27 +270,10 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Previous Orders', style: AppTextTheme.displaySmall),
-            GestureDetector(
+            SeeAllButton(
               onTap: () {
                 // TODO: Navigate to see all orders
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'See all',
-                  style: AppTextTheme.bodySmall.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ),
           ],
         ),

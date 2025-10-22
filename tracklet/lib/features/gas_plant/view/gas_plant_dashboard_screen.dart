@@ -44,6 +44,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
           onSeeAllPressed: () {
           },
         ),
+        SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -159,7 +160,6 @@ class GasPlantDashboardScreen extends StatelessWidget {
         SectionHeaderWidget(
           title: 'Previous Orders',
           onSeeAllPressed: () {
-            // TODO: Navigate to see all previous orders
           },
         ),
         const SizedBox(height: 16),

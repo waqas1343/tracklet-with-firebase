@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/app_colors.dart';
-import 'custom_button.dart';
+
+/// Custom SeeAllButton widget
+class SeeAllButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const SeeAllButton({required this.onTap, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.softBlue,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            right: 11,
+            left: 11,
+            bottom: 4,
+            top: 4,
+          ),
+          child: Text("See all", style: TextStyle(color: AppColors.onBackground,fontSize: 14)), // Replaced onPrimary with onBackground
+        ),
+      ),
+    );
+  }
+}
 
 /// SectionHeaderWidget: Reusable section header with title and "See All" button
 ///
@@ -23,37 +50,24 @@ class SectionHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding:
-          padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
           ),
-          if (showSeeAll)
-            CustomButton(
-              text: seeAllText ?? 'See All',
-              onPressed:
-                  onSeeAllPressed ??
-                  () {
-                    // Default navigation - can be overridden
-                    Navigator.of(context).pushNamed('/see-all');
-                  },
-              backgroundColor: Colors.transparent,
-              textColor: AppColors.primary,
-              borderColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              fontSize: 14,
-            ),
-        ],
-      ),
+        ),
+        if (showSeeAll)
+          SeeAllButton(
+            onTap: onSeeAllPressed ?? () {
+              Navigator.of(context).pushNamed('/see-all');
+            },
+          ),
+      ],
     );
   }
 }

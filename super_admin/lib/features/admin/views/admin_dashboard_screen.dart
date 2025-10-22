@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/providers/admin_dashboard_provider.dart';
 import 'admin_user_creation_form.dart';
 import 'user_list_view.dart';
 
-class AdminDashboardScreen extends StatefulWidget {
+class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
-}
-
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch users when the screen loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-      adminProvider.fetchAllUsers();
-    });
+  Widget build(BuildContext context) {
+    return Consumer<AdminDashboardProvider>(
+      builder: (context, dashboardProvider, _) {
+        // Fetch users when the screen loads
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          dashboardProvider.refreshUsers();
+        });
+        
+        return _buildDashboard(context);
+      },
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildDashboard(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -45,8 +44,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-            adminProvider.fetchAllUsers();
+            final dashboardProvider = Provider.of<AdminDashboardProvider>(context, listen: false);
+            dashboardProvider.refreshUsers();
           },
           child: const Icon(Icons.refresh),
         ),

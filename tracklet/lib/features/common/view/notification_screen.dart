@@ -31,8 +31,8 @@ class NotificationScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        userName: 'Notifications',
+      appBar: CustomAppBar(
+        title: 'Notifications',
         showBackButton: true,
       ),
       body: SafeArea(

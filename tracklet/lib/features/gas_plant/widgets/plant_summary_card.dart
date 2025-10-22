@@ -9,6 +9,7 @@ class PlantSummaryCard extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final Color iconColor;
+  final Color circleColor;
   final VoidCallback? onTap;
 
   const PlantSummaryCard({
@@ -20,6 +21,7 @@ class PlantSummaryCard extends StatelessWidget {
     this.backgroundColor = Colors.white,
     this.textColor = const Color(0xFF333333),
     this.iconColor = const Color(0xFF1A2B4C),
+    this.circleColor = const Color(0xFFE8EEF8), // 👈 light blue-ish circle
     this.onTap,
   });
 
@@ -28,45 +30,65 @@ class PlantSummaryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 120,
-        padding: const EdgeInsets.all(8),
+        height: 100,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 🔹 Top Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 10,
                         color: textColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: textColor,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
                   ],
                 ),
-                              Icon(icon, size: 20, color: iconColor),
 
+                // 🔹 Right Side Circle Icon
+                Container(
+                  height: 24,
+                  width: 24,
+                  decoration: BoxDecoration(
+                    color: circleColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      size: 14,
+                      color: iconColor,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 20),
+
+            // 🔹 Bottom Value
             Text(
               value,
               style: TextStyle(

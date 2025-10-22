@@ -12,6 +12,8 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -20,9 +22,9 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header - Exact match to image
+              // 🔹 Header
               const Text(
-                'Setting',
+                'Settings',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -31,68 +33,19 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Setting Options - Exact spacing from image
-              _buildSettingTile('Manage Plant', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ManagePlantScreen(),
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
+              // 🔹 Settings Options
+              ...[
+                _buildSettingTile(context, 'Manage Plant', const ManagePlantScreen()),
+                _buildSettingTile(context, 'New Orders', const NewOrdersScreen()),
+                _buildSettingTile(context, 'Sales Summary', const SalesSummaryScreen()),
+                _buildSettingTile(context, 'Profile Settings', const ProfileSettingsScreen()),
+                _buildSettingTile(context, 'Change Password', const ChangePasswordScreen()),
+                _buildSettingTile(context, 'Download Reports', const DownloadReportsScreen()),
+              ].expand((widget) => [widget, const SizedBox(height: 12)]),
 
-              _buildSettingTile('New Orders', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NewOrdersScreen(),
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
-              _buildSettingTile('Sales Summary', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SalesSummaryScreen(),
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
-
-              _buildSettingTile('Profile Settings', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileSettingsScreen(),
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
-
-              _buildSettingTile('Change Password', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChangePasswordScreen(),
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
-
-              _buildSettingTile('Download Reports', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DownloadReportsScreen(),
-                  ),
-                );
-              }),
-              const SizedBox(height: 32),
-
-              // Language Section - Exact match to image
+              // 🔹 Language Section
               const Text(
                 'Language',
                 style: TextStyle(
@@ -103,124 +56,38 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Language Toggle - Exact positioning from image
               Row(
                 children: [
-                  const Text(
-                    'Eng',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
+                  const Text('Eng', style: TextStyle(fontSize: 14, color: Colors.black)),
                   const SizedBox(width: 8),
                   Switch(
-                    value: true, // Set to Urdu position as shown in image
+                    value: true, // Urdu active
                     onChanged: (value) {
-                      // Language toggle functionality
+                      // TODO: Language switch
                     },
                     activeThumbColor: Colors.blue,
-                    activeTrackColor: Colors.blue.withValues(alpha: 0.3),
+                    activeTrackColor: Colors.blue.withOpacity(0.3),
                     inactiveThumbColor: Colors.grey,
                     inactiveTrackColor: Colors.grey.shade300,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Urdu',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
+                  const Text('Urdu', style: TextStyle(fontSize: 14, color: Colors.black)),
                 ],
               ),
+
               const SizedBox(height: 32),
 
-              // Logout Button - Exact design from image
-              Container(
-                width: double.infinity,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A2B4C), // Dark blue as in image
-                  borderRadius: BorderRadius.circular(25), // Oval shape
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(25),
-                    onTap: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Logout'),
-                            content: const Text(
-                              'Are you sure you want to logout?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(true),
-                                child: const Text('Logout'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-
-                      if (confirm == true) {
-                        await FirebaseAuth.instance.signOut();
-                        if (context.mounted) {
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/login',
-                            (route) => false,
-                          );
-                        }
-                      }
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.exit_to_app, color: Colors.white, size: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              // 🔹 Logout Button
+              _buildLogoutButton(context),
 
               const Spacer(),
 
-              // Legal Links - Exact positioning from image
+              // 🔹 Legal Links
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to Legal Notice
-                    },
-                    child: const Text(
-                      'Legal Notice',
-                      style: TextStyle(color: Colors.black, fontSize: 12),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to Privacy Policy
-                    },
-                    child: const Text(
-                      'Privacy Policy',
-                      style: TextStyle(color: Colors.black, fontSize: 12),
-                    ),
-                  ),
+                  _buildLegalLink('Legal Notice'),
+                  _buildLegalLink('Privacy Policy'),
                 ],
               ),
             ],
@@ -230,21 +97,21 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingTile(String title, VoidCallback onTap) {
+  // ✅ Reusable Tile Widget
+  Widget _buildSettingTile(BuildContext context, String title, Widget destination) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.grey.shade300, // Light gray border as in image
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(8), // Slightly rounded corners
-        color: Colors.white, // White background
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: onTap,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => destination));
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
@@ -258,15 +125,83 @@ class SettingsScreen extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.black,
-                ),
+                const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // ✅ Logout Button with Confirmation
+  Widget _buildLogoutButton(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2B4C),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(25),
+          onTap: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (confirm == true) {
+              await FirebaseAuth.instance.signOut();
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              }
+            }
+          },
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Logout',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ✅ Footer Links
+  Widget _buildLegalLink(String text) {
+    return TextButton(
+      onPressed: () {},
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.black, fontSize: 12),
       ),
     );
   }

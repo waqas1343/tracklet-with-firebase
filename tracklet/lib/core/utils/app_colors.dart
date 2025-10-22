@@ -40,6 +40,8 @@ class AppColors {
   static const Color textOnPrimary = Color(0xFFFFFFFF);
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
+  static const Color onBackground = Color(0xFF333333); // Added onBackground color
+  static const Color softBlue = Color(0xFFE3F2FD); // Added softBlue color
 
   // Background Colors
   static const Color background = Color(0xFFFFFFFF);

@@ -34,8 +34,8 @@ class ProfileSettingsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        userName: 'Profile Settings',
+      appBar: CustomAppBar(
+        title: 'Notifications',
         showBackButton: true,
       ),
       body: SafeArea(

@@ -1,92 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/providers/user_creation_provider.dart';
 import '../../../core/models/user_model.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_text_field.dart';
 
-class AdminUserCreationForm extends StatefulWidget {
+class AdminUserCreationForm extends StatelessWidget {
   const AdminUserCreationForm({super.key});
 
   @override
-  State<AdminUserCreationForm> createState() => _AdminUserCreationFormState();
-}
-
-class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _companyNameController = TextEditingController();
-  final _addressController = TextEditingController();
-  
-  String _selectedRole = UserRole.distributor;
-  bool _isLoading = false;
-  String? _errorMessage;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _nameController.dispose();
-    _companyNameController.dispose();
-    _addressController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _createUser() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-      
-      final success = await adminProvider.createUser(
-        email: _emailController.text.trim(),
-        role: _selectedRole,
-        name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
-        companyName: _selectedRole == UserRole.gasPlant && _companyNameController.text.trim().isNotEmpty 
-            ? _companyNameController.text.trim() 
-            : null,
-        address: _selectedRole == UserRole.gasPlant && _addressController.text.trim().isNotEmpty 
-            ? _addressController.text.trim() 
-            : null,
-      );
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (success) {
-        // Clear form
-        _formKey.currentState!.reset();
-        _emailController.clear();
-        _nameController.clear();
-        _companyNameController.clear();
-        _addressController.clear();
-        _selectedRole = UserRole.distributor;
-        
-        // Show success message
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('User created successfully with default password: 123123'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _errorMessage = 'Failed to create user. Please try again.';
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    return Consumer<UserCreationProvider>(
+      builder: (context, userCreationProvider, _) {
+        return _buildForm(context, userCreationProvider);
+      },
+    );
+  }
+
+  Widget _buildForm(BuildContext context, UserCreationProvider userCreationProvider) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Form(
-        key: _formKey,
+        key: GlobalKey<FormState>(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -100,12 +36,9 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
             const SizedBox(height: 20),
             
             // Email Field
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
+            CustomTextField(
+              label: 'Email',
+              controller: userCreationProvider.emailController,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter an email';
@@ -119,12 +52,9 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
             const SizedBox(height: 16),
             
             // Name Field
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
-              ),
+            CustomTextField(
+              label: 'Name',
+              controller: userCreationProvider.nameController,
             ),
             const SizedBox(height: 16),
             
@@ -144,11 +74,9 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
                     title: const Text('Distributor'),
                     leading: Radio<String>(
                       value: UserRole.distributor,
-                      groupValue: _selectedRole,
+                      groupValue: userCreationProvider.selectedRole,
                       onChanged: (value) {
-                        setState(() {
-                          _selectedRole = value!;
-                        });
+                        userCreationProvider.setSelectedRole(value!);
                       },
                     ),
                   ),
@@ -158,11 +86,9 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
                     title: const Text('Gas Plant'),
                     leading: Radio<String>(
                       value: UserRole.gasPlant,
-                      groupValue: _selectedRole,
+                      groupValue: userCreationProvider.selectedRole,
                       onChanged: (value) {
-                        setState(() {
-                          _selectedRole = value!;
-                        });
+                        userCreationProvider.setSelectedRole(value!);
                       },
                     ),
                   ),
@@ -172,15 +98,12 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
             const SizedBox(height: 16),
             
             // Conditional fields for Gas Plant
-            if (_selectedRole == UserRole.gasPlant) ...[
+            if (userCreationProvider.selectedRole == UserRole.gasPlant) ...[
               // Company Name Field
-              TextFormField(
-                controller: _companyNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Company Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: _selectedRole == UserRole.gasPlant
+              CustomTextField(
+                label: 'Company Name',
+                controller: userCreationProvider.companyNameController,
+                validator: userCreationProvider.selectedRole == UserRole.gasPlant
                     ? (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter company name';
@@ -192,14 +115,11 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
               const SizedBox(height: 16),
               
               // Address Field
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  border: OutlineInputBorder(),
-                ),
+              CustomTextField(
+                label: 'Address',
+                controller: userCreationProvider.addressController,
                 maxLines: 3,
-                validator: _selectedRole == UserRole.gasPlant
+                validator: userCreationProvider.selectedRole == UserRole.gasPlant
                     ? (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter address';
@@ -212,11 +132,11 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
             ],
             
             // Error message
-            if (_errorMessage != null)
+            if (userCreationProvider.errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  _errorMessage!,
+                  userCreationProvider.errorMessage!,
                   style: const TextStyle(
                     color: Colors.red,
                     fontSize: 14,
@@ -225,22 +145,29 @@ class _AdminUserCreationFormState extends State<AdminUserCreationForm> {
               ),
             
             // Create User Button
-            SizedBox(
+            CustomButton(
+              text: 'Create User',
+              onPressed: userCreationProvider.isLoading ? null : () => _createUser(context, userCreationProvider),
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _createUser,
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text(
-                        'Create User',
-                        style: TextStyle(fontSize: 16),
-                      ),
-              ),
+              isLoading: userCreationProvider.isLoading,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _createUser(BuildContext context, UserCreationProvider userCreationProvider) async {
+    final success = await userCreationProvider.createUser();
+    
+    if (success && context.mounted) {
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User created successfully with default password: 123123'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 }

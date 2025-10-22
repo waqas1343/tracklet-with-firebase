@@ -1,56 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../services/firebase_service.dart';
+import '../../../core/providers/splash_provider.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_login_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthStatus();
+  Widget build(BuildContext context) {
+    return Consumer<SplashProvider>(
+      builder: (context, splashProvider, _) {
+        // Check auth status when the widget is built
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _checkAuthStatus(context, splashProvider);
+        });
+        
+        return _buildSplashScreen();
+      },
+    );
   }
 
-  Future<void> _checkAuthStatus() async {
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> _checkAuthStatus(BuildContext context, SplashProvider splashProvider) async {
+    final isAuthenticated = await splashProvider.checkAuthStatus();
     
-    if (!mounted) return;
+    if (!context.mounted) return;
     
-    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-    final user = firebaseService.auth.currentUser;
-    
-    if (user != null) {
+    if (isAuthenticated) {
       // User is already signed in, navigate to admin dashboard
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AdminDashboardScreen(),
-          ),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AdminDashboardScreen(),
+        ),
+      );
     } else {
       // No user is signed in, navigate to login screen
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AdminLoginScreen(),
-          ),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AdminLoginScreen(),
+        ),
+      );
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSplashScreen() {
     return Scaffold(
       backgroundColor: Colors.deepPurple,
       body: Center(

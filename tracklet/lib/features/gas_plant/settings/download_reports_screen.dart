@@ -8,7 +8,7 @@ class DownloadReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(userName: 'Reports', showBackButton: true),
+      appBar: const CustomAppBar(title: 'Reports', showBackButton: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

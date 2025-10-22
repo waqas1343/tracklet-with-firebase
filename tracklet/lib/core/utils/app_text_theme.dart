@@ -117,10 +117,9 @@ class AppTextTheme {
 
   // Card Specific Styles
   static const TextStyle cardTitle = TextStyle(
-    fontSize: 18,
+    fontSize: 17.64,
     fontWeight: FontWeight.bold,
-    color: AppColors.textPrimary,
-    height: 1.2,
+    color: AppColors.black,
   );
 
   static const TextStyle cardSubtitle = TextStyle(
@@ -164,7 +163,6 @@ class AppTextTheme {
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: AppColors.tagText,
-    height: 1.2,
   );
 
   // Button Styles

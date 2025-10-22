@@ -29,7 +29,7 @@ class NewOrdersScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(userName: 'New Orders', showBackButton: true),
+      appBar: const CustomAppBar(title: 'New Orders',circularBack: , showBackButton: true),
       body: SafeArea(
         child: user == null
             ? const Center(child: Text('User not logged in'))

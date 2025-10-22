@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/widgets/custom_appbar.dart';
+import 'package:tracklet/core/widgets/custom_appbar.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/providers/profile_provider.dart';
@@ -61,10 +61,13 @@ class _ManagePlantScreenState extends State<ManagePlantScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        userName: 'Manage Plant',
-        showBackButton: true,
-      ),
+      appBar: CustomAppBar(
+  title: "Manage Plant",
+  circularBack: true, // 👈 light grey circle back icon
+  centerTitle: false,
+),
+
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

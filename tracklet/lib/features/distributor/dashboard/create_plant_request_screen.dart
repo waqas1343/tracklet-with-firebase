@@ -77,8 +77,8 @@ class _CreatePlantRequestScreenState extends State<CreatePlantRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        userName: 'Request Cylinders',
+      appBar: CustomAppBar(
+        title: 'Notifications',
         showBackButton: true,
       ),
       body: SingleChildScrollView(

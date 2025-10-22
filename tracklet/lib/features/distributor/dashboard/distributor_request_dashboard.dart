@@ -29,8 +29,8 @@ class _DistributorRequestDashboardState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        userName: 'Plant Requests',
+      appBar: CustomAppBar(
+        title: 'Notifications',
         showBackButton: true,
       ),
       floatingActionButton: FloatingActionButton.extended(

@@ -143,8 +143,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        userName: 'Password Settings',
+      appBar: CustomAppBar(
+        title: 'Notifications',
         showBackButton: true,
       ),
       body: SafeArea(

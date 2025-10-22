@@ -4,45 +4,172 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/firebase_service.dart';
+import '../../../core/providers/login_provider.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_text_field.dart';
 import 'admin_dashboard_screen.dart';
 
-class AdminLoginScreen extends StatefulWidget {
+class AdminLoginScreen extends StatelessWidget {
   const AdminLoginScreen({super.key});
 
   @override
-  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
-}
+  Widget build(BuildContext context) {
+    return Consumer<LoginProvider>(
+      builder: (context, loginProvider, _) {
+        // Pre-fill with fixed credentials on first build
+        if (loginProvider.emailController.text.isEmpty) {
+          loginProvider.emailController.text =
+              'agha@tracklet.com'; // Changed from agha@gmail.com to match Firebase
+          loginProvider.passwordController.text = '123123';
+        }
 
-class _AdminLoginScreenState extends State<AdminLoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    // Pre-fill with fixed credentials
-    _emailController.text =
-        'agha@tracklet.com'; // Changed from agha@gmail.com to match Firebase
-    _passwordController.text = '123123';
+        return _buildLoginScreen(context, loginProvider);
+      },
+    );
   }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  Widget _buildLoginScreen(BuildContext context, LoginProvider loginProvider) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 48),
+              // Logo/Title
+              const Icon(
+                Icons.admin_panel_settings,
+                size: 80,
+                color: Colors.deepPurple,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Super Admin Login',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Tracklet Management System',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              const SizedBox(height: 48),
+
+              Form(
+                key: loginProvider.formKey,
+                child: Column(
+                  children: [
+                    // Email Field
+                    CustomTextField(
+                      label: 'Email',
+                      controller: loginProvider.emailController,
+                      prefixIcon: Icons.email,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        ).hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password Field
+                    CustomTextField(
+                      label: 'Password',
+                      controller: loginProvider.passwordController,
+                      obscureText: loginProvider.obscurePassword,
+                      prefixIcon: Icons.lock,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          loginProvider.obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          loginProvider.togglePasswordVisibility();
+                        },
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Error message
+                    if (loginProvider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          loginProvider.errorMessage!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+
+                    // Login Button
+                    CustomButton(
+                      text: 'Login',
+                      onPressed: loginProvider.isLoading ? null : () => _login(context, loginProvider),
+                      width: double.infinity,
+                      isLoading: loginProvider.isLoading,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Create Account Button
+              CustomButton(
+                text: 'Create New Account',
+                onPressed: loginProvider.isLoading ? null : () => _showCreateAccountDialog(context, loginProvider),
+                type: ButtonType.outlined,
+                width: double.infinity,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Forgot Password
+              TextButton(
+                onPressed: () {
+                  // TODO: Implement forgot password functionality
+                },
+                child: const Text(
+                  'Forgot Password?',
+                  style: TextStyle(color: Colors.deepPurple, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+  Future<void> _login(BuildContext context, LoginProvider loginProvider) async {
+    if (loginProvider.formKey.currentState!.validate()) {
+      loginProvider.setLoading(true);
+      loginProvider.setErrorMessage(null);
 
       try {
         final firebaseService = Provider.of<FirebaseService>(
@@ -53,8 +180,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         // Sign in with email and password
         final userCredential = await firebaseService.auth
             .signInWithEmailAndPassword(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
+              email: loginProvider.emailController.text.trim(),
+              password: loginProvider.passwordController.text,
             );
 
         // Check if the user is an admin (in a real app, you would check this against
@@ -97,20 +224,16 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           default:
             errorMessage = 'Login failed: ${e.message}';
         }
-        setState(() {
-          _errorMessage = errorMessage;
-          _isLoading = false;
-        });
+        loginProvider.setErrorMessage(errorMessage);
+        loginProvider.setLoading(false);
       } on Exception catch (e) {
-        setState(() {
-          _errorMessage = 'Login failed: ${e.toString()}';
-          _isLoading = false;
-        });
+        loginProvider.setErrorMessage('Login failed: ${e.toString()}');
+        loginProvider.setLoading(false);
       }
     }
   }
 
-  Future<void> _showCreateAccountDialog() async {
+  Future<void> _showCreateAccountDialog(BuildContext context, LoginProvider loginProvider) async {
     TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
     String? errorMessage;
@@ -212,40 +335,20 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               return;
                             }
 
-                            // Use FirebaseAuth directly instead of through FirebaseService
-                            // This avoids potential context issues in dialogs
-                            final userCredential = await FirebaseAuth.instance
-                                .createUserWithEmailAndPassword(
-                                  email: email,
-                                  password: password,
-                                );
+                            // Use loginProvider to create account
+                            await loginProvider.createAccount(email, password);
 
-                            if (userCredential.user != null) {
-                              // Save user data to Firestore
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(userCredential.user!.uid)
-                                  .set({
-                                    'id': userCredential.user!.uid,
-                                    'email': email,
-                                    'role':
-                                        'distributor', // default role, can be changed later
-                                    'createdAt': DateTime.now()
-                                        .toIso8601String(),
-                                  });
-
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                // Show success message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Account created successfully! You can now login with these credentials.',
-                                    ),
-                                    backgroundColor: Colors.green,
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              // Show success message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Account created successfully! You can now login with these credentials.',
                                   ),
-                                );
-                              }
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
                             }
                           } on FirebaseAuthException catch (e) {
                             String errorMsg;
@@ -297,186 +400,5 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
     emailController.dispose();
     passwordController.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 48),
-              // Logo/Title
-              const Icon(
-                Icons.admin_panel_settings,
-                size: 80,
-                color: Colors.deepPurple,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Super Admin Login',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Tracklet Management System',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 48),
-
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // Email Field
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!RegExp(
-                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                        ).hasMatch(value)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password Field
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Error message
-                    if (_errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-
-                    // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Create Account Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton(
-                  onPressed: _isLoading ? null : _showCreateAccountDialog,
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.deepPurple),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Create New Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Forgot Password
-              TextButton(
-                onPressed: () {
-                  // TODO: Implement forgot password functionality
-                },
-                child: const Text(
-                  'Forgot Password?',
-                  style: TextStyle(color: Colors.deepPurple, fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
