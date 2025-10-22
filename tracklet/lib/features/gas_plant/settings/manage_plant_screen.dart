@@ -62,10 +62,9 @@ class _ManagePlantScreenState extends State<ManagePlantScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
-  title: "Manage Plant",
-  circularBack: true, // 👈 light grey circle back icon
-  centerTitle: false,
-),
+        userName: 'Gas Plant Admin',
+        
+      ),
 
 
       body: SafeArea(

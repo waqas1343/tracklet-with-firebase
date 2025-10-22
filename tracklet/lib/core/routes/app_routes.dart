@@ -73,6 +73,25 @@ class AppRoutes {
   }
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    // Handle routes with parameters
+    if (settings.name == gasPlantOrders) {
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute(
+        builder: (context) => OrdersScreen(
+          highlightedOrderId: args?['highlightedOrderId'] as String?,
+        ),
+      );
+    }
+    
+    if (settings.name == gasPlantOrdersInProgress) {
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute(
+        builder: (context) => OrdersInProgressScreen(
+          highlightedOrderId: args?['highlightedOrderId'] as String?,
+        ),
+      );
+    }
+
     // Handle unknown routes
     return null;
   }

@@ -144,7 +144,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: 'Notifications',
+        userName: 'Gas Plant Admin',
         showBackButton: true,
       ),
       body: SafeArea(

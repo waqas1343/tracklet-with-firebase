@@ -10,7 +10,9 @@ import '../../../core/utils/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 
 class OrdersInProgressScreen extends StatelessWidget {
-  const OrdersInProgressScreen({super.key});
+  final String? highlightedOrderId; // Add this parameter
+
+  const OrdersInProgressScreen({super.key, this.highlightedOrderId});
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,9 @@ class OrdersInProgressScreen extends StatelessWidget {
     if (kDebugMode) {
       print('OrdersInProgressScreen - User ID: ${user?.id}');
       print('OrdersInProgressScreen - User name: ${user?.name}');
+      if (highlightedOrderId != null) {
+        print('OrdersInProgressScreen - Highlighted Order ID: $highlightedOrderId');
+      }
     }
 
     // Common color palette
@@ -67,6 +72,7 @@ class OrdersInProgressScreen extends StatelessWidget {
               navy: navy,
               yellow: yellow,
               lightCard: lightCard,
+              highlightedOrderId: highlightedOrderId, // Pass the highlighted order ID
             ),
     );
   }
@@ -78,6 +84,7 @@ class _OrdersInProgressContent extends StatefulWidget {
   final Color navy;
   final Color yellow;
   final Color lightCard;
+  final String? highlightedOrderId; // Add this parameter
 
   const _OrdersInProgressContent({
     required this.orderProvider,
@@ -85,6 +92,7 @@ class _OrdersInProgressContent extends StatefulWidget {
     required this.navy,
     required this.yellow,
     required this.lightCard,
+    this.highlightedOrderId, // Add this parameter
   });
 
   @override
@@ -101,6 +109,21 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
   void initState() {
     super.initState();
     _initializeStream();
+    
+    // Show highlight message if there's a highlighted order
+    if (widget.highlightedOrderId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Order highlighted - scroll to find it'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    }
   }
 
   void _initializeStream() {
@@ -247,7 +270,7 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
         }
 
         // Handle different connection states with more detailed messages
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -318,6 +341,7 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
               // This won't actually refresh the stream, but we can add a manual refresh
               if (mounted) {
                 setState(() {
+                  _timeoutOccurred = false;
                   _initializeStream();
                 });
               }
@@ -396,6 +420,7 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
                         navy: widget.navy,
                         yellow: widget.yellow,
                         lightCard: widget.lightCard,
+                        isHighlighted: widget.highlightedOrderId == order.id, // Pass highlight status
                       ))
               ],
             ),
@@ -411,12 +436,14 @@ class OrderCard extends StatelessWidget {
   final Color navy;
   final Color yellow;
   final Color lightCard;
+  final bool isHighlighted; // Add this parameter for highlighting
   
   const OrderCard({
     required this.order,
     required this.navy,
     required this.yellow,
     required this.lightCard,
+    this.isHighlighted = false, // Default to false
     super.key,
   });
 
@@ -428,7 +455,19 @@ class OrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: lightCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: isHighlighted ? Colors.orange : Colors.grey.shade200,
+          width: isHighlighted ? 2 : 1,
+        ),
+        boxShadow: isHighlighted
+            ? [
+                BoxShadow(
+                  color: Colors.orange.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -517,7 +556,6 @@ class OrderCard extends StatelessWidget {
             ),
             SizedBox(height: 8),
           ],
-          // Requested items row
           Text(
             'Requested Items',
             style: TextStyle(fontWeight: FontWeight.w500, color: navy, fontSize: 13),
@@ -527,7 +565,6 @@ class OrderCard extends StatelessWidget {
             children: order.formattedQuantities.map((item) => ItemTag(label: item, navy: navy)).toList(),
           ),
           SizedBox(height: 5),
-          // Total KG
           RichText(
             text: TextSpan(
               children: [
@@ -543,7 +580,6 @@ class OrderCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 8),
-          // Assign Driver Button - Only show if no driver is assigned yet
           if (order.driverName == null || order.driverName!.isEmpty) ...[
             SizedBox(height: 8),
             CustomButton(
@@ -556,13 +592,11 @@ class OrderCard extends StatelessWidget {
             ),
             SizedBox(height: 8),
           ],
-          // Buttons Row
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // Cancel order functionality
                     _showCancelDialog(context, order);
                   },
                   style: OutlinedButton.styleFrom(
@@ -580,7 +614,6 @@ class OrderCard extends StatelessWidget {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    // Mark order as completed
                     _markOrderCompleted(context, order);
                   },
                   style: ElevatedButton.styleFrom(
@@ -640,18 +673,15 @@ class OrderCard extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 if (driverController.text.trim().isNotEmpty) {
-                  // Get the ScaffoldMessenger before closing the dialog
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  Navigator.pop(context); // Close dialog first
+                  Navigator.pop(context);
                   
                   final success = await orderProvider.updateOrderStatus(
                     order.id,
                     OrderStatus.inProgress,
                     driverName: driverController.text.trim(),
                   );
-                  
-                  // Show snackbar after dialog is closed
-                  if (context.mounted) {
+                                    if (context.mounted) {
                     if (success) {
                       scaffoldMessenger.showSnackBar(
                         SnackBar(
@@ -696,17 +726,14 @@ class OrderCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                // Get the ScaffoldMessenger before closing the dialog
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
-                Navigator.pop(context); // Close dialog first
+                Navigator.pop(context); 
                 
                 final success = await orderProvider.updateOrderStatus(
                   order.id,
                   OrderStatus.cancelled,
                 );
-                
-                // Show snackbar after dialog is closed
-                if (context.mounted) {
+                                if (context.mounted) {
                   if (success) {
                     scaffoldMessenger.showSnackBar(
                       SnackBar(

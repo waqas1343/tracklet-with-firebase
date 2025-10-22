@@ -240,7 +240,7 @@ class OrderViewModel extends ChangeNotifier {
           }
         }
         
-        // Always refresh the orders list to ensure UI consistency
+        // Always refresh all order lists to ensure UI consistency
         // This fixes the issue where orders weren't appearing in the right sections
         _updateNewOrders();
         notifyListeners();
@@ -251,6 +251,8 @@ class OrderViewModel extends ChangeNotifier {
           for (var i = 0; i < _newOrders.length; i++) {
             print('     New Order $i: ${_newOrders[i].id} - Status: ${_newOrders[i].statusText}');
           }
+          // Also log the total orders to verify all lists are updated
+          print('   Total orders count: ${_orders.length}');
         }
       } else {
         if (kDebugMode) {

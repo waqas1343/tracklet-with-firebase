@@ -30,8 +30,7 @@ class _DistributorRequestDashboardState
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: 'Notifications',
-        showBackButton: true,
+        userName: "Distributor Admin",        showBackButton: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

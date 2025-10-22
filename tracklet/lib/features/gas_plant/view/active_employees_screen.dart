@@ -27,7 +27,7 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
-        title: 'Active Employees',
+        userName: 'Gas Plant Admin',
         showBackButton: true,
       ),
       body: SafeArea(

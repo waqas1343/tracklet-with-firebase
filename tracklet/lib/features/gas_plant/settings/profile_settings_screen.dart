@@ -35,7 +35,7 @@ class ProfileSettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
-        title: 'Notifications',
+        userName: 'Gas Plant Admin',
         showBackButton: true,
       ),
       body: SafeArea(

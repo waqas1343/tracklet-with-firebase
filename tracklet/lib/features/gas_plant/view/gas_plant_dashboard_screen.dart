@@ -6,6 +6,7 @@ import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/order_model.dart';
 import '../../../shared/widgets/section_header_widget.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
 import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
 import '../widgets/new_order_card.dart';
@@ -17,7 +18,7 @@ class GasPlantDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(showBackButton: false),
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(8),
@@ -26,9 +27,8 @@ class GasPlantDashboardScreen extends StatelessWidget {
             children: [
               _buildPlantSummarySection(context),
               const SizedBox(height: 14),
-                            _buildNewOrdersSection(context),
+              _buildNewOrdersSection(context),
               const SizedBox(height: 24),
-
               _buildPreviousOrdersSection(),
             ],
           ),
@@ -124,7 +124,13 @@ class GasPlantDashboardScreen extends StatelessWidget {
         else if (orderProvider.isLoading)
           const Center(child: CircularProgressIndicator())
         else if (orderProvider.newOrders.isEmpty)
-          const Center(child: Text('No new orders'))
+          Center(
+            child: EmptyStateWidget(
+              icon: Icons.shopping_cart_outlined,
+              message: 'No orders yet',
+              actionText: 'New orders are coming',
+            ),
+          )
         else ...[
           // Debug information
           if (kDebugMode) ...[
@@ -252,26 +258,108 @@ class GasPlantDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildPreviousOrdersSection() {
+    return _PreviousOrdersSection();
+  }
+}
+
+class _PreviousOrdersSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final user = profileProvider.currentUser;
+    
+    // Debug information
+    if (kDebugMode) {
+      print('PreviousOrdersSection - User ID: ${user?.id}');
+      print('PreviousOrdersSection - Is loading: ${orderProvider.isLoading}');
+      print('PreviousOrdersSection - Total orders: ${orderProvider.orders.length}');
+      print('PreviousOrdersSection - Orders data: ${orderProvider.orders.map((o) => '${o.id}:${o.statusText}').toList()}');
+    }
+    
+    // Trigger initial load if needed
+    if (user != null &&
+        !orderProvider.isLoading) {  // Remove the empty check to ensure orders are always loaded
+      if (kDebugMode) {
+        print('PreviousOrdersSection - Triggering load for user: ${user.id}');
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        orderProvider.loadOrdersForPlant(user.id);
+      });
+    }
+    
+    // Get completed and cancelled orders
+    final previousOrders = orderProvider.orders
+        .where((order) => 
+            order.status == OrderStatus.completed || 
+            order.status == OrderStatus.cancelled)
+        .toList();
+    
+    // Sort by updated date, newest first
+    previousOrders.sort((a, b) => 
+        (b.updatedAt ?? b.createdAt).compareTo(a.updatedAt ?? a.createdAt));
+    
+    if (kDebugMode) {
+      print('PreviousOrdersSection - Previous orders count: ${previousOrders.length}');
+      for (var order in previousOrders) {
+        print('Previous Order: ${order.id} - Status: ${order.statusText} - Updated: ${order.updatedAt ?? order.createdAt}');
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeaderWidget(
           title: 'Previous Orders',
           onSeeAllPressed: () {
+            Navigator.pushNamed(context, '/gas-plant/orders-history');
           },
         ),
         const SizedBox(height: 16),
-        CompletedOrderCard(
-          companyName: 'Arham Traders',
-          time: '03:45 PM',
-          date: '08-Oct-2025',
-          driverName: 'Romail Ahmed',
-          specialInstructions:
-              'Please deliver after 2 PM.Handle cylinders carefully.',
-          requestedItems: ['45.4 KG (3)', '15 KG (5)'],
-          totalWeight: '225 KG',
-        ),
+        if (user == null)
+          const Center(child: Text('User not logged in'))
+        else if (orderProvider.isLoading && orderProvider.orders.isEmpty)
+          const Center(child: CircularProgressIndicator())
+        else if (previousOrders.isEmpty)
+          Center(
+            child: EmptyStateWidget(
+              icon: Icons.history_outlined,
+              message: 'No previous orders',
+              actionText: 'Completed and cancelled orders will appear here',
+            ),
+          )
+        else ...[
+          // Show only the first 3 previous orders
+          ...previousOrders.take(3).map((order) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: CompletedOrderCard(
+              companyName: order.distributorName,
+              time: _PreviousOrdersSection._formatTime(order.updatedAt ?? order.createdAt),
+              date: _PreviousOrdersSection._formatDate(order.updatedAt ?? order.createdAt),
+              driverName: order.driverName ?? 'Not assigned',
+              specialInstructions: order.specialInstructions ?? 'No special instructions',
+              requestedItems: order.formattedQuantities,
+              totalWeight: '${order.totalKg.toInt()} KG',
+              status: order.statusText, // Pass the actual status text
+              onTap: () {
+                // Navigate to order details if needed
+              },
+            ),
+          ))
+        ]
       ],
     );
+  }
+
+  static String _formatTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  static String _formatDate(DateTime dateTime) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${dateTime.day}-${months[dateTime.month - 1]}-${dateTime.year}';
   }
 }

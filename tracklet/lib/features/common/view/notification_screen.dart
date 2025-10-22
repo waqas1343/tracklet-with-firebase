@@ -5,8 +5,12 @@ import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/notification_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/notification_model.dart';
+import '../../../core/models/order_model.dart';
+import '../../../core/providers/order_provider.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
+import '../../gas_plant/view/orders_in_progress_screen.dart';
+import '../../gas_plant/view/orders_screen.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -32,7 +36,7 @@ class NotificationScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
-        title: 'Notifications',
+        userName: user != null ? user.name : 'User',
         showBackButton: true,
       ),
       body: SafeArea(
@@ -200,7 +204,7 @@ class NotificationScreen extends StatelessWidget {
     BuildContext context,
     NotificationModel notification,
     NotificationProvider notificationProvider,
-  ) {
+  ) async {
     // Mark as read if not already read
     if (!notification.isRead) {
       notificationProvider.markAsRead(notification.id);
@@ -209,8 +213,95 @@ class NotificationScreen extends StatelessWidget {
     // Navigate based on notification type and related ID
     if (notification.type == NotificationType.order &&
         notification.relatedId != null) {
-      // Navigate to order details or new orders screen
-      // You can implement navigation logic here
+      // Get the order to determine its status and navigate accordingly
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+      final user = profileProvider.currentUser;
+      
+      if (user != null) {
+        try {
+          final order = await orderProvider.getOrderById(notification.relatedId!);
+          
+          if (order != null) {
+            // Navigate to the appropriate screen based on order status
+            switch (order.status) {
+              case OrderStatus.pending:
+              case OrderStatus.confirmed:
+                // Navigate to new orders screen (dashboard)
+                if (context.mounted) {
+                  Navigator.pushNamed(context, '/gas-plant/dashboard');
+                  // Show a snackbar to indicate which order was selected
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Check new orders for order from ${order.distributorName}'),
+                        backgroundColor: AppColors.primary,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+                break;
+              case OrderStatus.inProgress:
+                // Navigate to orders in progress screen with highlighted order
+                if (context.mounted) {
+                  Navigator.pushNamed(
+                    context,
+                    '/gas-plant/orders-in-progress',
+                    arguments: {
+                      'highlightedOrderId': order.id,
+                    },
+                  );
+                }
+                break;
+              case OrderStatus.completed:
+              case OrderStatus.cancelled:
+                // Navigate to orders history screen with highlighted order
+                if (context.mounted) {
+                  Navigator.pushNamed(
+                    context,
+                    '/gas-plant/orders',
+                    arguments: {
+                      'highlightedOrderId': order.id,
+                    },
+                  );
+                }
+                break;
+            }
+          } else {
+            // If order not found, navigate to the main orders screen
+            if (context.mounted) {
+              Navigator.pushNamed(context, '/gas-plant/orders');
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Order not found, showing all orders'),
+                    backgroundColor: AppColors.warning,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error fetching order: $e');
+          }
+          // Navigate to orders screen as fallback
+          if (context.mounted) {
+            Navigator.pushNamed(context, '/gas-plant/orders');
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Error loading order, showing all orders'),
+                  backgroundColor: AppColors.error,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        }
+      }
     }
   }
 

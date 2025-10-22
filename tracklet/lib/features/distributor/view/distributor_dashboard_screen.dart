@@ -53,7 +53,7 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
-        title: 'Notifications',
+        userName: user?.name ?? '',
         showBackButton: true,
       ),
       body: SafeArea(
@@ -172,7 +172,7 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
     );
   }
 
-  Widget _buildPlantCard(BuildContext context, company) {
+  Widget _buildPlantCard(BuildContext context, dynamic company) {
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
@@ -293,14 +293,14 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
           Column(
             children: orders
                 .take(3) // Show only the first 3 orders
-                .map((order) => _buildOrderCard(order))
+                .map<Widget>((order) => _buildOrderCard(order))
                 .toList(),
           ),
       ],
     );
   }
 
-  Widget _buildOrderCard(order) {
+  Widget _buildOrderCard(dynamic order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -310,7 +310,7 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
         border: Border.all(color: Colors.brown, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: Colors.grey.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

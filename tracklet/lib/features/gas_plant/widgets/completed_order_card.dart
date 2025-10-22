@@ -13,6 +13,7 @@ class CompletedOrderCard extends StatelessWidget {
   final String specialInstructions;
   final List<String> requestedItems;
   final String totalWeight;
+  final String status; // Add status parameter
   final VoidCallback? onTap;
 
   const CompletedOrderCard({
@@ -24,6 +25,7 @@ class CompletedOrderCard extends StatelessWidget {
     required this.specialInstructions,
     required this.requestedItems,
     required this.totalWeight,
+    required this.status, // Add status parameter
     this.onTap,
   });
 
@@ -52,7 +54,7 @@ class CompletedOrderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with company name and completed status
+            // Header with company name and status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -65,11 +67,11 @@ class CompletedOrderCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.completed,
+                    color: _getStatusColor(), // Use dynamic color based on status
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text(
-                    'Completed',
+                  child: Text(
+                    _getStatusText(), // Use dynamic text based on status
                     style: AppTextTheme.statusText,
                   ),
                 ),
@@ -140,6 +142,22 @@ class CompletedOrderCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Helper method to get status text based on status
+  String _getStatusText() {
+    if (status.toLowerCase() == 'cancelled' || status.toLowerCase() == 'canceled') {
+      return 'Cancelled';
+    }
+    return 'Completed';
+  }
+
+  // Helper method to get status color based on status
+  Color _getStatusColor() {
+    if (status.toLowerCase() == 'cancelled' || status.toLowerCase() == 'canceled') {
+      return AppColors.cancelled; // Red color for cancelled
+    }
+    return AppColors.completed; // Green color for completed
   }
 
   Widget _buildItemTag(String item, double screenWidth) {

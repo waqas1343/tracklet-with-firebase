@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/plant_request_model.dart';
@@ -78,7 +79,7 @@ class _CreatePlantRequestScreenState extends State<CreatePlantRequestScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: 'Notifications',
+        userName: 'Distributor Admin',
         showBackButton: true,
       ),
       body: SingleChildScrollView(
