@@ -5,8 +5,7 @@ import '../providers/theme_provider.dart';
 import '../providers/users_provider.dart';
 import '../widgets/user_row.dart';
 import '../widgets/shimmer_loader.dart';
-import '../widgets/animated_page_route.dart';
-import 'user_details_sheet.dart';
+import 'create_user_screen.dart';
 
 class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
@@ -65,10 +64,33 @@ class UsersScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Results count
-              Text(
-                '${usersProvider.filteredUsers.length} users found',
-                style: theme.bodySmall,
+              // Header with Create Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${usersProvider.filteredUsers.length} users found',
+                    style: theme.bodySmall,
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const CreateUserScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Create User'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primary,
+                      foregroundColor: theme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

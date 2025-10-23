@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tracklet/core/widgets/custom_appbar.dart';
 import '../../../../core/utils/app_colors.dart';
 import './provider/employee_provider.dart'; // Added missing import
 
@@ -16,7 +17,8 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<EmployeeProvider>(context, listen: false);
-      provider.loadEmployees(); // Changed from loadActiveEmployees to loadEmployees
+      provider
+          .loadEmployees(); // Changed from loadActiveEmployees to loadEmployees
     });
   }
 
@@ -24,15 +26,7 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Active Employees"),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: const CustomAppBar(showBackButton: true),
       body: Consumer<EmployeeProvider>(
         builder: (context, provider, child) {
           // Show loading indicator
@@ -46,8 +40,10 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
           // Removed error handling since EmployeeProvider doesn't have errorMessage property
 
           // Show active employees (filtered)
-          final activeEmployees = provider.filteredEmployees.where((e) => e.isPresent == true).toList();
-          
+          final activeEmployees = provider.filteredEmployees
+              .where((e) => e.isPresent == true)
+              .toList();
+
           // Show empty state
           if (activeEmployees.isEmpty) {
             return Center(
@@ -67,10 +63,7 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'All employees are currently on leave or terminated',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -90,7 +83,9 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
                   gradient: LinearGradient(
                     colors: [
                       AppColors.primary,
-                      AppColors.primary.withValues(alpha: 0.8) // Fixed deprecated withOpacity
+                      AppColors.primary.withValues(
+                        alpha: 0.8,
+                      ), // Fixed deprecated withOpacity
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -98,7 +93,9 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3), // Fixed deprecated withOpacity
+                      color: AppColors.primary.withValues(
+                        alpha: 0.3,
+                      ), // Fixed deprecated withOpacity
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -144,7 +141,9 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
                         contentPadding: const EdgeInsets.all(16),
                         leading: CircleAvatar(
                           radius: 28,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.1), // Fixed deprecated withOpacity
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.1,
+                          ), // Fixed deprecated withOpacity
                           child: Text(
                             employee.name.substring(0, 1).toUpperCase(),
                             style: TextStyle(
@@ -166,7 +165,8 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
                           children: [
                             const SizedBox(height: 4),
                             Text(
-                              employee.designation, // Changed from role to designation
+                              employee
+                                  .designation, // Changed from role to designation
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[700],
@@ -185,7 +185,9 @@ class _ActiveEmployeesScreenState extends State<ActiveEmployeesScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1), // Fixed deprecated withOpacity
+                                color: Colors.green.withValues(
+                                  alpha: 0.1,
+                                ), // Fixed deprecated withOpacity
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.green),
                               ),

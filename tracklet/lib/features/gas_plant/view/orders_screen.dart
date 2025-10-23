@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:tracklet/core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/order_model.dart';
@@ -53,19 +54,8 @@ class _OrdersScreenState extends State<OrdersScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: SafeArea(
-          child: SizedBox(
-            height: 60,
-            child: Row(
-              children: const [
-                SizedBox(width: 16),
-              ],
-            ),
-          ),
-        ),
-      ),
+          appBar: const CustomAppBar(),
+
       body: Consumer2<OrderProvider, ProfileProvider>(
         builder: (context, orderProvider, profileProvider, _) {
           final user = profileProvider.currentUser;

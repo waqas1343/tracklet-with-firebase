@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tracklet/core/widgets/custom_appbar.dart';
 import '../../../core/providers/company_provider.dart';
 import '../../../core/models/company_model.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
@@ -179,19 +181,7 @@ class _RatesScreenState extends State<GasRateScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: navy,
-        title: Text(
-          "Today Rate per KG:",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: navy,
-          ),
-        ),
-      ),
+      appBar: const CustomAppBar(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Column(

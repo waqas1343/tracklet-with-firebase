@@ -27,11 +27,25 @@ class DistributorSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               
+              // Order Analytics
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.analytics),
+                  title: const Text('Order Analytics'),
+                  subtitle: const Text('View order statistics and analytics'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // TODO: Implement navigation to order analytics screen
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              
               // Profile Settings
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.person),
-                  title: const Text('Profile'),
+                  title: const Text('Profile Settings'),
                   subtitle: const Text('View and edit your profile'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
@@ -54,54 +68,7 @@ class DistributorSettingsScreen extends StatelessWidget {
                   subtitle: const Text('Update your password'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Notification Settings
-              Card(
-                child: SwitchListTile(
-                  secondary: const Icon(Icons.notifications),
-                  title: const Text('Notifications'),
-                  subtitle: const Text('Enable or disable notifications'),
-                  value: true, // Default value
-                  onChanged: (bool value) {
-                    // TODO: Implement notification settings
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Language Settings
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.language),
-                  title: const Text('Language'),
-                  subtitle: const Text('Change app language'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    // TODO: Implement language settings
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Theme Settings
-              Card(
-                child: SwitchListTile(
-                  secondary: const Icon(Icons.dark_mode),
-                  title: const Text('Dark Mode'),
-                  subtitle: const Text('Toggle dark theme'),
-                  value: Theme.of(context).brightness == Brightness.dark,
-                  onChanged: (bool value) {
-                    // TODO: Implement theme settings
+                    // TODO: Implement navigation to change password screen
                   },
                 ),
               ),

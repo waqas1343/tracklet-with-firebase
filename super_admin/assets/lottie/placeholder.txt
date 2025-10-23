@@ -1,0 +1,2 @@
+# Placeholder for lottie animations directory
+# This directory can contain Lottie animation files for the super admin app

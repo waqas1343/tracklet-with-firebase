@@ -1,22 +1,28 @@
 // Main Entry Point - Provider setup aur app initialization
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'core/config/firebase_options.dart';
 import 'providers/theme_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/users_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/login_provider.dart';
 
 import 'screens/dashboard_screen.dart';
 import 'screens/users_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/login_screen.dart';
 
 import 'widgets/custom_app_bar.dart';
 import 'widgets/side_navigation.dart';
 
 import 'utils/responsive_helper.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SuperAdminApp());
 }
 
@@ -28,6 +34,7 @@ class SuperAdminApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => UsersProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
@@ -45,7 +52,15 @@ class SuperAdminApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Super Admin Dashboard',
             theme: themeProvider.themeData,
-            home: const MainLayout(),
+            home: Consumer<LoginProvider>(
+              builder: (context, loginProvider, _) {
+                if (loginProvider.isLoggedIn) {
+                  return const MainLayout();
+                } else {
+                  return const LoginScreen();
+                }
+              },
+            ),
           );
         },
       ),

@@ -1,0 +1,2 @@
+# Placeholder for images directory
+# This directory can contain local image assets for the super admin app

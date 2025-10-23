@@ -8,29 +8,30 @@ class ExpensesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(showBackButton: false),
-      body: Column(
-        children: [
-          // Header Section with User Profile and Title
+      appBar: const CustomAppBar(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header Section with User Profile and Title
 
-          // Main Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Expense Cards
-                  _buildExpenseCards(),
-                ],
+            // Main Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Expense Cards
+                    _buildExpenseCards(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
 
   Widget _buildExpenseCards() {
     return Column(
@@ -86,8 +87,10 @@ class ExpensesScreen extends StatelessWidget {
           // Title and Date Tag
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
+                flex: 3,
                 child: Text(
                   title,
                   style: const TextStyle(
@@ -95,23 +98,29 @@ class ExpensesScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF333333),
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A2B4C),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A2B4C),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    date,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -123,6 +132,8 @@ class ExpensesScreen extends StatelessWidget {
           Text(
             description,
             style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 3,
           ),
           const SizedBox(height: 16),
 
@@ -139,6 +150,8 @@ class ExpensesScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: Color(0xFF333333),
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
           const SizedBox(height: 16),
 

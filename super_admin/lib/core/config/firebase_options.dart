@@ -13,7 +13,8 @@ class DefaultFirebaseOptions {
         storageBucket: "tracklet-4db05.firebasestorage.app",
         messagingSenderId: "862271235339",
         appId: "1:862271235339:web:39b595df493f0aa003ae0e",
-        measurementId: "G-YOUR_MEASUREMENT_ID", // Get this from Firebase Console for web
+        measurementId:
+            "G-XXXXXXXXXX", // Optional: Get this from Firebase Console for web
       );
     } else {
       // Mobile configuration - uses google-services.json for Android

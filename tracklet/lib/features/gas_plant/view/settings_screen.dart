@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tracklet/core/widgets/custom_appbar.dart';
 import '../settings/manage_plant_screen.dart';
 import '../settings/sales_summary_screen.dart';
 import '../settings/profile_settings_screen.dart';
@@ -14,6 +15,8 @@ class SettingsScreen extends StatelessWidget {
     Theme.of(context);
 
     return Scaffold(
+      appBar: const CustomAppBar(),
+
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
@@ -34,52 +37,76 @@ class SettingsScreen extends StatelessWidget {
 
               // 🔹 Settings Options
               ...[
-                _buildSettingTile(context, 'Manage Plant', const ManagePlantScreen()),
-                _buildSettingTile(context, 'Sales Summary', const SalesSummaryScreen()),
-                _buildSettingTile(context, 'Profile Settings', const ProfileSettingsScreen()),
-                _buildSettingTile(context, 'Change Password', const ChangePasswordScreen()),
-                _buildSettingTile(context, 'Download Reports', const DownloadReportsScreen()),
+                _buildSettingTile(
+                  context,
+                  'Manage Plant',
+                  const ManagePlantScreen(),
+                ),
+                _buildSettingTile(
+                  context,
+                  'Sales Summary',
+                  SalesSummaryScreen(),
+                ),
+                _buildSettingTile(
+                  context,
+                  'Profile Settings',
+                  const ProfileSettingsScreen(),
+                ),
+                _buildSettingTile(
+                  context,
+                  'Change Password',
+                  const ChangePasswordScreen(),
+                ),
+                _buildSettingTile(
+                  context,
+                  'Download Reports',
+                  const DownloadReportsScreen(),
+                ),
               ].expand((widget) => [widget, const SizedBox(height: 12)]),
 
               const SizedBox(height: 20),
 
               // 🔹 Language Section
-              const Text(
-                'Language',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 12),
 
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Eng', style: TextStyle(fontSize: 14, color: Colors.black)),
-                  const SizedBox(width: 8),
-                  Switch(
-                    value: true, 
-                    onChanged: (value) {
-                    },
-                    activeThumbColor: Colors.blue,
-                    activeTrackColor: Colors.blue,
-                    inactiveThumbColor: Colors.grey,
-                    inactiveTrackColor: Colors.grey.shade300,
+                  Expanded(
+                    child: Text(
+                      'Language',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  const Text('Urdu', style: TextStyle(fontSize: 14, color: Colors.black)),
+
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Eng',
+                          style: TextStyle(fontSize: 14, color: Colors.black),
+                        ),
+                        Switch(
+                          value: true,
+                          onChanged: (value) {},
+                          activeThumbColor: Colors.blue,
+                          activeTrackColor: Colors.blue,
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey.shade300,
+                        ),
+                        const Text(
+                          'Urdu',
+                          style: TextStyle(fontSize: 14, color: Colors.black),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
 
-              const SizedBox(height: 32),
-
-              // 🔹 Logout Button
-              _buildLogoutButton(context),
-
-              const Spacer(),
-
-              // 🔹 Legal Links
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -87,6 +114,12 @@ class SettingsScreen extends StatelessWidget {
                   _buildLegalLink('Privacy Policy'),
                 ],
               ),
+              // 🔹 Logout Button
+              _buildLogoutButton(context),
+
+              const Spacer(),
+
+              // 🔹 Legal Links
             ],
           ),
         ),
@@ -95,7 +128,11 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // ✅ Reusable Tile Widget
-  Widget _buildSettingTile(BuildContext context, String title, Widget destination) {
+  Widget _buildSettingTile(
+    BuildContext context,
+    String title,
+    Widget destination,
+  ) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -107,7 +144,10 @@ class SettingsScreen extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => destination));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => destination),
+            );
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -122,7 +162,11 @@ class SettingsScreen extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.black,
+                ),
               ],
             ),
           ),
@@ -168,7 +212,11 @@ class SettingsScreen extends StatelessWidget {
             if (confirm == true) {
               await FirebaseAuth.instance.signOut();
               if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
               }
             }
           },

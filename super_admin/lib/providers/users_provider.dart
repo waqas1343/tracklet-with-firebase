@@ -1,6 +1,7 @@
 // Users Provider - User management state
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../services/firebase_service.dart';
 
 class UsersProvider with ChangeNotifier {
   bool _isLoading = true;
@@ -11,12 +12,15 @@ class UsersProvider with ChangeNotifier {
   int _usersPerPage = 10;
   UserModel? _selectedUser;
 
+  final FirebaseService _firebaseService = FirebaseService();
+
   UsersProvider() {
     _loadUsers();
   }
 
   // Getters
   bool get isLoading => _isLoading;
+  List<UserModel> get allUsers => _allUsers;
   List<UserModel> get filteredUsers => _filteredUsers;
   String get searchQuery => _searchQuery;
   int get currentPage => _currentPage;
@@ -30,18 +34,28 @@ class UsersProvider with ChangeNotifier {
     return _filteredUsers.sublist(start, end);
   }
 
-  // Load users
+  // Load users from Firebase
   Future<void> _loadUsers() async {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    _allUsers = UserModel.generateSampleUsers(50);
-    _filteredUsers = List.from(_allUsers);
+    try {
+      _allUsers = await _firebaseService.getAllUsers();
+      _filteredUsers = List.from(_allUsers);
+    } catch (e) {
+      // No fallback to sample data - show empty state
+      _allUsers = [];
+      _filteredUsers = [];
+      print('Error loading users from Firebase: $e');
+    }
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  // Public method to refresh users
+  Future<void> refreshUsers() async {
+    await _loadUsers();
   }
 
   // Search users
@@ -95,41 +109,75 @@ class UsersProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Create new user
+  Future<Map<String, dynamic>> createUser({
+    required String name,
+    required String email,
+    required String role,
+    required String phone,
+    String department = '',
+  }) async {
+    try {
+      final result = await _firebaseService.createUser(
+        name: name,
+        email: email,
+        role: role,
+        phone: phone,
+        department: department,
+        defaultPassword: '123123', // Fixed password for all users
+      );
+
+      if (result['success']) {
+        // Reload users to include the new one
+        await _loadUsers();
+      }
+
+      return result;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to create user: ${e.toString()}',
+      };
+    }
+  }
+
   // User actions
   Future<void> toggleUserStatus(String userId) async {
     final index = _allUsers.indexWhere((u) => u.id == userId);
     if (index != -1) {
-      // In real app, make API call here
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // Create updated user
       final user = _allUsers[index];
-      final updatedUser = UserModel(
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatarUrl: user.avatarUrl,
-        isActive: !user.isActive,
-        createdAt: user.createdAt,
-        lastLogin: user.lastLogin,
-        department: user.department,
-        phone: user.phone,
+      final success = await _firebaseService.updateUserStatus(
+        userId,
+        !user.isActive,
       );
 
-      _allUsers[index] = updatedUser;
-      searchUsers(_searchQuery); // Refresh filtered list
+      if (success) {
+        // Create updated user
+        final updatedUser = UserModel(
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatarUrl: user.avatarUrl,
+          isActive: !user.isActive,
+          createdAt: user.createdAt,
+          lastLogin: user.lastLogin,
+          department: user.department,
+          phone: user.phone,
+          defaultPassword: user.defaultPassword,
+        );
+
+        _allUsers[index] = updatedUser;
+        searchUsers(_searchQuery); // Refresh filtered list
+      }
     }
   }
 
   Future<void> deleteUser(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _allUsers.removeWhere((u) => u.id == userId);
-    searchUsers(_searchQuery);
-  }
-
-  // Refresh
-  Future<void> refreshUsers() async {
-    await _loadUsers();
+    final success = await _firebaseService.deleteUser(userId);
+    if (success) {
+      _allUsers.removeWhere((u) => u.id == userId);
+      searchUsers(_searchQuery);
+    }
   }
 }

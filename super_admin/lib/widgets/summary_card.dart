@@ -42,7 +42,20 @@ class SummaryCard extends StatelessWidget {
           color: theme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: theme.shadowMd,
-          border: Border.all(color: theme.divider.withOpacity(0.5), width: 1),
+          border: Border.all(
+            color: theme.divider.withValues(alpha: 0.5),
+            width: 1,
+          ),
+          image: DecorationImage(
+            image: NetworkImage(
+              'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop',
+            ),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withValues(alpha: 0.1),
+              BlendMode.darken,
+            ),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
