@@ -287,7 +287,7 @@ class OrderViewModel extends ChangeNotifier {
       }
 
       return success;
-    } catch (e, stackTrace) {
+    } catch (e) {
       _setError('Failed to update order status: ${e.toString()}');
       // Removed kDebugMode print statements
       return false;

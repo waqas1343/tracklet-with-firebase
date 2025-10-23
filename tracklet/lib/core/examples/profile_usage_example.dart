@@ -170,7 +170,7 @@ class ProfileUsageExample extends StatelessWidget {
     final newName = 'Updated User ${DateTime.now().millisecondsSinceEpoch}';
     final newPhone = '+1234567890';
 
-    final success = await profileProvider.updateProfile(
+    await profileProvider.updateProfile(
       name: newName,
       phone: newPhone,
     );

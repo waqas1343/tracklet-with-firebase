@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import '../providers/user_role_provider.dart';
 import '../providers/navigation_view_model.dart';
 import '../widgets/unified_bottom_nav_bar.dart';
@@ -11,7 +10,6 @@ import '../models/company_model.dart';
 import '../services/fcm_service.dart';
 import '../../features/distributor/widgets/driver_assignment_dialog.dart';
 import '../providers/order_provider.dart';
-import '../models/order_model.dart';
 import '../../features/distributor/provider/driver_provider.dart';
 import '../../shared/widgets/custom_flushbar.dart';
 

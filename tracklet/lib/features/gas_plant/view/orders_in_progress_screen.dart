@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:async/async.dart';
 import 'dart:async';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/order_model.dart';
-import '../../../core/utils/app_colors.dart';
-import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 
 class OrdersInProgressScreen extends StatelessWidget {
@@ -642,7 +638,7 @@ class OrderCard extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 // Get the ScaffoldMessenger before closing the dialog
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                ScaffoldMessenger.of(context);
                 Navigator.pop(context); // Close dialog first
                 
                 final success = await orderProvider.updateOrderStatus(

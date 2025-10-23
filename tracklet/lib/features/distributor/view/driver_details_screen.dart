@@ -483,20 +483,6 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
     return '${dateTime.day}-${months[dateTime.month - 1]}-${dateTime.year}';
   }
 
-  Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.pending:
-        return Colors.orange;
-      case OrderStatus.confirmed:
-        return Colors.blue;
-      case OrderStatus.inProgress:
-        return Colors.yellow[700]!;
-      case OrderStatus.completed:
-        return Colors.green;
-      case OrderStatus.cancelled:
-        return Colors.red;
-    }
-  }
 
   StatusType _mapOrderStatusToStatusType(OrderStatus status) {
     switch (status) {

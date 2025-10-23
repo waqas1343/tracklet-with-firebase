@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/order_provider.dart';
-import '../../../core/models/order_model.dart';
 import '../../../shared/widgets/section_header_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../widgets/driver_order_card.dart';

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/driver_model.dart';
 import '../provider/driver_provider.dart';
-import '../../../core/utils/app_colors.dart';
-import '../../../core/utils/app_text_theme.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 import '../../../shared/widgets/status_chip.dart';
 import 'driver_details_screen.dart';

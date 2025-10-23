@@ -164,7 +164,7 @@ class NotificationRepository {
         createdAt: DateTime.now(),
       );
 
-      final notificationId = await createNotification(notification);
+      await createNotification(notification);
     } catch (e) {
       throw Exception('Failed to create order notification: $e');
     }
@@ -214,7 +214,7 @@ class NotificationRepository {
         createdAt: DateTime.now(),
       );
 
-      final notificationId = await createNotification(notification);
+      await createNotification(notification);
 
       // Also print the notification details for debugging
 
@@ -237,7 +237,7 @@ class NotificationRepository {
         createdAt: DateTime.now(),
       );
 
-      final notificationId = await createNotification(notification);
+      await createNotification(notification);
 
     } catch (e) {
     }
