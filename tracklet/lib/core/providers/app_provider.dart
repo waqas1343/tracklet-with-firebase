@@ -17,7 +17,7 @@ import '../../features/gas_plant/provider/expense_provider.dart';
 import '../../features/gas_plant/provider/gas_rate_provider.dart';
 import '../../features/gas_plant/provider/order_provider.dart'
     as GasPlantOrderProvider;
-import '../../features/gas_plant/provider/employee_provider.dart';
+import '../../features/gas_plant/view/employee/provider/employee_provider.dart';
 import 'user_role_provider.dart';
 import 'navigation_view_model.dart';
 import 'profile_provider.dart';
@@ -102,9 +102,7 @@ class AppProvider extends StatelessWidget {
         ),
 
         // --- Distributor Feature Providers ---
-        ChangeNotifierProvider<DriverProvider>(
-          create: (_) => DriverProvider(),
-        ),
+        ChangeNotifierProvider<DriverProvider>(create: (_) => DriverProvider()),
         ChangeNotifierProvider<PlantRequestProvider>(
           create: (_) => PlantRequestProvider(apiService: apiService),
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
@@ -10,7 +9,6 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
 import '../widgets/new_order_card.dart';
-import '../../../core/services/notification_service.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 
 class GasPlantDashboardScreen extends StatefulWidget {
@@ -27,34 +25,6 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
   @override
   void initState() {
     super.initState();
-  }
-
-  Future<void> _testNotifications() async {
-    try {
-      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-      final user = profileProvider.currentUser;
-
-      if (user == null) {
-        CustomFlushbar.showError(
-          context,
-          message: 'No user logged in',
-        );
-        return;
-      }
-
-      // Test notification creation
-      await NotificationService.instance.testCompleteNotificationFlow(user.id);
-
-      CustomFlushbar.showSuccess(
-        context,
-        message: 'Test notification sent! Check console for details.',
-      );
-    } catch (e) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Error testing notifications: $e',
-      );
-    }
   }
 
   @override
@@ -112,7 +82,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                 icon: Icons.person,
                 iconColor: const Color(0xFF1A2B4C),
                 onTap: () {
-                  Navigator.pushNamed(context, '/gas-plant/active-employees');
+                  Navigator.pushNamed(context, '/gas-plant/employees' );
                 },
               ),
             ),

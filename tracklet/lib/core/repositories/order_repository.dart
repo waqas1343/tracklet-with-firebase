@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/order_model.dart';
 
 /// OrderRepository - Handles all Firestore operations for orders
@@ -120,7 +119,7 @@ class OrderRepository {
           });
 
       return stream;
-    } catch (e, stackTrace) {
+    } catch (e) {
       return Stream.value([]);
     }
   }
@@ -193,14 +192,15 @@ class OrderRepository {
             .get();
 
         if (docSnapshot.exists) {
-          final data = docSnapshot.data();
+          // Document exists, order deletion was successful
         } else {
+          // Document doesn't exist, which is expected after deletion
         }
       } catch (verifyError) {
       }
 
       return true;
-    } catch (e, stackTrace) {
+    } catch (e) {
       throw Exception('Failed to update order status: $e');
     }
   }

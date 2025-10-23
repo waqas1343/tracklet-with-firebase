@@ -110,15 +110,7 @@ class UsersScreen extends StatelessWidget {
                   itemCount: usersProvider.paginatedUsers.length,
                   itemBuilder: (context, index) {
                     final user = usersProvider.paginatedUsers[index];
-                    return UserRow(
-                      user: user,
-                      onTap: () {
-                        usersProvider.selectUser(user);
-                        Navigator.of(
-                          context,
-                        ).push(FadePageRoute(page: const UserDetailsSheet()));
-                      },
-                    );
+                    return UserRow(user: user, onTap: () {});
                   },
                 ),
         ),

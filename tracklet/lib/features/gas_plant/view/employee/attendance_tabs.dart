@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../../core/utils/app_colors.dart';
 import 'provider/employee_provider.dart';
 
 // SECTION: UI - Attendance tabs (Total / Present / Absent)
@@ -19,7 +18,7 @@ class AttendanceTabs extends StatelessWidget {
       required String label,
       required bool selected,
       required VoidCallback onTap,
-      required IconData icon,
+      required String iconPath,
       required String headerTop,
       required String headerBottom,
       required Color color,
@@ -55,7 +54,9 @@ class AttendanceTabs extends StatelessWidget {
                             style: TextStyle(
                               color: selected
                                   ? Theme.of(context).colorScheme.onPrimary
-                                  : Theme.of(context).colorScheme.onSurface,
+                                        .withValues(alpha: 0.7)
+                                  : Theme.of(context).colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
                               fontWeight: FontWeight.w400,
                               fontSize: 12,
                             ),
@@ -78,13 +79,15 @@ class AttendanceTabs extends StatelessWidget {
                         height: 30,
                         decoration: BoxDecoration(
                           color: selected
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : color,
+                              ? Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary.withValues(alpha: 0.2)
+                              : color.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
                         child: Icon(
-                          icon,
+                          _getIconForPath(iconPath),
                           size: 20,
                           color: selected
                               ? Theme.of(context).colorScheme.onPrimary
@@ -121,9 +124,9 @@ class AttendanceTabs extends StatelessWidget {
           label: '$total',
           selected: provider.selectedTab == AttendanceTab.total,
           onTap: () => provider.setSelectedTab(AttendanceTab.total),
-          icon: Icons.people, // Using Icons.people as placeholder
-          color: AppColors.primary,
-          selectedColor: AppColors.primary,
+          iconPath: 'total',
+          color: Colors.blue,
+          selectedColor: Colors.blue,
           headerTop: 'Total',
           headerBottom: 'Employees',
         ),
@@ -132,9 +135,9 @@ class AttendanceTabs extends StatelessWidget {
           label: '$present',
           selected: provider.selectedTab == AttendanceTab.present,
           onTap: () => provider.setSelectedTab(AttendanceTab.present),
-          icon: Icons.check, // Using Icons.check as placeholder
-          color: AppColors.primary,
-          selectedColor: AppColors.primary,
+          iconPath: 'present',
+          color: Colors.green,
+          selectedColor: Colors.green,
           headerTop: 'Present',
           headerBottom: 'Employees',
         ),
@@ -143,7 +146,7 @@ class AttendanceTabs extends StatelessWidget {
           label: late > 0 ? '$absent, $late' : '$absent',
           selected: provider.selectedTab == AttendanceTab.absent,
           onTap: () => provider.setSelectedTab(AttendanceTab.absent),
-          icon: Icons.clear, // Using Icons.clear as placeholder
+          iconPath: 'absent',
           color: Colors.red,
           selectedColor: Colors.red,
           headerTop: 'Absent',
@@ -151,5 +154,18 @@ class AttendanceTabs extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  IconData _getIconForPath(String iconPath) {
+    switch (iconPath) {
+      case 'total':
+        return Icons.people;
+      case 'present':
+        return Icons.check_circle;
+      case 'absent':
+        return Icons.cancel;
+      default:
+        return Icons.help;
+    }
   }
 }

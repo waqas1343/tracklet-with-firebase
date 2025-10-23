@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tracklet/core/widgets/custom_appbar.dart';
+import 'package:provider/provider.dart';
+import 'provider/employee_provider.dart';
 import 'attendance_search_field.dart';
 import 'attendance_tabs.dart';
 import 'attendance_list.dart';
@@ -11,10 +12,24 @@ class EmployeeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final employeeProvider = Provider.of<EmployeeProvider>(context);
+
+    // Load employees when screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      employeeProvider.loadEmployees();
+    });
+
     return Scaffold(
-      appBar: const CustomAppBar(
-        userName: 'Employees',
-        userInitials: 'EM',
+      appBar: AppBar(
+        title: const Text('Employee Management'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () => employeeProvider.downloadAttendancePDF(),
+            tooltip: 'Download Attendance PDF',
+          ),
+        ],
       ),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
@@ -30,9 +45,9 @@ class EmployeeScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'employee_fab',
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AddEmployeeScreen()),
-        ),
+        onPressed: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AddEmployeeScreen())),
         icon: const Icon(Icons.person_add_alt_1),
         label: const Text('Add Employee'),
       ),

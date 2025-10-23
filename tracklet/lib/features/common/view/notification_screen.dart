@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/notification_provider.dart';
@@ -6,7 +5,6 @@ import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/notification_model.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/providers/order_provider.dart';
-import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 import '../../distributor/provider/driver_provider.dart';
@@ -160,74 +158,7 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _markAllAsRead(
-    BuildContext context,
-    String userId,
-    NotificationProvider notificationProvider,
-  ) async {
-    final success = await notificationProvider.markAllAsRead(userId);
 
-    if (success) {
-      CustomFlushbar.showSuccess(
-        context,
-        message: 'All notifications marked as read',
-      );
-    } else {
-      CustomFlushbar.showError(
-        context,
-        message: 'Failed to mark notifications as read',
-      );
-    }
-  }
-
-  void _testNotificationTap(BuildContext context, dynamic user) async {
-    // Get the order provider
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
-    // Get the first inProgress order for testing
-    try {
-      // Load orders for distributor
-      await orderProvider.loadOrdersForDistributor(user.id);
-
-      // Find an inProgress order
-      final inProgressOrders = orderProvider.distributorOrders
-          .where((order) => order.status == OrderStatus.inProgress)
-          .toList();
-
-      if (inProgressOrders.isNotEmpty) {
-        final order = inProgressOrders.first;
-
-        // Show driver assignment dialog
-        if (context.mounted) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return ChangeNotifierProvider(
-                create: (context) => DriverProvider(),
-                child: DriverAssignmentDialog(
-                  order: order,
-                  onAssignmentComplete: () {
-                    // Refresh orders after assignment
-                    orderProvider.loadOrdersForDistributor(user.id);
-                  },
-                ),
-              );
-            },
-          );
-        }
-      } else {
-        CustomFlushbar.showWarning(
-          context,
-          message: 'No in-progress orders found for testing',
-        );
-      }
-    } catch (e) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Error: $e',
-      );
-    }
-  }
 
   void _onNotificationTap(
     BuildContext context,
