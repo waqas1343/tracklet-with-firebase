@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
@@ -7,19 +8,41 @@ import '../../../shared/widgets/custom_flushbar.dart';
 class Tank {
   final String id;
   final String name;
-  final double capacity;
-  final double availableGas;
-  final double freezeGas;
-  final String lastRecordedDate;
+  final double capacity; // in liters
+  final double currentGas; // available gas
+  final double frozenGas; // frozen gas
+  final DateTime timestamp;
 
   Tank({
     required this.id,
     required this.name,
     required this.capacity,
-    required this.availableGas,
-    required this.freezeGas,
-    required this.lastRecordedDate,
+    required this.currentGas,
+    required this.frozenGas,
+    required this.timestamp,
   });
+
+  // Get total gas (current + frozen)
+  double get totalGas => currentGas + frozenGas;
+
+  // Create a copy with updated fields
+  Tank copyWith({
+    String? id,
+    String? name,
+    double? capacity,
+    double? currentGas,
+    double? frozenGas,
+    DateTime? timestamp,
+  }) {
+    return Tank(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      capacity: capacity ?? this.capacity,
+      currentGas: currentGas ?? this.currentGas,
+      frozenGas: frozenGas ?? this.frozenGas,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
 }
 
 class TotalStockScreen extends StatefulWidget {
@@ -32,6 +55,7 @@ class TotalStockScreen extends StatefulWidget {
 class _TotalStockScreenState extends State<TotalStockScreen> {
   // List to store tanks - initially empty
   List<Tank> _tanks = [];
+  late Stream<QuerySnapshot> _tanksStream;
   
   // Controllers for the dialog form
   final TextEditingController _tankNameController = TextEditingController();
@@ -39,11 +63,38 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
   final TextEditingController _initialGasController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _loadTanksFromFirebase();
+  }
+
+  @override
   void dispose() {
     _tankNameController.dispose();
     _capacityController.dispose();
     _initialGasController.dispose();
     super.dispose();
+  }
+
+  void _loadTanksFromFirebase() {
+    _tanksStream = FirebaseFirestore.instance.collection('tanks').snapshots();
+    
+    // Listen to the stream and update the UI
+    _tanksStream.listen((snapshot) {
+      setState(() {
+        _tanks = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Tank(
+            id: doc.id,
+            name: data['tankName'] ?? '',
+            capacity: (data['capacity'] ?? 0).toDouble(),
+            currentGas: (data['currentGas'] ?? 0).toDouble(),
+            frozenGas: (data['frozenGas'] ?? 0).toDouble(),
+            timestamp: (data['timestamp'] as Timestamp).toDate(),
+          );
+        }).toList();
+      });
+    });
   }
 
   // Method to show add tank dialog
@@ -109,7 +160,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
   }
 
   // Method to add a new tank
-  void _addTank() {
+  void _addTank() async {
     final String name = _tankNameController.text.trim();
     final String capacityText = _capacityController.text.trim();
     final String initialGasText = _initialGasController.text.trim();
@@ -142,27 +193,211 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
       return;
     }
 
-    // Create new tank with unique ID
-    final String id = DateTime.now().millisecondsSinceEpoch.toString();
-    final String date = DateTime.now().toString().split(' ')[0];
+    try {
+      // Save to Firebase
+      await FirebaseFirestore.instance.collection('tanks').add({
+        'tankName': name,
+        'capacity': capacity,
+        'currentGas': initialGas,
+        'frozenGas': 0.0,
+        'timestamp': Timestamp.now(),
+      });
 
-    setState(() {
-      _tanks.add(
-        Tank(
-          id: id,
-          name: name,
-          capacity: capacity,
-          availableGas: initialGas,
-          freezeGas: 0.0,
-          lastRecordedDate: date,
-        ),
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Tank added successfully',
       );
-    });
+    } catch (e) {
+      CustomFlushbar.showError(
+        context,
+        message: 'Failed to add tank: $e',
+      );
+    }
+  }
 
-    CustomFlushbar.showSuccess(
-      context,
-      message: 'Tank added successfully',
-    );
+  // Method to add gas to a tank
+  Future<void> _addGasToTank(Tank tank, double amount) async {
+    if (tank.currentGas + amount > tank.capacity) {
+      CustomFlushbar.showError(
+        context,
+        message: 'Adding this amount would exceed tank capacity',
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('tanks').doc(tank.id).update({
+        'currentGas': FieldValue.increment(amount),
+      });
+
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Gas added successfully',
+      );
+    } catch (e) {
+      CustomFlushbar.showError(
+        context,
+        message: 'Failed to add gas: $e',
+      );
+    }
+  }
+
+  // Method to freeze gas in a tank
+  Future<void> _freezeGasInTank(Tank tank, double amount) async {
+    if (amount > tank.currentGas) {
+      CustomFlushbar.showError(
+        context,
+        message: 'Not enough gas to freeze',
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('tanks').doc(tank.id).update({
+        'currentGas': FieldValue.increment(-amount),
+        'frozenGas': FieldValue.increment(amount),
+      });
+
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Gas frozen successfully',
+      );
+    } catch (e) {
+      CustomFlushbar.showError(
+        context,
+        message: 'Failed to freeze gas: $e',
+      );
+    }
+  }
+
+  // Show dialog to add gas to a tank
+  void _showAddGasDialog(Tank tank) {
+    final TextEditingController amountController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add Gas'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Tank: ${tank.name}'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Amount (Liters)',
+                  hintText: 'Enter amount to add',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Current: ${tank.currentGas.toStringAsFixed(0)} L / '
+                'Capacity: ${tank.capacity.toStringAsFixed(0)} L',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Available space: ${(tank.capacity - tank.currentGas).toStringAsFixed(0)} L',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = double.tryParse(amountController.text);
+                if (amount != null && amount > 0) {
+                  Navigator.of(context).pop();
+                  _addGasToTank(tank, amount);
+                }
+              },
+              child: const Text('Add Gas'),
+            ),
+          ],
+        );
+      },
+    ).then((_) => amountController.dispose());
+  }
+
+  // Show dialog to freeze gas in a tank
+  void _showFreezeGasDialog(Tank tank) {
+    final TextEditingController amountController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Freeze Gas'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Tank: ${tank.name}'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Amount (Liters)',
+                  hintText: 'Enter amount to freeze',
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Current Gas: ${tank.currentGas.toStringAsFixed(0)} L',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Frozen Gas: ${tank.frozenGas.toStringAsFixed(0)} L',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = double.tryParse(amountController.text);
+                if (amount != null && amount > 0) {
+                  if (amount > tank.currentGas) {
+                    CustomFlushbar.showError(
+                      context,
+                      message: 'Not enough gas to freeze',
+                    );
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  _freezeGasInTank(tank, amount);
+                }
+              },
+              child: const Text('Freeze Gas'),
+            ),
+          ],
+        );
+      },
+    ).then((_) => amountController.dispose());
   }
 
   @override
@@ -196,8 +431,8 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     double freezeGas = 0.0;
     
     for (var tank in _tanks) {
-      totalStock += tank.availableGas;
-      freezeGas += tank.freezeGas;
+      totalStock += tank.currentGas;
+      freezeGas += tank.frozenGas;
     }
     
     return Column(
@@ -370,18 +605,24 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
             ),
           )
         else
-          ..._tanks.map((tank) => _buildTankCard(
-                tank.name,
-                '${tank.availableGas.toStringAsFixed(1)} Tons',
-                '${tank.freezeGas.toStringAsFixed(1)} Tons',
-                '${tank.capacity.toStringAsFixed(1)} Tons',
-                tank.lastRecordedDate,
-              )),
+          ..._tanks.asMap().entries.map((entry) {
+            final index = entry.key;
+            final tank = entry.value;
+            return _buildTankCard(
+              tank,
+              tank.name,
+              '${tank.currentGas.toStringAsFixed(1)} Tons',
+              '${tank.frozenGas.toStringAsFixed(1)} Tons',
+              '${tank.capacity.toStringAsFixed(1)} Tons',
+              tank.timestamp.toString(),
+            );
+          }).toList(),
       ],
     );
   }
 
   Widget _buildTankCard(
+    Tank tank,
     String tankName,
     String availableGas,
     String freezeGas,
@@ -469,7 +710,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Handle freeze gas
+                    _showFreezeGasDialog(tank);
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.white),
@@ -489,7 +730,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                 child: CustomButton(
                   text: 'Add Gas',
                   onPressed: () {
-                    // TODO: Handle add gas
+                    _showAddGasDialog(tank);
                   },
                   backgroundColor: const Color(0xFF1A2B4C),
                   textColor: Colors.white,

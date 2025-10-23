@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
@@ -60,16 +61,62 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
         Row(
           children: [
             Expanded(
-              child: PlantSummaryCard(
-                title: 'Total',
-                subtitle: "card",
-                value: '12.5 Tons',
-                icon: Icons.local_drink,
-                backgroundColor: const Color(0xFF1A2B4C),
-                textColor: Colors.white,
-                iconColor: Colors.white,
-                onTap: () {
-                  Navigator.pushNamed(context, '/gas-plant/total-stock');
+              child: FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance.collection('tanks').get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return PlantSummaryCard(
+                      title: 'Total Gas',
+                      subtitle: "Loading...",
+                      value: '0 L',
+                      icon: Icons.local_drink,
+                      backgroundColor: const Color(0xFF1A2B4C),
+                      textColor: Colors.white,
+                      iconColor: Colors.white,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/gas-plant/total-stock');
+                      },
+                    );
+                  }
+                  
+                  if (snapshot.hasError) {
+                    return PlantSummaryCard(
+                      title: 'Total Gas',
+                      subtitle: "Error",
+                      value: '0 L',
+                      icon: Icons.local_drink,
+                      backgroundColor: const Color(0xFF1A2B4C),
+                      textColor: Colors.white,
+                      iconColor: Colors.white,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/gas-plant/total-stock');
+                      },
+                    );
+                  }
+                  
+                  // Calculate total gas from all tanks
+                  double totalGas = 0;
+                  if (snapshot.hasData) {
+                    for (var doc in snapshot.data!.docs) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final currentGas = (data['currentGas'] ?? 0).toDouble();
+                      final frozenGas = (data['frozenGas'] ?? 0).toDouble();
+                      totalGas += currentGas + frozenGas;
+                    }
+                  }
+                  
+                  return PlantSummaryCard(
+                    title: 'Total Gas',
+                    subtitle: "Liters",
+                    value: '${totalGas.toStringAsFixed(1)} L',
+                    icon: Icons.local_drink,
+                    backgroundColor: const Color(0xFF1A2B4C),
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/gas-plant/total-stock');
+                    },
+                  );
                 },
               ),
             ),
@@ -91,7 +138,6 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
               child: PlantSummaryCard(
                 title: 'Orders',
                 subtitle: "in progress",
-
                 value: '07',
                 icon: Icons.shopping_cart,
                 iconColor: const Color(0xFF1A2B4C),
