@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/providers/user_role_provider.dart';
+import 'package:provider/provider.dart';
 import '../../../core/services/firebase_service.dart';
+import '../../../core/providers/user_role_provider.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -71,11 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         
         // Show success message
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Password changed successfully'),
-              backgroundColor: Colors.green,
-            ),
+          CustomFlushbar.showSuccess(
+            context,
+            message: 'Password changed successfully',
           );
         }
       } on FirebaseAuthException catch (e) {
@@ -83,23 +82,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
           setState(() {
             _errorMessage = 'Current password is incorrect';
           });
+          if (context.mounted) {
+            CustomFlushbar.showError(
+              context,
+              message: 'Current password is incorrect',
+            );
+          }
         } else if (e.code == 'weak-password') {
           setState(() {
             _errorMessage = 'New password is too weak';
           });
+          if (context.mounted) {
+            CustomFlushbar.showError(
+              context,
+              message: 'New password is too weak',
+            );
+          }
         } else {
           setState(() {
             _errorMessage = 'Failed to change password: ${e.message}';
           });
+          if (context.mounted) {
+            CustomFlushbar.showError(
+              context,
+              message: 'Failed to change password: ${e.message}',
+            );
+          }
         }
       } catch (e) {
         setState(() {
           _errorMessage = 'Failed to change password: ${e.toString()}';
         });
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        if (context.mounted) {
+          CustomFlushbar.showError(
+            context,
+            message: 'Failed to change password: ${e.toString()}',
+          );
+        }
       }
     }
   }

@@ -9,6 +9,7 @@ import '../../../core/models/company_model.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class CylinderRequestScreen extends StatefulWidget {
   final CompanyModel company;
@@ -366,11 +367,9 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
     OrderProvider orderProvider,
   ) async {
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User not logged in'),
-          backgroundColor: AppColors.error,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: 'User not logged in',
       );
       return;
     }
@@ -415,11 +414,9 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
         print('Order created successfully');
       }
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cylinder request sent successfully!'),
-          backgroundColor: AppColors.success,
-        ),
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Cylinder request sent successfully!',
       );
       
       // Pop back to the previous screen
@@ -431,13 +428,9 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
         print('Failed to create order: ${orderProvider.error}');
       }
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            orderProvider.error ?? 'Failed to send cylinder request',
-          ),
-          backgroundColor: AppColors.error,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: orderProvider.error ?? 'Failed to send cylinder request',
       );
     }
   }

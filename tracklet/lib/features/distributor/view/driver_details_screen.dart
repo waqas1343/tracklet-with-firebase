@@ -4,6 +4,7 @@ import '../../../core/models/driver_model.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/utils/app_colors.dart';
+import '../../../shared/widgets/status_chip.dart';
 
 class DriverDetailsScreen extends StatefulWidget {
   final DriverModel driver;
@@ -302,21 +303,9 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(order.status).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _getStatusColor(order.status)),
-                ),
-                child: Text(
-                  order.statusText,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _getStatusColor(order.status),
-                  ),
-                ),
+              StatusChip(
+                status: order.statusText,
+                statusType: _mapOrderStatusToStatusType(order.status),
               ),
             ],
           ),
@@ -506,6 +495,21 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
         return Colors.green;
       case OrderStatus.cancelled:
         return Colors.red;
+    }
+  }
+
+  StatusType _mapOrderStatusToStatusType(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return StatusType.pending;
+      case OrderStatus.confirmed:
+        return StatusType.confirmed;
+      case OrderStatus.inProgress:
+        return StatusType.inProgress;
+      case OrderStatus.completed:
+        return StatusType.completed;
+      case OrderStatus.cancelled:
+        return StatusType.cancelled;
     }
   }
 

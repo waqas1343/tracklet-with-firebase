@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/models/plant_request_model.dart';
+import '../../../../shared/widgets/status_chip.dart';
 
 class PlantRequestCard extends StatelessWidget {
   final PlantRequestModel request;
@@ -55,7 +56,10 @@ class PlantRequestCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  _buildStatusChip(),
+                  StatusChip(
+                    status: request.statusDisplay,
+                    statusType: _mapPlantRequestStatusToStatusType(request.status),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -118,55 +122,16 @@ class PlantRequestCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip() {
-    Color backgroundColor;
-    Color textColor;
-    IconData icon;
-
-    switch (request.status) {
+  StatusType _mapPlantRequestStatusToStatusType(PlantRequestStatus status) {
+    switch (status) {
       case PlantRequestStatus.pending:
-        backgroundColor = const Color(0xFFFFF3E0);
-        textColor = const Color(0xFFFF9800);
-        icon = Icons.pending_actions;
-        break;
+        return StatusType.pending;
       case PlantRequestStatus.approved:
-        backgroundColor = const Color(0xFFE8F5E9);
-        textColor = const Color(0xFF4CAF50);
-        icon = Icons.check_circle;
-        break;
+        return StatusType.confirmed;
       case PlantRequestStatus.rejected:
-        backgroundColor = const Color(0xFFFFEBEE);
-        textColor = const Color(0xFFF44336);
-        icon = Icons.cancel;
-        break;
+        return StatusType.cancelled;
       case PlantRequestStatus.completed:
-        backgroundColor = const Color(0xFFE3F2FD);
-        textColor = const Color(0xFF1A2B4C);
-        icon = Icons.done_all;
-        break;
+        return StatusType.completed;
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: textColor),
-          const SizedBox(width: 4),
-          Text(
-            request.statusDisplay,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

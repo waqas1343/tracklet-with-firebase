@@ -91,13 +91,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
           ),
         ),
       ),
-      floatingActionButton: kDebugMode
-          ? FloatingActionButton(
-              onPressed: _testNotificationSystem,
-              child: const Icon(Icons.notifications),
-              tooltip: 'Test Notification System',
-            )
-          : null,
+    
     );
   }
 

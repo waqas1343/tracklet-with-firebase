@@ -4,6 +4,7 @@ import '../../../core/models/driver_model.dart';
 import '../provider/driver_provider.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../core/utils/app_text_theme.dart';
+import '../../../shared/widgets/status_chip.dart';
 import 'driver_details_screen.dart';
 
 class DriversScreen extends StatefulWidget {
@@ -310,27 +311,10 @@ class _DriversScreenState extends State<DriversScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.5),
-                      color: driver.isActive
-                          ? const Color(0xFF219653).withOpacity(0.2)
-                          : const Color(0xFFFFB700).withOpacity(0.2),
-                    ),
-                    child: Text(
-                      driver.isActive ? 'Active' : 'Inactive',
-                      style: TextStyle(
-                        color: driver.isActive
-                            ? const Color(0xFF219653)
-                            : const Color(0xFFFFB700),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  StatusChip(
+                    status: driver.isActive ? 'Active' : 'Inactive',
+                    statusType: driver.isActive ? StatusType.active : StatusType.cancelled,
+                    fontSize: 12,
                   ),
                   const SizedBox(height: 8),
                   PopupMenuButton<String>(

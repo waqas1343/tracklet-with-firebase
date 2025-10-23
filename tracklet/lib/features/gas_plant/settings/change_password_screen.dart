@@ -5,6 +5,7 @@ import '../../../../core/services/firebase_service.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_appbar.dart';
 import '../../../../shared/widgets/custom_button.dart';
+import '../../../../shared/widgets/custom_flushbar.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -106,11 +107,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       // Show success message
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password changed successfully'),
-            backgroundColor: Colors.green,
-          ),
+        CustomFlushbar.showSuccess(
+          context,
+          message: 'Password changed successfully',
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -122,20 +121,44 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         setState(() {
           _errorMessage = 'Current password is incorrect';
         });
+        if (context.mounted) {
+          CustomFlushbar.showError(
+            context,
+            message: 'Current password is incorrect',
+          );
+        }
       } else if (e.code == 'weak-password') {
         setState(() {
           _errorMessage = 'New password is too weak';
         });
+        if (context.mounted) {
+          CustomFlushbar.showError(
+            context,
+            message: 'New password is too weak',
+          );
+        }
       } else {
         setState(() {
           _errorMessage = 'Failed to change password: ${e.message}';
         });
+        if (context.mounted) {
+          CustomFlushbar.showError(
+            context,
+            message: 'Failed to change password: ${e.message}',
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = 'Failed to change password: ${e.toString()}';
       });
+      if (context.mounted) {
+        CustomFlushbar.showError(
+          context,
+          message: 'Failed to change password: ${e.toString()}',
+        );
+      }
     }
   }
 

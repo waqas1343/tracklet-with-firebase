@@ -13,21 +13,22 @@ import '../../../shared/widgets/section_header_widget.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
 import 'cylinder_request_screen.dart';
-import '../widgets/driver_assignment_dialog.dart';
+import '../widgets/order_card.dart';
 
 class DistributorDashboardScreen extends StatefulWidget {
   const DistributorDashboardScreen({super.key});
 
   @override
-  State<DistributorDashboardScreen> createState() => _DistributorDashboardScreenState();
+  State<DistributorDashboardScreen> createState() =>
+      _DistributorDashboardScreenState();
 }
 
-class _DistributorDashboardScreenState extends State<DistributorDashboardScreen> {
+class _DistributorDashboardScreenState
+    extends State<DistributorDashboardScreen> {
   bool _isOrdersLoading = false;
   bool _ordersLoaded = false;
   bool _initialOrdersLoadCompleted = false;
   StreamSubscription<List<CompanyModel>>? _companiesSubscription;
-  bool _companiesLoaded = false;
 
   @override
   void initState() {
@@ -59,26 +60,32 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
       print('=== Distributor Dashboard Debug ===');
       print('Companies count: ${companyProvider.companies.length}');
       for (var company in companyProvider.companies) {
-        print('Company: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}');
+        print(
+          'Company: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}',
+        );
       }
       print('===================================');
     }
 
     // Subscribe to real-time company updates
     if (_companiesSubscription == null) {
-      _companiesSubscription = companyProvider.companiesStream.listen((companies) {
+      _companiesSubscription = companyProvider.companiesStream.listen((
+        companies,
+      ) {
         if (kDebugMode) {
           print('=== Real-time Company Update ===');
           print('Updated companies count: ${companies.length}');
           for (var company in companies) {
-            print('Company: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}');
+            print(
+              'Company: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}',
+            );
           }
           print('================================');
         }
         // The companies are automatically updated through the provider
         // We just need to ensure the subscription is active
       });
-      
+
       // Load initial companies
       WidgetsBinding.instance.addPostFrameCallback((_) {
         companyProvider.loadAllCompanies();
@@ -96,7 +103,9 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
     }
 
     // Mark initial orders load as completed after first data load
-    if (_isOrdersLoading && !orderProvider.isLoading && !_initialOrdersLoadCompleted) {
+    if (_isOrdersLoading &&
+        !orderProvider.isLoading &&
+        !_initialOrdersLoadCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
@@ -108,10 +117,7 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        userName: user?.name ?? '',
-        showBackButton: true,
-      ),
+      appBar: CustomAppBar(userName: user?.name ?? '', showBackButton: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -231,9 +237,11 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
   Widget _buildPlantCard(BuildContext context, CompanyModel company) {
     // Debug print for individual company
     if (kDebugMode) {
-      print('Building plant card for: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}');
+      print(
+        'Building plant card for: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}',
+      );
     }
-    
+
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
@@ -332,7 +340,10 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
     );
   }
 
-  Widget _buildPreviousOrdersSection(BuildContext context, OrderProvider orderProvider) {
+  Widget _buildPreviousOrdersSection(
+    BuildContext context,
+    OrderProvider orderProvider,
+  ) {
     final orders = orderProvider.distributorOrders;
 
     return Column(
@@ -344,7 +355,7 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
             Text('Previous Orders', style: AppTextTheme.displaySmall),
             SeeAllButton(
               onTap: () {
-                // TODO: Navigate to see all orders
+                Navigator.pushNamed(context, '/distributor/orders');
               },
             ),
           ],
@@ -366,110 +377,82 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
           Column(
             children: orders
                 .take(3) // Show only the first 3 orders
-                .map<Widget>((OrderModel order) => _buildOrderCard(context, order))
+                .map<Widget>(
+                  (OrderModel order) => OrderCard(
+                    order: order,
+                    onTap: () => _showOrderDetails(order),
+                  ),
+                )
                 .toList(growable: false),
           ),
       ],
     );
   }
 
-  Widget _buildOrderCard(BuildContext context, OrderModel order) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.brown, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  void _showOrderDetails(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: [
-              Text(
-                order.plantName,
-                style: AppTextTheme.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Order Details',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  order.statusText,
-                  style: AppTextTheme.bodySmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+              ),
+              const Divider(),
+              // Order details
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(20),
+                  child: OrderCard(
+                    order: order,
+                    onTap: null, // Disable tap in modal
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Total: ${order.finalPrice.toInt()} PKR',
-            style: AppTextTheme.bodyMedium.copyWith(color: Colors.black),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Ordered: ${_formatDateTime(order.createdAt)}',
-            style: AppTextTheme.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          // Show driver name if assigned
-          if (order.driverName != null && order.driverName!.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Driver: ${order.driverName}',
-              style: AppTextTheme.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-          // Add button to assign driver if not already assigned
-          if (order.driverName == null || order.driverName!.isEmpty) ...[
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () => _showDriverAssignmentDialog(context, order),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                minimumSize: const Size.fromHeight(30),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              child: const Text(
-                'Assign Driver',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   void _navigateToCylinderRequest(BuildContext context, CompanyModel company) {
@@ -480,7 +463,10 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
     );
   }
 
-  Future<void> _loadDistributorOrders(OrderProvider orderProvider, String userId) async {
+  Future<void> _loadDistributorOrders(
+    OrderProvider orderProvider,
+    String userId,
+  ) async {
     try {
       await orderProvider.loadOrdersForDistributor(userId);
     } catch (e) {
@@ -501,25 +487,5 @@ class _DistributorDashboardScreenState extends State<DistributorDashboardScreen>
         });
       }
     }
-  }
-
-  // Method to show driver assignment dialog
-  void _showDriverAssignmentDialog(BuildContext context, OrderModel order) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return DriverAssignmentDialog(
-          order: order,
-          onAssignmentComplete: () {
-            // Refresh orders after assignment
-            final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-            final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-            if (profileProvider.currentUser != null) {
-              _loadDistributorOrders(orderProvider, profileProvider.currentUser!.id);
-            }
-          },
-        );
-      },
-    );
   }
 }

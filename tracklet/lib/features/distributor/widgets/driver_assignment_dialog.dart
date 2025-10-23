@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/driver_model.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../distributor/provider/driver_provider.dart';
@@ -206,24 +207,32 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
           Navigator.of(context).pop();
           widget.onAssignmentComplete();
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Driver ${_selectedDriver!.name} assigned successfully',
-              ),
-              backgroundColor: Colors.green,
-            ),
+          CustomFlushbar.showSuccess(
+            context,
+            message: 'Driver ${_selectedDriver!.name} assigned successfully',
           );
         }
       } else {
         setState(() {
           _errorMessage = 'Failed to assign driver. Please try again.';
         });
+        if (mounted) {
+          CustomFlushbar.showError(
+            context,
+            message: 'Failed to assign driver. Please try again.',
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _errorMessage = 'Error: ${e.toString()}';
       });
+      if (mounted) {
+        CustomFlushbar.showError(
+          context,
+          message: 'Error: ${e.toString()}',
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;

@@ -10,7 +10,8 @@ import '../../../../core/utils/app_text_theme.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/utils/constants.dart';
-import '../../../../core/routes/app_routes.dart'; // Added import
+import '../../../../shared/widgets/custom_flushbar.dart';
+import '../../../../core/routes/app_routes.dart';
 
 class ManagePlantScreen extends StatefulWidget {
   const ManagePlantScreen({super.key});
@@ -269,26 +270,14 @@ class _ManagePlantScreenState extends State<ManagePlantScreen> {
         await companyProvider.saveCompany(company);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Plant information updated successfully!',
-            style: AppTextTheme.bodyMedium.copyWith(color: AppColors.white),
-          ),
-          backgroundColor: AppColors.success,
-          duration: AppConstants.snackbarDuration,
-        ),
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Plant information updated successfully!',
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            profileProvider.error ?? 'Failed to update plant information',
-            style: AppTextTheme.bodyMedium.copyWith(color: AppColors.white),
-          ),
-          backgroundColor: AppColors.error,
-          duration: AppConstants.snackbarDuration,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: profileProvider.error ?? 'Failed to update plant information',
       );
     }
   }
