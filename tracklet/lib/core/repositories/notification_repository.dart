@@ -22,8 +22,6 @@ class NotificationRepository {
   /// Get notifications for a specific user
   Future<List<NotificationModel>> getNotificationsForUser(String userId) async {
     try {
-      print('📥 Fetching notifications for user: $userId');
-
       final querySnapshot = await _firestore
           .collection(_notificationsCollection)
           .where('recipientId', isEqualTo: userId)
@@ -38,28 +36,20 @@ class NotificationRepository {
       // Sort in memory instead of using Firestore orderBy
       notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      print('✅ Loaded ${notifications.length} notifications');
       return notifications;
     } catch (e) {
-      print('❌ Error fetching notifications: $e');
       throw Exception('Failed to fetch notifications: $e');
     }
   }
 
   /// Get notifications stream for a user (real-time updates)
   Stream<List<NotificationModel>> getNotificationsStreamForUser(String userId) {
-    print('🔔 Creating notification stream for user: $userId');
-
     return _firestore
         .collection(_notificationsCollection)
         .where('recipientId', isEqualTo: userId)
         .snapshots()
-        .handleError((error) {
-          print('❌ Notification stream error: $error');
-        })
+        .handleError((error) {})
         .map((snapshot) {
-          print('✅ Notification stream update - Docs: ${snapshot.docs.length}');
-
           final notifications = snapshot.docs
               .map(
                 (doc) =>
@@ -70,7 +60,6 @@ class NotificationRepository {
           // Sort in memory instead of using Firestore orderBy
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-          print('📬 Parsed ${notifications.length} notifications');
           return notifications;
         });
   }
@@ -164,9 +153,6 @@ class NotificationRepository {
     required String orderId,
   }) async {
     try {
-      print('Creating notification for plant: $plantId');
-      print('Distributor: $distributorName, Order ID: $orderId');
-
       final notification = NotificationModel(
         id: '',
         title: 'New Order Request',
@@ -179,9 +165,7 @@ class NotificationRepository {
       );
 
       final notificationId = await createNotification(notification);
-      print('Notification created with ID: $notificationId');
     } catch (e) {
-      print('Error creating order notification: $e');
       throw Exception('Failed to create order notification: $e');
     }
   }
@@ -194,11 +178,6 @@ class NotificationRepository {
     required String status,
   }) async {
     try {
-      print(
-        '🔔 Creating order status notification for distributor: $distributorId',
-      );
-      print('   Plant: $plantName, Order: $orderId, Status: $status');
-
       String message = '';
       String title = '';
 
@@ -224,9 +203,6 @@ class NotificationRepository {
           message = 'Your order from $plantName status has been updated';
       }
 
-      print('   Notification title: $title');
-      print('   Notification message: $message');
-
       final notification = NotificationModel(
         id: '',
         title: title,
@@ -239,18 +215,10 @@ class NotificationRepository {
       );
 
       final notificationId = await createNotification(notification);
-      print('✅ Order status notification created with ID: $notificationId');
 
       // Also print the notification details for debugging
-      print('📋 Notification details:');
-      print('   ID: $notificationId');
-      print('   Title: ${notification.title}');
-      print('   Message: ${notification.message}');
-      print('   Recipient: ${notification.recipientId}');
-      print('   Type: ${notification.type}');
-      print('   Related ID: ${notification.relatedId}');
+
     } catch (e) {
-      print('❌ Error creating order status notification: $e');
       throw Exception('Failed to create order status notification: $e');
     }
   }
@@ -258,8 +226,6 @@ class NotificationRepository {
   /// Test notification creation (for debugging)
   Future<void> testNotificationCreation(String distributorId) async {
     try {
-      print('🧪 Testing notification creation for distributor: $distributorId');
-
       final notification = NotificationModel(
         id: '',
         title: 'Test Notification',
@@ -272,9 +238,8 @@ class NotificationRepository {
       );
 
       final notificationId = await createNotification(notification);
-      print('✅ Test notification created with ID: $notificationId');
+
     } catch (e) {
-      print('❌ Error creating test notification: $e');
     }
   }
 }

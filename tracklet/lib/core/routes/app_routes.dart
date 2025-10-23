@@ -9,7 +9,7 @@ import '../../features/gas_plant/view/orders_screen.dart';
 import '../../features/gas_plant/view/expenses_screen.dart';
 import '../../features/gas_plant/view/settings_screen.dart';
 import '../../features/gas_plant/view/total_stock_screen.dart';
-import '../../features/gas_plant/view/active_employees_screen.dart';
+import '../../features/gas_plant/view/employee/active_employees_screen.dart';
 import '../../features/gas_plant/view/orders_in_progress_screen.dart';
 import '../../features/distributor/view/distributor_dashboard_screen.dart';
 import '../../features/distributor/view/distributor_orders_screen.dart';
@@ -57,14 +57,16 @@ class AppRoutes {
 
       // Gas Plant Routes
       gasPlantDashboard: (context) => const GasPlantDashboardScreen(),
-      gasPlantGasRate: (context) => GasRateScreen(company: CompanyModel(
-        id: '',
-        companyName: '',
-        contactNumber: '',
-        address: '',
-        operatingHours: '',
-        createdAt: DateTime.now(),
-      )), // Updated to pass a default company
+      gasPlantGasRate: (context) => GasRateScreen(
+        company: CompanyModel(
+          id: '',
+          companyName: '',
+          contactNumber: '',
+          address: '',
+          operatingHours: '',
+          createdAt: DateTime.now(),
+        ),
+      ), // Updated to pass a default company
       gasPlantOrders: (context) => const OrdersScreen(),
       gasPlantExpenses: (context) => const ExpensesScreen(),
       gasPlantSettings: (context) => const SettingsScreen(),
@@ -90,7 +92,7 @@ class AppRoutes {
         ),
       );
     }
-    
+
     if (settings.name == gasPlantOrdersInProgress) {
       final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
@@ -99,7 +101,7 @@ class AppRoutes {
         ),
       );
     }
-    
+
     if (settings.name == gasPlantGasRate) {
       final args = settings.arguments as CompanyModel?;
       if (args != null) {

@@ -33,29 +33,16 @@ class ProfileViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      if (kDebugMode) {
-        print('Loading user profile for UID: $uid');
-      }
-
       _currentUser = await _repository.getUserProfile(uid);
 
       if (_currentUser == null) {
-        if (kDebugMode) {
-          print('Profile not found, creating default profile');
-        }
         await _createDefaultProfile(uid);
       } else {
-        if (kDebugMode) {
-          print('Profile loaded successfully: ${_currentUser!.name}');
-        }
       }
 
       notifyListeners();
     } catch (e) {
       _setError('Failed to load profile: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading profile: $e');
-      }
       // Create default profile as fallback
       await _createDefaultProfile(uid);
     } finally {
@@ -80,21 +67,12 @@ class ProfileViewModel extends ChangeNotifier {
 
       if (success) {
         _currentUser = defaultUser;
-        if (kDebugMode) {
-          print('✅ Default profile created successfully');
-        }
       } else {
         // Even if creation fails, set the user locally to allow app to work
         _currentUser = defaultUser;
-        if (kDebugMode) {
-          print('⚠️ Profile creation failed, using local profile');
-        }
       }
     } catch (e) {
       _setError('Failed to create profile: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error creating profile: $e');
-      }
 
       // Fallback: Create a temporary local profile
       _currentUser = UserModel(
@@ -171,9 +149,6 @@ class ProfileViewModel extends ChangeNotifier {
       return success;
     } catch (e) {
       _setError('Failed to update profile: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error updating profile: $e');
-      }
       return false;
     } finally {
       _setLoading(false);
@@ -204,9 +179,6 @@ class ProfileViewModel extends ChangeNotifier {
       return success;
     } catch (e) {
       _setError('Failed to update profile: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error updating profile: $e');
-      }
       return false;
     } finally {
       _setLoading(false);

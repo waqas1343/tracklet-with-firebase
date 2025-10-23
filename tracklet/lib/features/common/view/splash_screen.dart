@@ -32,7 +32,6 @@ class _SplashScreenState extends State<SplashScreen> {
     if (firebaseAuth.isAuthenticated) {
       // Initialize profile provider with current user data
       await profileProvider.loadUserProfile(firebaseAuth.currentUser!.uid);
-      print('✅ Splash - Profile provider initialized for existing user');
       
       // Navigate to main screen
       Navigator.pushReplacementNamed(context, '/main');

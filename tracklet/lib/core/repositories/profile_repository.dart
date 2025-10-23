@@ -26,7 +26,6 @@ class ProfileRepository {
           );
       return true;
     } catch (e) {
-      print('Error creating profile: $e');
       // Return false instead of throwing to allow app to continue
       return false;
     }
@@ -49,7 +48,6 @@ class ProfileRepository {
       }
       return null;
     } catch (e) {
-      print('Error getting profile: $e');
       // Return null instead of throwing to allow app to continue
       return null;
     }

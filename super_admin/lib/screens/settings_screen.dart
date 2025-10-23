@@ -238,14 +238,14 @@ class _SettingsSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.divider.withOpacity(0.5), width: 1),
+            border: Border.all(color: theme.divider.withAlpha((0.5 * 255).round()), width: 1),
           ),
           child: Column(
             children: [
               for (int i = 0; i < children.length; i++) ...[
                 children[i],
                 if (i < children.length - 1)
-                  Divider(height: 1, color: theme.divider.withOpacity(0.5)),
+                  Divider(height: 1, color: theme.divider.withAlpha((0.5 * 255).round())),
               ],
             ],
           ),
@@ -279,7 +279,7 @@ class _SettingsTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: theme.primary.withOpacity(0.1),
+              color: theme.primary.withAlpha((0.1 * 255).round()),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: theme.primary, size: 22),

@@ -47,16 +47,6 @@ class OrderModel {
 
   /// Create OrderModel from Firestore JSON
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    // Debug print to see what's coming from Firestore
-    if (kDebugMode) {
-      print('🔍 Order from Firestore:');
-      print('   JSON data: $json');
-      if (json.containsKey('id')) print('   ID: ${json['id']}');
-      if (json.containsKey('status')) print('   Status: ${json['status']} (type: ${json['status'].runtimeType})');
-      if (json.containsKey('plantId')) print('   Plant ID: ${json['plantId']}');
-      if (json.containsKey('distributorName')) print('   Distributor: ${json['distributorName']}');
-    }
-    
     return OrderModel(
       id: json['id'] ?? '',
       distributorId: json['distributorId'] ?? '',
@@ -161,40 +151,24 @@ class OrderModel {
 
     final statusString = status.toString().toLowerCase().trim();
     
-    // Debug print to see what status is being parsed
-    if (kDebugMode) {
-      print('🔍 Parsing order status:');
-      print('   Input status: $status');
-      print('   Status type: ${status.runtimeType}');
-      print('   Status as string: $statusString');
-    }
-    
     // Handle different possible formats for inProgress status
     if (statusString == 'in_progress' || 
         statusString == 'inprogress' || 
         statusString == 'in progress') {
-      if (kDebugMode) print('   Matched: in progress');
       return OrderStatus.inProgress;
     }
     
     switch (statusString) {
       case 'pending':
-        if (kDebugMode) print('   Matched: pending');
         return OrderStatus.pending;
       case 'confirmed':
-        if (kDebugMode) print('   Matched: confirmed');
         return OrderStatus.confirmed;
       case 'completed':
-        if (kDebugMode) print('   Matched: completed');
         return OrderStatus.completed;
       case 'cancelled':
       case 'canceled':
-        if (kDebugMode) print('   Matched: cancelled');
         return OrderStatus.cancelled;
       default:
-        if (kDebugMode) {
-          print('   ❌ Unknown status, defaulting to pending: $statusString');
-        }
         return OrderStatus.pending;
     }
   }

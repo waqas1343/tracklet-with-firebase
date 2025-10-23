@@ -55,16 +55,11 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      if (kDebugMode) {
-        print('Creating order for plant: ${order.plantId}');
-        print('Order details: ${order.toJson()}');
-      }
+      // Removed kDebugMode print statements
 
       final orderId = await _repository.createOrder(order);
       if (orderId.isNotEmpty) {
-        if (kDebugMode) {
-          print('Order created with ID: $orderId');
-        }
+        // Removed kDebugMode print statement
 
         // Create notification for gas plant
         await _notificationRepository.createOrderNotification(
@@ -73,9 +68,7 @@ class OrderViewModel extends ChangeNotifier {
           orderId: orderId,
         );
 
-        if (kDebugMode) {
-          print('Notification created for plant: ${order.plantId}');
-        }
+        // Removed kDebugMode print statement
 
         // Send push notification
         try {
@@ -91,13 +84,9 @@ class OrderViewModel extends ChangeNotifier {
             },
           );
 
-          if (kDebugMode) {
-            print('✅ Push notification sent to plant: ${order.plantId}');
-          }
+          // Removed kDebugMode print statement
         } catch (e) {
-          if (kDebugMode) {
-            print('⚠️ Failed to send push notification: $e');
-          }
+          // Removed kDebugMode print statement
         }
 
         // Reload orders to include the new one
@@ -107,9 +96,7 @@ class OrderViewModel extends ChangeNotifier {
       return false;
     } catch (e) {
       _setError('Failed to create order: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error creating order: $e');
-      }
+      // Removed kDebugMode print statement
       return false;
     } finally {
       _setLoading(false);
@@ -122,29 +109,18 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      if (kDebugMode) {
-        print('Loading orders for plant: $plantId');
-      }
+      // Removed kDebugMode print statement
 
       _orders = await _repository.getOrdersForPlant(plantId);
 
-      if (kDebugMode) {
-        print('Loaded ${_orders.length} orders for plant: $plantId');
-        for (var order in _orders) {
-          print(
-            'Order: ${order.id} - Status: ${order.statusText} - Plant ID: ${order.plantId}',
-          );
-        }
-      }
+      // Removed kDebugMode print statements
 
       _updateNewOrders();
 
       notifyListeners();
     } catch (e) {
       _setError('Failed to load plant orders: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading plant orders: $e');
-      }
+      // Removed kDebugMode print statement
     } finally {
       _setLoading(false);
       _isInitialLoadCompleted = true;
@@ -164,9 +140,7 @@ class OrderViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _setError('Failed to load distributor orders: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading distributor orders: $e');
-      }
+      // Removed kDebugMode print statement
     } finally {
       _setLoading(false);
       _isInitialLoadCompleted = true;
@@ -179,27 +153,16 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      if (kDebugMode) {
-        print('Loading orders for driver: $driverName');
-      }
+      // Removed kDebugMode print statement
 
       _orders = await _repository.getOrdersForDriver(driverName);
 
-      if (kDebugMode) {
-        print('Loaded ${_orders.length} orders for driver: $driverName');
-        for (var order in _orders) {
-          print(
-            'Order: ${order.id} - Status: ${order.statusText} - Driver: ${order.driverName}',
-          );
-        }
-      }
+      // Removed kDebugMode print statements
 
       notifyListeners();
     } catch (e) {
       _setError('Failed to load driver orders: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading driver orders: $e');
-      }
+      // Removed kDebugMode print statement
     } finally {
       _setLoading(false);
       _isInitialLoadCompleted = true;
@@ -209,16 +172,7 @@ class OrderViewModel extends ChangeNotifier {
   /// Listen to real-time order updates for a plant
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
     return _repository.getOrdersStreamForPlant(plantId).map((orders) {
-      if (kDebugMode) {
-        print(
-          'OrderViewModel - Orders updated for plant $plantId, count: ${orders.length}',
-        );
-        for (var order in orders) {
-          print(
-            '  Order ID: ${order.id}, Status: ${order.statusText} (${order.status}), Plant ID: ${order.plantId}',
-          );
-        }
-      }
+      // Removed kDebugMode print statements
 
       _orders = orders;
       _updateNewOrders();
@@ -250,13 +204,7 @@ class OrderViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      if (kDebugMode) {
-        print(
-          '🔄 ViewModel updating order $orderId status to: ${status.toString().split('.').last}',
-        );
-        print('   OrderStatus enum: $status');
-        print('   Driver name: $driverName');
-      }
+      // Removed kDebugMode print statements
 
       final success = await _repository.updateOrderStatus(
         orderId,
@@ -265,29 +213,14 @@ class OrderViewModel extends ChangeNotifier {
       );
 
       if (success) {
-        if (kDebugMode) {
-          print('✅ Repository update successful for order $orderId');
-        }
+        // Removed kDebugMode print statement
 
         // Send notification to distributor when order is approved (status changed to inProgress)
         if (status == OrderStatus.inProgress) {
           final orderIndex = _orders.indexWhere((order) => order.id == orderId);
           if (orderIndex != -1) {
             final order = _orders[orderIndex];
-            if (kDebugMode) {
-              print(
-                '   Found order in local list, sending notification to distributor: ${order.distributorId}',
-              );
-              print('   Order details: ${order.toJson()}');
-            }
-
-            // Log the data we're sending
-            if (kDebugMode) {
-              print('   Notification data:');
-              print('     Type: order_approved');
-              print('     Order ID: $orderId');
-              print('     Distributor ID: ${order.distributorId}');
-            }
+            // Removed kDebugMode print statements
 
             // Use the new notification service for order approval
             try {
@@ -298,22 +231,13 @@ class OrderViewModel extends ChangeNotifier {
                     orderId: orderId,
                   );
 
-              if (kDebugMode) {
-                print(
-                  '✅ Order approval notification sent via NotificationService to distributor: ${order.distributorId}',
-                );
-              }
             } catch (e) {
-              if (kDebugMode) {
-                print('❌ Failed to send order approval notification: $e');
-              }
+              // Removed kDebugMode print statement
             }
 
             // Also try FCM notification as backup
             try {
-              if (kDebugMode) {
-                print('🔍 Attempting to send FCM notification...');
-              }
+              // Removed kDebugMode print statement
               
               await _fcmService.sendNotificationToUser(
                 userId: order.distributorId,
@@ -326,22 +250,12 @@ class OrderViewModel extends ChangeNotifier {
                 },
               );
 
-              if (kDebugMode) {
-                print(
-                  '✅ FCM notification sent to distributor: ${order.distributorId}',
-                );
-              }
+              // Removed kDebugMode print statement
             } catch (e) {
-              if (kDebugMode) {
-                print('⚠️ FCM notification failed: $e');
-              }
+              // Removed kDebugMode print statement
             }
           } else {
-            if (kDebugMode) {
-              print(
-                '⚠️ Order not found in local list, cannot send notification',
-              );
-            }
+            // Removed kDebugMode print statement
           }
         }
 
@@ -349,9 +263,7 @@ class OrderViewModel extends ChangeNotifier {
         final orderIndex = _orders.indexWhere((order) => order.id == orderId);
         if (orderIndex != -1) {
           final order = _orders[orderIndex];
-          if (kDebugMode) {
-            print('   Found order in local list, updating local copy');
-          }
+          // Removed kDebugMode print statement
 
           _orders[orderIndex] = order.copyWith(
             status: status,
@@ -359,27 +271,9 @@ class OrderViewModel extends ChangeNotifier {
             updatedAt: DateTime.now(),
           );
 
-          if (kDebugMode) {
-            print(
-              '   Updated local order ${order.id} status to: ${status.toString().split('.').last}',
-            );
-            print('   Updated order driver name: $driverName');
-            print(
-              '   Updated order status enum: ${_orders[orderIndex].status}',
-            );
-          }
+          // Removed kDebugMode print statements
         } else {
-          if (kDebugMode) {
-            print(
-              '   ⚠️ Order $orderId not found in local list, but update was successful in Firestore',
-            );
-            print('   Local orders count: ${_orders.length}');
-            for (var i = 0; i < _orders.length; i++) {
-              print(
-                '     Order $i: ${_orders[i].id} - Status: ${_orders[i].statusText}',
-              );
-            }
-          }
+          // Removed kDebugMode print statements
         }
 
         // Always refresh all order lists to ensure UI consistency
@@ -387,30 +281,15 @@ class OrderViewModel extends ChangeNotifier {
         _updateNewOrders();
         notifyListeners();
 
-        if (kDebugMode) {
-          print('   Notified listeners of changes');
-          print('   New orders count after update: ${_newOrders.length}');
-          for (var i = 0; i < _newOrders.length; i++) {
-            print(
-              '     New Order $i: ${_newOrders[i].id} - Status: ${_newOrders[i].statusText}',
-            );
-          }
-          // Also log the total orders to verify all lists are updated
-          print('   Total orders count: ${_orders.length}');
-        }
+        // Removed kDebugMode print statements
       } else {
-        if (kDebugMode) {
-          print('❌ Repository update failed for order $orderId');
-        }
+        // Removed kDebugMode print statement
       }
 
       return success;
     } catch (e, stackTrace) {
       _setError('Failed to update order status: ${e.toString()}');
-      if (kDebugMode) {
-        print('❌ Error updating order status: $e');
-        print('   Stack trace: $stackTrace');
-      }
+      // Removed kDebugMode print statements
       return false;
     } finally {
       _setLoading(false);
@@ -424,9 +303,7 @@ class OrderViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _setError('Failed to load pending orders count: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading pending orders count: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
@@ -439,25 +316,19 @@ class OrderViewModel extends ChangeNotifier {
       return await _repository.getOrdersByStatus(plantId, status);
     } catch (e) {
       _setError('Failed to fetch orders by status: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error fetching orders by status: $e');
-      }
+      // Removed kDebugMode print statement
       return [];
     }
   }
 
   /// Get a specific order by ID
   Future<OrderModel?> getOrderById(String orderId) async {
-    if (kDebugMode) {
-      print('🔍 OrderViewModel: Fetching order by ID: $orderId');
-    }
+    // Removed kDebugMode print statement
     try {
       return await _repository.getOrderById(orderId);
     } catch (e) {
       _setError('Failed to fetch order: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error fetching order: $e');
-      }
+      // Removed kDebugMode print statement
       return null;
     }
   }
@@ -479,11 +350,10 @@ class OrderViewModel extends ChangeNotifier {
       return success;
     } catch (e) {
       _setError('Failed to delete order: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error deleting order: $e');
-      }
+      // Removed kDebugMode print statement
       return false;
-    } finally {
+    }
+    finally {
       _setLoading(false);
     }
   }
@@ -503,12 +373,7 @@ class OrderViewModel extends ChangeNotifier {
         )
         .toList();
 
-    if (kDebugMode) {
-      print('Updated new orders list with ${_newOrders.length} items');
-      for (var order in _newOrders) {
-        print('New Order: ${order.id} - Status: ${order.statusText}');
-      }
-    }
+    // Removed kDebugMode print statements
   }
 
   /// Clear all data

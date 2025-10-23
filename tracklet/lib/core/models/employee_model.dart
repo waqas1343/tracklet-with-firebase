@@ -72,4 +72,62 @@ class EmployeeModel {
     required this.salary,
     required this.status,
   });
+
+  // CopyWith method for updating employee
+  EmployeeModel copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    String? role,
+    String? department,
+    DateTime? joiningDate,
+    double? salary,
+    EmployeeStatus? status,
+  }) {
+    return EmployeeModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      department: department ?? this.department,
+      joiningDate: joiningDate ?? this.joiningDate,
+      salary: salary ?? this.salary,
+      status: status ?? this.status,
+    );
+  }
+
+  // Factory constructor to create an EmployeeModel from JSON
+  factory EmployeeModel.fromJson(Map<String, dynamic> json) {
+    return EmployeeModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      phone: json['phone'] as String,
+      role: json['role'] as String,
+      department: json['department'] as String,
+      joiningDate: DateTime.parse(json['joiningDate'] as String),
+      salary: (json['salary'] as num).toDouble(),
+      status: EmployeeStatus.values.firstWhere(
+        (e) => e.toString() == 'EmployeeStatus.${json['status']}',
+        orElse: () => EmployeeStatus.active,
+      ),
+    );
+  }
+
+  // Method to convert an EmployeeModel to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'role': role,
+      'department': department,
+      'joiningDate': joiningDate.toIso8601String(),
+      'salary': salary,
+      'status': status.toString().split('.').last,
+    };
+  }
 }

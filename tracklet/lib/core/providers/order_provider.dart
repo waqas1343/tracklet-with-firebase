@@ -87,9 +87,6 @@ class OrderProvider extends ChangeNotifier {
 
   /// Get a specific order by ID
   Future<OrderModel?> getOrderById(String orderId) async {
-    if (kDebugMode) {
-      print('🔍 OrderProvider: Fetching order by ID: $orderId');
-    }
     return await _viewModel.getOrderById(orderId);
   }
 

@@ -27,9 +27,6 @@ class NotificationScreen extends StatelessWidget {
         !notificationProvider.isLoading &&
         notificationProvider.notifications.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (kDebugMode) {
-          print('📥 Loading notifications for user: ${user.id}');
-        }
         notificationProvider.loadNotificationsForUser(user.id);
       });
     }
@@ -184,10 +181,6 @@ class NotificationScreen extends StatelessWidget {
   }
 
   void _testNotificationTap(BuildContext context, dynamic user) async {
-    if (kDebugMode) {
-      print('🧪 Testing notification tap');
-    }
-
     // Get the order provider
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
@@ -203,9 +196,6 @@ class NotificationScreen extends StatelessWidget {
 
       if (inProgressOrders.isNotEmpty) {
         final order = inProgressOrders.first;
-        if (kDebugMode) {
-          print('✅ Found inProgress order: ${order.id}');
-        }
 
         // Show driver assignment dialog
         if (context.mounted) {
@@ -226,18 +216,12 @@ class NotificationScreen extends StatelessWidget {
           );
         }
       } else {
-        if (kDebugMode) {
-          print('❌ No inProgress orders found');
-        }
         CustomFlushbar.showWarning(
           context,
           message: 'No in-progress orders found for testing',
         );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error testing notification tap: $e');
-      }
       CustomFlushbar.showError(
         context,
         message: 'Error: $e',
@@ -250,14 +234,6 @@ class NotificationScreen extends StatelessWidget {
     NotificationModel notification,
     NotificationProvider notificationProvider,
   ) async {
-    if (kDebugMode) {
-      print('🔔 Notification tapped:');
-      print('   Title: ${notification.title}');
-      print('   Message: ${notification.message}');
-      print('   Type: ${notification.type}');
-      print('   Related ID: ${notification.relatedId}');
-      print('   Is Read: ${notification.isRead}');
-    }
 
     // Mark as read if not already read
     if (!notification.isRead) {
@@ -282,18 +258,10 @@ class NotificationScreen extends StatelessWidget {
           );
 
           if (order != null) {
-            if (kDebugMode) {
-              print('🔍 Notification tap - User role: ${user.role}');
-              print('🔍 Notification tap - Order status: ${order.status}');
-              print('🔍 Notification tap - Order ID: ${order.id}');
-            }
 
             // Check if this is a Distributor user and the order is approved (inProgress)
             if ((user.role == 'distributor' || user.role == 'Distributor') &&
                 order.status == OrderStatus.inProgress) {
-              if (kDebugMode) {
-                print('✅ Showing driver assignment dialog for distributor');
-              }
 
               // Show driver assignment dialog for Distributor users
               if (context.mounted) {
@@ -320,11 +288,6 @@ class NotificationScreen extends StatelessWidget {
             if (notification.title == 'Order Approved' &&
                 notification.message.contains('assign a driver') &&
                 order.status == OrderStatus.inProgress) {
-              if (kDebugMode) {
-                print(
-                  '✅ Showing driver assignment dialog for order approval notification',
-                );
-              }
 
               // Show driver assignment dialog
               if (context.mounted) {
@@ -361,14 +324,9 @@ class NotificationScreen extends StatelessWidget {
                     Navigator.pushNamed(context, '/gas-plant/dashboard');
                     // Show a snackbar to indicate which order was selected
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Check new orders for order from ${order.distributorName}',
-                          ),
-                          backgroundColor: AppColors.primary,
-                          duration: const Duration(seconds: 3),
-                        ),
+                      CustomFlushbar.showInfo(
+                        context,
+                        message: 'Check new orders for order from ${order.distributorName}',
                       );
                     }
                   }
@@ -400,12 +358,9 @@ class NotificationScreen extends StatelessWidget {
               if (context.mounted) {
                 Navigator.pushNamed(context, '/distributor/orders');
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Showing order from ${order.plantName}'),
-                      backgroundColor: AppColors.primary,
-                      duration: const Duration(seconds: 3),
-                    ),
+                  CustomFlushbar.showInfo(
+                    context,
+                    message: 'Showing order from ${order.plantName}',
                   );
                 }
               }
@@ -419,20 +374,14 @@ class NotificationScreen extends StatelessWidget {
                 Navigator.pushNamed(context, '/distributor/orders');
               }
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Order not found, showing all orders'),
-                    backgroundColor: AppColors.warning,
-                    duration: Duration(seconds: 2),
-                  ),
+                CustomFlushbar.showWarning(
+                  context,
+                  message: 'Order not found, showing all orders',
                 );
               }
             }
           }
         } catch (e) {
-          if (kDebugMode) {
-            print('Error fetching order: $e');
-          }
           // Navigate to appropriate orders screen as fallback
           if (context.mounted) {
             if (user.role == 'gas_plant') {
@@ -441,12 +390,9 @@ class NotificationScreen extends StatelessWidget {
               Navigator.pushNamed(context, '/distributor/orders');
             }
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Error loading order, showing all orders'),
-                  backgroundColor: AppColors.error,
-                  duration: Duration(seconds: 2),
-                ),
+              CustomFlushbar.showError(
+                context,
+                message: 'Error loading order, showing all orders',
               );
             }
           }

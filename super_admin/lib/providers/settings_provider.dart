@@ -34,7 +34,7 @@ class SettingsProvider with ChangeNotifier {
       _sessionTimeout = prefs.getInt('sessionTimeout') ?? 30;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading settings: $e');
+      // Removed debugPrint statement
     }
   }
 
@@ -86,7 +86,7 @@ class SettingsProvider with ChangeNotifier {
       await prefs.setBool('autoSave', _autoSave);
       await prefs.setInt('sessionTimeout', _sessionTimeout);
     } catch (e) {
-      debugPrint('Error saving settings: $e');
+      // Removed debugPrint statement
     }
   }
 

@@ -51,9 +51,6 @@ class CompanyViewModel extends ChangeNotifier {
       return company;
     } catch (e) {
       _setError('Failed to load company: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading company: $e');
-      }
       return null;
     } finally {
       _setLoading(false);
@@ -87,9 +84,7 @@ class CompanyViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _setError('Failed to search companies: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error searching companies: $e');
-      }
+
     } finally {
       _setLoading(false);
     }
@@ -107,9 +102,7 @@ class CompanyViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _setError('Failed to load companies: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error loading companies by owner: $e');
-      }
+
     } finally {
       _setLoading(false);
     }
@@ -130,9 +123,7 @@ class CompanyViewModel extends ChangeNotifier {
       return success;
     } catch (e) {
       _setError('Failed to save company: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error saving company: $e');
-      }
+
       return false;
     } finally {
       _setLoading(false);
@@ -156,9 +147,7 @@ class CompanyViewModel extends ChangeNotifier {
       return success;
     } catch (e) {
       _setError('Failed to delete company: ${e.toString()}');
-      if (kDebugMode) {
-        print('Error deleting company: $e');
-      }
+
       return false;
     } finally {
       _setLoading(false);

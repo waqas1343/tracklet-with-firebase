@@ -1,3 +1,4 @@
+/*
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -5,6 +6,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 ///
 /// Usage: dart run get_vapid_key.dart
 void main() async {
+  // Removed print statements
+  /*
   print('🔑 Getting Firebase Cloud Messaging Token...\n');
 
   try {
@@ -43,4 +46,6 @@ void main() async {
   } catch (e) {
     print('❌ Error: $e');
   }
+  */
 }
+*/

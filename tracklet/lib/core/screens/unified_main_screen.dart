@@ -13,6 +13,7 @@ import '../../features/distributor/widgets/driver_assignment_dialog.dart';
 import '../providers/order_provider.dart';
 import '../models/order_model.dart';
 import '../../features/distributor/provider/driver_provider.dart';
+import '../../shared/widgets/custom_flushbar.dart';
 
 // Gas Plant Screens
 import '../../features/gas_plant/view/gas_plant_dashboard_screen.dart';
@@ -54,23 +55,13 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
   void _setupNotificationHandler() {
     // Set up callback for notification taps
     FCMService.instance.onNotificationTap = (String orderId) {
-      if (kDebugMode) {
-        print('🔔 Notification tap callback triggered for order: $orderId');
-      }
       // Show driver assignment dialog when notification is tapped
       _showDriverAssignmentDialog(orderId);
     };
     
-    if (kDebugMode) {
-      print('✅ Notification tap callback set');
-    }
   }
 
   void _showDriverAssignmentDialog(String orderId) {
-    if (kDebugMode) {
-      print('🔍 _showDriverAssignmentDialog called for order: $orderId');
-    }
-    
     // Get the order from the repository
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
@@ -78,15 +69,7 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
     orderProvider
         .getOrderById(orderId)
         .then((order) {
-          if (kDebugMode) {
-            print('🔍 Order fetched: ${order?.id}');
-          }
-          
           if (order != null && mounted) {
-            if (kDebugMode) {
-              print('✅ Showing driver assignment dialog for order: ${order.id}');
-            }
-            
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -111,28 +94,17 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
               },
             );
           } else if (mounted) {
-            if (kDebugMode) {
-              print('❌ Order is null or context not mounted');
-            }
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Failed to load order details'),
-                backgroundColor: Colors.red,
-              ),
+            CustomFlushbar.showError(
+              context,
+              message: 'Failed to load order details',
             );
           }
         })
         .catchError((error) {
-          if (kDebugMode) {
-            print('❌ Error fetching order: $error');
-          }
-          
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error loading order: $error'),
-                backgroundColor: Colors.red,
-              ),
+            CustomFlushbar.showError(
+              context,
+              message: 'Error loading order: $error',
             );
           }
         });
@@ -147,16 +119,8 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
       if (profileProvider.currentUser != null) {
         final fcmService = FCMService.instance;
         await fcmService.saveFCMToken(profileProvider.currentUser!.id);
-        if (kDebugMode) {
-          print(
-            '✅ FCM token saved for current user: ${profileProvider.currentUser!.id}',
-          );
-        }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ Failed to save FCM token: $e');
-      }
     }
   }
 

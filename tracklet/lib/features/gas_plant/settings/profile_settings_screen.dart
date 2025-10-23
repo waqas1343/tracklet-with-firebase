@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/widgets/custom_appbar.dart';
 import '../../../../shared/widgets/custom_button.dart';
+import '../../../../shared/widgets/custom_flushbar.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../core/providers/profile_provider.dart';
 import '../../../../core/utils/app_text_theme.dart';
@@ -217,26 +218,14 @@ class ProfileSettingsScreen extends StatelessWidget {
     );
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppConstants.updateSuccess,
-            style: AppTextTheme.bodyMedium.copyWith(color: AppColors.white),
-          ),
-          backgroundColor: AppColors.success,
-          duration: AppConstants.snackbarDuration,
-        ),
+      CustomFlushbar.showSuccess(
+        context,
+        message: AppConstants.updateSuccess,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            profileProvider.error ?? 'Failed to update profile',
-            style: AppTextTheme.bodyMedium.copyWith(color: AppColors.white),
-          ),
-          backgroundColor: AppColors.error,
-          duration: AppConstants.snackbarDuration,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: profileProvider.error ?? 'Failed to update profile',
       );
     }
   }

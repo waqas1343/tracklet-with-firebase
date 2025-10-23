@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/plant_request_model.dart';
 import '../../../core/widgets/custom_appbar.dart';
+import '../../../../shared/widgets/custom_flushbar.dart';
 import '../provider/plant_request_provider.dart';
 
 class CreatePlantRequestScreen extends StatefulWidget {
@@ -57,19 +58,15 @@ class _CreatePlantRequestScreenState extends State<CreatePlantRequestScreen> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request submitted successfully'),
-          backgroundColor: Color(0xFF4CAF50),
-        ),
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Request submitted successfully',
       );
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.errorMessage ?? 'Failed to submit request'),
-          backgroundColor: Colors.red,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: provider.errorMessage ?? 'Failed to submit request',
       );
     }
   }

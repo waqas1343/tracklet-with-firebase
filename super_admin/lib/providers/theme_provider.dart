@@ -79,7 +79,7 @@ class ThemeProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _isDarkMode = prefs.getBool('isDarkMode') ?? false;
     } catch (e) {
-      debugPrint('Error loading theme preference: $e');
+      // Removed debugPrint statement
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -92,7 +92,7 @@ class ThemeProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isDarkMode', _isDarkMode);
     } catch (e) {
-      debugPrint('Error saving theme preference: $e');
+      // Removed debugPrint statement
     }
   }
 

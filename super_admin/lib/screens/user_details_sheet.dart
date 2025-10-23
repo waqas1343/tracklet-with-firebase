@@ -1,46 +1,11 @@
-// User Details Sheet - Detailed user view with hero animation
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import '../providers/theme_provider.dart';
-import '../providers/users_provider.dart';
-
-class UserDetailsSheet extends StatelessWidget {
-  const UserDetailsSheet({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context);
-    final usersProvider = Provider.of<UsersProvider>(context);
-    final user = usersProvider.selectedUser;
-
-    if (user == null) {
-      Navigator.pop(context);
-      return const SizedBox.shrink();
-    }
-
-    return Scaffold(
-      backgroundColor: theme.background,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar with Hero Avatar
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            backgroundColor: theme.surface,
-            leading: IconButton(
-              icon: Icon(Icons.close_rounded, color: theme.textPrimary),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      theme.primary.withOpacity(0.8),
-                      theme.secondary.withOpacity(0.6),
+                      theme.primary.withAlpha((0.8 * 255).round()),
+                      theme.secondary.withAlpha((0.6 * 255).round()),
                     ],
                   ),
                 ),
@@ -87,8 +52,8 @@ class UserDetailsSheet extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: user.isActive
-                                ? theme.success.withOpacity(0.1)
-                                : theme.error.withOpacity(0.1),
+                                ? theme.success.withAlpha((0.1 * 255).round())
+                                : theme.error.withAlpha((0.1 * 255).round()),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: user.isActive
@@ -233,94 +198,3 @@ class UserDetailsSheet extends StatelessWidget {
                                   backgroundColor: theme.error,
                                   foregroundColor: Colors.white,
                                 ),
-                                child: const Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        );
-
-                        if (confirm == true && context.mounted) {
-                          await usersProvider.deleteUser(user.id);
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                          }
-                        }
-                      },
-                      icon: const Icon(Icons.delete_rounded),
-                      label: const Text('Delete User'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.error,
-                        side: BorderSide(color: theme.error),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.divider.withOpacity(0.5), width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 20, color: theme.primary),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.caption.copyWith(color: theme.textMuted),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: theme.bodyMedium.copyWith(fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

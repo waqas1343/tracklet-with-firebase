@@ -36,7 +36,7 @@ class AdminService {
       
       return true;
     } catch (e) {
-      print('Error creating user: $e');
+      // Removed print statement
       return false;
     }
   }
@@ -46,10 +46,10 @@ class AdminService {
     try {
       final snapshot = await _firestore.collection('users').get();
       return snapshot.docs
-          .map((doc) => UserModel.fromJson(doc.data()))
+          .map((doc) => UserModel.fromJson(doc.data()!))
           .toList();
     } catch (e) {
-      print('Error fetching users: $e');
+      // Removed print statement
       return [];
     }
   }
@@ -63,7 +63,7 @@ class AdminService {
       }
       return null;
     } catch (e) {
-      print('Error fetching user: $e');
+      // Removed print statement
       return null;
     }
   }
@@ -76,7 +76,7 @@ class AdminService {
       });
       return true;
     } catch (e) {
-      print('Error updating user role: $e');
+      // Removed print statement
       return false;
     }
   }
@@ -97,7 +97,7 @@ class AdminService {
       
       return true;
     } catch (e) {
-      print('Error deleting user: $e');
+      // Removed print statement
       return false;
     }
   }

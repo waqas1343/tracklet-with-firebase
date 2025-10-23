@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/providers/company_provider.dart';
 import '../../../core/models/company_model.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class GasRateScreen extends StatefulWidget {
   final CompanyModel company; // Added company parameter
@@ -61,11 +62,9 @@ class _RatesScreenState extends State<GasRateScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load rate history: $e'),
-            backgroundColor: Colors.red,
-          ),
+        CustomFlushbar.showError(
+          context,
+          message: 'Failed to load rate history: $e',
         );
       }
     }
@@ -88,11 +87,9 @@ class _RatesScreenState extends State<GasRateScreen> {
     // Don't try to save if company ID is empty
     if (widget.company.id.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cannot save rate: Invalid company information'),
-            backgroundColor: Colors.red,
-          ),
+        CustomFlushbar.showError(
+          context,
+          message: 'Cannot save rate: Invalid company information',
         );
       }
       return;
@@ -145,30 +142,24 @@ class _RatesScreenState extends State<GasRateScreen> {
         });
         
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Rate updated successfully to $newRate PKR/KG'),
-              backgroundColor: Colors.green,
-            ),
+          CustomFlushbar.showSuccess(
+            context,
+            message: 'Rate updated successfully to $newRate PKR/KG',
           );
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to update rate'),
-              backgroundColor: Colors.red,
-            ),
+          CustomFlushbar.showError(
+            context,
+            message: 'Failed to update rate',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update rate: $e'),
-            backgroundColor: Colors.red,
-          ),
+        CustomFlushbar.showError(
+          context,
+          message: 'Failed to update rate: $e',
         );
       }
     }

@@ -11,6 +11,7 @@ import '../widgets/plant_summary_card.dart';
 import '../widgets/completed_order_card.dart';
 import '../widgets/new_order_card.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class GasPlantDashboardScreen extends StatefulWidget {
   const GasPlantDashboardScreen({super.key});
@@ -28,25 +29,15 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
     super.initState();
   }
 
-  /// Test notification system
-  Future<void> _testNotificationSystem() async {
+  Future<void> _testNotifications() async {
     try {
-      print('🧪 Testing notification system...');
-
-      // Get current user
-      final profileProvider = Provider.of<ProfileProvider>(
-        context,
-        listen: false,
-      );
+      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
       final user = profileProvider.currentUser;
 
       if (user == null) {
-        print('❌ No user logged in');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No user logged in'),
-            backgroundColor: Colors.red,
-          ),
+        CustomFlushbar.showError(
+          context,
+          message: 'No user logged in',
         );
         return;
       }
@@ -54,19 +45,14 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
       // Test notification creation
       await NotificationService.instance.testCompleteNotificationFlow(user.id);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Test notification sent! Check console for details.'),
-          backgroundColor: Colors.green,
-        ),
+      CustomFlushbar.showSuccess(
+        context,
+        message: 'Test notification sent! Check console for details.',
       );
     } catch (e) {
-      print('❌ Error testing notification system: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error testing notifications: $e'),
-          backgroundColor: Colors.red,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: 'Error testing notifications: $e',
       );
     }
   }
@@ -155,7 +141,6 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
     final profileProvider = Provider.of<ProfileProvider>(context);
     final user = profileProvider.currentUser;
 
-    // Load orders only once when the screen is first displayed
     if (user != null && !_initialLoadCompleted && !orderProvider.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         orderProvider.loadOrdersForPlant(user.id).then((_) {
@@ -193,22 +178,6 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
             ),
           )
         else ...[
-          // Debug information
-          if (kDebugMode) ...[
-            Builder(
-              builder: (context) {
-                print(
-                  'Dashboard - New orders count: ${orderProvider.newOrders.length}',
-                );
-                for (var order in orderProvider.newOrders) {
-                  print(
-                    'New Order ID: ${order.id}, Status: ${order.statusText} (${order.status}), Plant ID: ${order.plantId}',
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
           ...orderProvider.newOrders
               .take(3)
               .map(
@@ -226,16 +195,6 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                     customerImage: 'assets/images/customer.png',
                     onApprovePressed: () {
                       // Update the order status to inProgress and send notification for driver assignment
-                      if (kDebugMode) {
-                        print('=== Approving Order ===');
-                        print('Order ID: ${order.id}');
-                        print(
-                          'Current status: ${order.statusText} (${order.status})',
-                        );
-                        print(
-                          'Updating to: ${OrderStatus.inProgress} (${OrderStatus.inProgress.toString().split('.').last})',
-                        );
-                      }
 
                       orderProvider
                           .updateOrderStatus(
@@ -244,56 +203,24 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                                 .inProgress, // Changed to inProgress to match user requirements
                           )
                           .then((success) {
-                            if (kDebugMode) {
-                              print('Order update result: $success');
-                              if (success) {
-                                print('✅ Order approved successfully!');
-                                print('   Order ID: ${order.id}');
-                                print('   New status should be: inProgress');
-                                print(
-                                  '   Distributor ID: ${order.distributorId}',
-                                );
-                              } else {
-                                print('❌ Order approval failed');
-                                print('   Error: ${orderProvider.error}');
-                              }
-                            }
-
                             if (success) {
                               // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Order approved successfully! Please assign a driver.',
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
+                              CustomFlushbar.showSuccess(
+                                context,
+                                message: 'Order approved successfully! Please assign a driver.',
                               );
                             } else {
                               // Show error message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    orderProvider.error ??
-                                        'Failed to approve order',
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
+                              CustomFlushbar.showError(
+                                context,
+                                message: orderProvider.error ?? 'Failed to approve order',
                               );
                             }
                           })
                           .catchError((error) {
-                            if (kDebugMode) {
-                              print('❌ Error approving order: $error');
-                              print(
-                                '   Stack trace: ${error is Error ? error.stackTrace : 'N/A'}',
-                              );
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error approving order: $error'),
-                                backgroundColor: Colors.red,
-                              ),
+                            CustomFlushbar.showError(
+                              context,
+                              message: 'Error approving order: $error',
                             );
                           });
                     },
@@ -304,24 +231,15 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                           .then((success) {
                             if (success) {
                               // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Order cancelled successfully!',
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
+                              CustomFlushbar.showSuccess(
+                                context,
+                                message: 'Order cancelled successfully!',
                               );
                             } else {
                               // Show error message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    orderProvider.error ??
-                                        'Failed to cancel order',
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
+                              CustomFlushbar.showError(
+                                context,
+                                message: orderProvider.error ?? 'Failed to cancel order',
                               );
                             }
                           });
@@ -409,26 +327,11 @@ class _PreviousOrdersSection extends StatelessWidget {
     final profileProvider = Provider.of<ProfileProvider>(context);
     final user = profileProvider.currentUser;
 
-    // Debug information
-    if (kDebugMode) {
-      print('PreviousOrdersSection - User ID: ${user?.id}');
-      print('PreviousOrdersSection - Is loading: ${orderProvider.isLoading}');
-      print(
-        'PreviousOrdersSection - Total orders: ${orderProvider.orders.length}',
-      );
-      print(
-        'PreviousOrdersSection - Orders data: ${orderProvider.orders.map((o) => '${o.id}:${o.statusText}').toList()}',
-      );
-    }
-
     // Trigger initial load if needed
     if (user != null &&
         !orderProvider.isLoading &&
         !orderProvider.isInitialLoadCompleted) {
       // Check if initial load is completed
-      if (kDebugMode) {
-        print('PreviousOrdersSection - Triggering load for user: ${user.id}');
-      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         orderProvider.loadOrdersForPlant(user.id);
       });
@@ -448,17 +351,6 @@ class _PreviousOrdersSection extends StatelessWidget {
       (a, b) =>
           (b.updatedAt ?? b.createdAt).compareTo(a.updatedAt ?? a.createdAt),
     );
-
-    if (kDebugMode) {
-      print(
-        'PreviousOrdersSection - Previous orders count: ${previousOrders.length}',
-      );
-      for (var order in previousOrders) {
-        print(
-          'Previous Order: ${order.id} - Status: ${order.statusText} - Updated: ${order.updatedAt ?? order.createdAt}',
-        );
-      }
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

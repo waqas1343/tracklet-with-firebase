@@ -15,15 +15,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Initialize Flutter binding for background execution
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (kDebugMode) {
-    print('📬 Background message received!');
-    print('Title: ${message.notification?.title}');
-    print('Body: ${message.notification?.body}');
-  }
-
-  // Handle background message logic here
-  // Note: You cannot directly access UI or most Flutter services here
-  // You should only perform lightweight operations
+  // Removed kDebugMode print statements
 }
 
 /// FCM Service - Handles Firebase Cloud Messaging for push notifications
@@ -68,16 +60,12 @@ class FCMService {
   /// Initialize FCM service
   Future<void> initialize() async {
     if (_initialized) {
-      if (kDebugMode) {
-        print('⚠️ FCM already initialized');
-      }
+      // Removed kDebugMode print statement
       return;
     }
 
     try {
-      if (kDebugMode) {
-        print('🔔 Initializing FCM Service...');
-      }
+      // Removed kDebugMode print statements
 
       // Ensure Firebase is initialized first
       await FirebaseMessaging.instance.setAutoInitEnabled(true);
@@ -96,23 +84,16 @@ class FCMService {
 
       _initialized = true;
 
-      if (kDebugMode) {
-        print('✅ FCM Service initialized successfully');
-        print('✅ FCM Token: $_fcmToken');
-      }
+      // Removed kDebugMode print statements
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error initializing FCM: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
   /// Request notification permissions
   Future<void> _requestPermissions() async {
     try {
-      if (kDebugMode) {
-        print('📱 Requesting notification permissions...');
-      }
+      // Removed kDebugMode print statements
 
       final settings = await _messaging.requestPermission(
         alert: true,
@@ -121,39 +102,25 @@ class FCMService {
         provisional: false,
       );
 
-      if (kDebugMode) {
-        print(
-          '✅ Notification permission status: ${settings.authorizationStatus}',
-        );
-      }
+      // Removed kDebugMode print statements
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        if (kDebugMode) {
-          print('✅ User granted notification permissions');
-        }
+        // Removed kDebugMode print statement
       } else if (settings.authorizationStatus ==
           AuthorizationStatus.provisional) {
-        if (kDebugMode) {
-          print('⚠️ User granted provisional notification permissions');
-        }
+        // Removed kDebugMode print statement
       } else {
-        if (kDebugMode) {
-          print('❌ User declined notification permissions');
-        }
+        // Removed kDebugMode print statement
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error requesting permissions: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
   /// Initialize local notifications
   Future<void> _initializeLocalNotifications() async {
     try {
-      if (kDebugMode) {
-        print('🔔 Initializing local notifications...');
-      }
+      // Removed kDebugMode print statements
 
       const androidSettings = AndroidInitializationSettings(
         '@mipmap/ic_launcher',
@@ -174,22 +141,16 @@ class FCMService {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
-      if (kDebugMode) {
-        print('✅ Local notifications initialized');
-      }
+      // Removed kDebugMode print statement
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error initializing local notifications: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
   /// Get FCM token
   Future<void> _getFCMToken() async {
     try {
-      if (kDebugMode) {
-        print('🔑 Getting FCM token...');
-      }
+      // Removed kDebugMode print statements
 
       // Get token for web
       if (kIsWeb) {
@@ -204,28 +165,20 @@ class FCMService {
       }
 
       if (_fcmToken != null) {
-        if (kDebugMode) {
-          print('✅ FCM Token: $_fcmToken');
-        }
+        // Removed kDebugMode print statement
       } else {
-        if (kDebugMode) {
-          print('⚠️ Failed to get FCM token');
-        }
+        // Removed kDebugMode print statement
       }
 
       // Listen for token refresh
       _messaging.onTokenRefresh.listen((newToken) {
-        if (kDebugMode) {
-          print('🔄 FCM Token refreshed: $newToken');
-        }
+        // Removed kDebugMode print statement
         _fcmToken = newToken;
         // Update token in Firestore if user is logged in
         _updateTokenInFirestore(newToken);
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting FCM token: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
@@ -240,31 +193,19 @@ class FCMService {
     // Handle notification tap when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    if (kDebugMode) {
-      print('✅ Message handlers setup complete');
-    }
+    // Removed kDebugMode print statement
   }
 
   /// Handle foreground messages
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    if (kDebugMode) {
-      print('📬 Foreground message received!');
-      print('Title: ${message.notification?.title}');
-      print('Body: ${message.notification?.body}');
-      print('Data: ${message.data}');
-    }
-
+    // Removed kDebugMode print statements
     // Show local notification
     await _showLocalNotification(message);
   }
 
   /// Handle notification tap
   void _handleNotificationTap(RemoteMessage message) {
-    if (kDebugMode) {
-      print('🔔 Notification tapped!');
-      print('Data: ${message.data}');
-    }
-
+    // Removed kDebugMode print statements
     // Navigate to appropriate screen based on notification data
     _handleNotificationAction(message.data);
   }
@@ -273,40 +214,27 @@ class FCMService {
   void _handleNotificationAction(Map<String, dynamic> data) {
     final type = data['type'] as String?;
     
-    if (kDebugMode) {
-      print('🔍 Handling notification action');
-      print('   Type: $type');
-      print('   Data: $data');
-    }
+    // Removed kDebugMode print statements
     
     if (type == 'order_approved') {
       final orderId = data['orderId'] as String?;
-      if (kDebugMode) {
-        print('   Order ID: $orderId');
-      }
+      // Removed kDebugMode print statements
       if (orderId != null && orderId.isNotEmpty) {
         // Call the callback if set
+        // Removed kDebugMode print statements
         if (_onNotificationTap != null) {
-          if (kDebugMode) {
-            print('   Calling notification tap callback');
-          }
+          // Removed kDebugMode print statement
           _onNotificationTap!(orderId);
         } else {
           // Fallback to showing driver assignment dialog directly
-          if (kDebugMode) {
-            print('   Using fallback driver assignment dialog');
-          }
+          // Removed kDebugMode print statement
           _showDriverAssignmentDialog(orderId);
         }
       } else {
-        if (kDebugMode) {
-          print('   Order ID is null or empty: $orderId');
-        }
+        // Removed kDebugMode print statement
       }
     } else {
-      if (kDebugMode) {
-        print('   Unknown notification type: $type');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
@@ -314,11 +242,7 @@ class FCMService {
   void _showDriverAssignmentDialog(String orderId) {
     // This method would be called when we have access to the context
     // For now, we'll handle this in the main app widget
-    if (kDebugMode) {
-      print('🔔 Order approved notification tapped for order: $orderId');
-      print('⚠️ Fallback _showDriverAssignmentDialog called - this should not happen in normal operation');
-      print('   This indicates that the notification tap callback was not properly set');
-    }
+    // Removed kDebugMode print statements
   }
 
   /// Show local notification
@@ -356,40 +280,28 @@ class FCMService {
         payload: payload,
       );
 
-      if (kDebugMode) {
-        print('✅ Local notification shown');
-        print('   Payload: $payload');
-      }
+      // Removed kDebugMode print statements
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error showing local notification: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
   /// Handle notification tap from local notifications
   void _onNotificationTapped(NotificationResponse response) {
-    if (kDebugMode) {
-      print('🔔 Local notification tapped!');
-      print('Payload: ${response.payload}');
-    }
+    // Removed kDebugMode print statements
 
     // Parse payload and handle action
     if (response.payload != null) {
       try {
         // Try to parse as JSON first
         final payloadData = jsonDecode(response.payload!);
-        if (kDebugMode) {
-          print('🔍 Parsing payload as JSON: $payloadData');
-        }
+        // Removed kDebugMode print statements
         
         final type = payloadData['type'] as String?;
         final orderId = payloadData['orderId'] as String?;
         
         if (type == 'order_approved' && orderId != null && orderId.isNotEmpty) {
-          if (kDebugMode) {
-            print('✅ Extracted order ID: $orderId');
-          }
+          // Removed kDebugMode print statements
           // Call the callback if set
           if (_onNotificationTap != null) {
             _onNotificationTap!(orderId);
@@ -398,23 +310,15 @@ class FCMService {
             _showDriverAssignmentDialog(orderId);
           }
         } else {
-          if (kDebugMode) {
-            print('❌ Payload does not contain valid order_approved data');
-            print('   Type: $type');
-            print('   Order ID: $orderId');
-          }
+          // Removed kDebugMode print statements
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('❌ Error parsing notification payload as JSON: $e');
-        }
+        // Removed kDebugMode print statements
         
         // Fallback to string parsing
         try {
           final payload = response.payload!;
-          if (kDebugMode) {
-            print('🔍 Parsing payload as string: $payload');
-          }
+          // Removed kDebugMode print statements
           
           if (payload.contains('order_approved') && payload.contains('orderId')) {
             // Extract order ID from payload (simplified approach)
@@ -423,9 +327,7 @@ class FCMService {
             final orderId = payload.substring(startIndex, endIndex).replaceAll("'", "").trim();
             
             if (orderId.isNotEmpty) {
-              if (kDebugMode) {
-                print('✅ Extracted order ID from string: $orderId');
-              }
+              // Removed kDebugMode print statements
               // Call the callback if set
               if (_onNotificationTap != null) {
                 _onNotificationTap!(orderId);
@@ -434,55 +336,38 @@ class FCMService {
                 _showDriverAssignmentDialog(orderId);
               }
             } else {
-              if (kDebugMode) {
-                print('❌ Order ID is empty');
-              }
+              // Removed kDebugMode print statement
             }
           } else {
-            if (kDebugMode) {
-              print('❌ Payload does not contain order_approved or orderId');
-            }
+            // Removed kDebugMode print statement
           }
         } catch (e2) {
-          if (kDebugMode) {
-            print('❌ Error parsing notification payload as string: $e2');
-          }
+          // Removed kDebugMode print statements
         }
       }
     } else {
-      if (kDebugMode) {
-        print('❌ Payload is null');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
   /// Save FCM token to Firestore for a user
   Future<void> saveFCMToken(String userId) async {
     if (_fcmToken == null) {
-      if (kDebugMode) {
-        print('⚠️ No FCM token to save');
-      }
+      // Removed kDebugMode print statement
       return;
     }
 
     try {
-      if (kDebugMode) {
-        print('💾 Saving FCM token for user: $userId');
-        print('   Token: $_fcmToken');
-      }
+      // Removed kDebugMode print statements
       
       await _firestore.collection('users').doc(userId).update({
         'fcmToken': _fcmToken,
         'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
       });
 
-      if (kDebugMode) {
-        print('✅ FCM token saved for user: $userId');
-      }
+      // Removed kDebugMode print statement
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error saving FCM token: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 
@@ -490,9 +375,7 @@ class FCMService {
   Future<void> _updateTokenInFirestore(String token) async {
     // This will be called when token refreshes
     // You can get current user ID from your auth service
-    if (kDebugMode) {
-      print('🔄 Updating token in Firestore...');
-    }
+    // Removed kDebugMode print statement
   }
 
   /// Send notification to a specific user
@@ -508,27 +391,16 @@ class FCMService {
       final fcmToken = userDoc.data()?['fcmToken'] as String?;
 
       if (fcmToken == null) {
-        if (kDebugMode) {
-          print('⚠️ No FCM token found for user: $userId');
-        }
+        // Removed kDebugMode print statement
         return;
       }
 
-      if (kDebugMode) {
-        print('📤 Sending notification to user: $userId');
-        print('Title: $title');
-        print('Body: $body');
-        print('Data: $data');
-        print('FCM Token: $fcmToken');
-      }
+      // Removed kDebugMode print statements
 
       // Check if we have a valid server key
       const serverKey = 'YOUR_SERVER_KEY_HERE'; // Replace with your actual server key
       if (serverKey == 'YOUR_SERVER_KEY_HERE') {
-        if (kDebugMode) {
-          print('❌ ERROR: Server key not configured! Notifications will not be sent.');
-          print('Please replace YOUR_SERVER_KEY_HERE with your actual Firebase server key.');
-        }
+        // Removed kDebugMode print statements
         return;
       }
 
@@ -553,20 +425,12 @@ class FCMService {
       );
 
       if (response.statusCode == 200) {
-        if (kDebugMode) {
-          print('✅ Notification sent successfully');
-          print('Response: ${response.body}');
-        }
+        // Removed kDebugMode print statements
       } else {
-        if (kDebugMode) {
-          print('❌ Failed to send notification. Status code: ${response.statusCode}');
-          print('Response: ${response.body}');
-        }
+        // Removed kDebugMode print statements
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error sending notification: $e');
-      }
+      // Removed kDebugMode print statement
     }
   }
 

@@ -63,28 +63,19 @@ class LoginScreen extends StatelessWidget {
           // Note: user.role from UserModel is already a UserRole enum
           user_role.UserRole role;
 
-          // Debug: Print role from Firestore
-          print('🔍 Login - User role from Firestore: ${userData['role']}');
-          print('🔍 Login - Parsed UserRole enum: ${user.role}');
-
           if (user.role == user_model.UserRole.gasPlant) {
             role = user_role.UserRole.gasPlant;
-            print('✅ Login - Setting role to GAS PLANT');
           } else if (user.role == user_model.UserRole.distributor) {
             role = user_role.UserRole.distributor;
-            print('✅ Login - Setting role to DISTRIBUTOR');
           } else {
             // Default to distributor if role is not recognized
             role = user_role.UserRole.distributor;
-            print('⚠️ Login - Role not recognized, defaulting to DISTRIBUTOR');
           }
 
           await userRoleProvider.setUserRole(role);
-          print('✅ Login - Role set successfully: $role');
 
           // Initialize profile provider with current user data
           await profileProvider.loadUserProfile(userCredential.user!.uid);
-          print('✅ Login - Profile provider initialized');
 
           // Save FCM token to Firestore for push notifications
           try {
@@ -93,9 +84,7 @@ class LoginScreen extends StatelessWidget {
               listen: false,
             );
             await fcmService.saveFCMToken(userCredential.user!.uid);
-            print('✅ Login - FCM token saved to Firestore');
           } catch (e) {
-            print('⚠️ Login - Failed to save FCM token: $e');
           }
 
           // Update last login time

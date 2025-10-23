@@ -14,6 +14,7 @@ import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
 import 'cylinder_request_screen.dart';
 import '../widgets/order_card.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class DistributorDashboardScreen extends StatefulWidget {
   const DistributorDashboardScreen({super.key});
@@ -55,33 +56,11 @@ class _DistributorDashboardScreenState
     final profileProvider = Provider.of<ProfileProvider>(context);
     final user = profileProvider.currentUser;
 
-    // Debug print to see company data
-    if (kDebugMode) {
-      print('=== Distributor Dashboard Debug ===');
-      print('Companies count: ${companyProvider.companies.length}');
-      for (var company in companyProvider.companies) {
-        print(
-          'Company: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}',
-        );
-      }
-      print('===================================');
-    }
-
     // Subscribe to real-time company updates
     if (_companiesSubscription == null) {
       _companiesSubscription = companyProvider.companiesStream.listen((
         companies,
       ) {
-        if (kDebugMode) {
-          print('=== Real-time Company Update ===');
-          print('Updated companies count: ${companies.length}');
-          for (var company in companies) {
-            print(
-              'Company: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}',
-            );
-          }
-          print('================================');
-        }
         // The companies are automatically updated through the provider
         // We just need to ensure the subscription is active
       });
@@ -235,13 +214,6 @@ class _DistributorDashboardScreenState
   }
 
   Widget _buildPlantCard(BuildContext context, CompanyModel company) {
-    // Debug print for individual company
-    if (kDebugMode) {
-      print(
-        'Building plant card for: ${company.companyName}, Rate: ${company.currentRate}, Operating Hours: ${company.operatingHours}',
-      );
-    }
-
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
@@ -472,11 +444,9 @@ class _DistributorDashboardScreenState
     } catch (e) {
       // Handle error silently or show a snackbar
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load orders: $e'),
-            backgroundColor: AppColors.error,
-          ),
+        CustomFlushbar.showError(
+          context,
+          message: 'Failed to load orders: $e',
         );
       }
     } finally {

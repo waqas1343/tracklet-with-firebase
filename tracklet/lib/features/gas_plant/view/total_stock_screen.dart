@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 // Tank model to store tank information
 class Tank {
@@ -115,42 +116,36 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     
     // Validate inputs
     if (name.isEmpty || capacityText.isEmpty || initialGasText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all fields'),
-          backgroundColor: Colors.red,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: 'Please fill all fields',
       );
       return;
     }
-    
+
     final double? capacity = double.tryParse(capacityText);
     final double? initialGas = double.tryParse(initialGasText);
-    
+
     if (capacity == null || initialGas == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter valid numbers for capacity and gas'),
-          backgroundColor: Colors.red,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: 'Please enter valid numbers for capacity and gas',
       );
       return;
     }
-    
+
     if (initialGas > capacity) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Initial gas cannot exceed tank capacity'),
-          backgroundColor: Colors.red,
-        ),
+      CustomFlushbar.showError(
+        context,
+        message: 'Initial gas cannot exceed tank capacity',
       );
       return;
     }
-    
+
     // Create new tank with unique ID
     final String id = DateTime.now().millisecondsSinceEpoch.toString();
     final String date = DateTime.now().toString().split(' ')[0];
-    
+
     setState(() {
       _tanks.add(
         Tank(
@@ -163,12 +158,10 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         ),
       );
     });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tank added successfully'),
-        backgroundColor: Colors.green,
-      ),
+
+    CustomFlushbar.showSuccess(
+      context,
+      message: 'Tank added successfully',
     );
   }
 

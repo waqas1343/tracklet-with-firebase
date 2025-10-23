@@ -162,7 +162,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
       await notificationProvider.loadUnreadCount(userId);
     } catch (e) {
       // Handle error silently
-      debugPrint('Failed to load unread count: $e');
+
     } finally {
       if (mounted) {
         setState(() {

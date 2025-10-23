@@ -398,22 +398,9 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
       createdAt: DateTime.now(),
     );
 
-    if (kDebugMode) {
-      print('Creating order for plant:');
-      print('Plant ID: ${widget.company.id}');
-      print('Plant Name: ${widget.company.companyName}');
-      print('Distributor ID: ${user.id}');
-      print('Distributor Name: ${user.name}');
-      print('Order details: ${order.toJson()}');
-    }
-
     final success = await orderProvider.createOrder(order);
 
     if (success) {
-      if (kDebugMode) {
-        print('Order created successfully');
-      }
-      
       CustomFlushbar.showSuccess(
         context,
         message: 'Cylinder request sent successfully!',
@@ -424,10 +411,6 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
         Navigator.of(context).pop();
       }
     } else {
-      if (kDebugMode) {
-        print('Failed to create order: ${orderProvider.error}');
-      }
-      
       CustomFlushbar.showError(
         context,
         message: orderProvider.error ?? 'Failed to send cylinder request',

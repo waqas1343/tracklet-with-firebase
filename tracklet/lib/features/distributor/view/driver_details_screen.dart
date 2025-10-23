@@ -515,11 +515,11 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
 
   void _makePhoneCall(String phoneNumber) {
     // Implement phone call functionality
-    print('Calling $phoneNumber');
+
   }
 
   void _sendMessage(String phoneNumber) {
     // Implement message functionality
-    print('Sending message to $phoneNumber');
+
   }
 }

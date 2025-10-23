@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/order_model.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class OrdersScreen extends StatefulWidget {
   final String? highlightedOrderId; // Add this parameter
@@ -33,12 +34,9 @@ class _OrdersScreenState extends State<OrdersScreen>
     if (widget.highlightedOrderId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Order highlighted - scroll to find it'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
+          CustomFlushbar.showInfo(
+            context,
+            message: 'Order highlighted - scroll to find it',
           );
         }
       });

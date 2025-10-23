@@ -241,9 +241,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         await orderProvider.loadOrdersForDriver(user.name);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading driver orders: $e');
-      }
     }
   }
 }

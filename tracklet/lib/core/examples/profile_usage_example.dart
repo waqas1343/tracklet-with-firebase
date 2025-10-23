@@ -175,11 +175,7 @@ class ProfileUsageExample extends StatelessWidget {
       phone: newPhone,
     );
 
-    if (success) {
-      debugPrint('Profile updated successfully!');
-    } else {
-      debugPrint('Failed to update profile: ${profileProvider.error}');
-    }
+    // Removed debugPrint statements
   }
 
   void _navigateToProfileSettings(BuildContext context) {

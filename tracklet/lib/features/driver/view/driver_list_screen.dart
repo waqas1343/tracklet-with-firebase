@@ -175,9 +175,6 @@ class _DriverListScreenState extends State<DriverListScreen> {
         await orderProvider.loadOrdersForPlant(user.id);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading orders: $e');
-      }
     }
   }
 

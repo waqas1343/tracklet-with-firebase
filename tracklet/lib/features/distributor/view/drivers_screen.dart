@@ -4,6 +4,7 @@ import '../../../core/models/driver_model.dart';
 import '../provider/driver_provider.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../core/utils/app_text_theme.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 import '../../../shared/widgets/status_chip.dart';
 import 'driver_details_screen.dart';
 
@@ -451,30 +452,24 @@ class _DriversScreenState extends State<DriversScreen> {
                       if (success) {
                         if (context.mounted) {
                           Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Driver added successfully'),
-                              backgroundColor: Color(0xFF219653),
-                            ),
+                          CustomFlushbar.showSuccess(
+                            context,
+                            message: 'Driver added successfully',
                           );
                         }
                       } else {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to add driver'),
-                              backgroundColor: Colors.red,
-                            ),
+                          CustomFlushbar.showError(
+                            context,
+                            message: 'Failed to add driver',
                           );
                         }
                       }
                     } else {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please fill all fields'),
-                            backgroundColor: Colors.red,
-                          ),
+                        CustomFlushbar.showError(
+                          context,
+                          message: 'Please fill all fields',
                         );
                       }
                     }

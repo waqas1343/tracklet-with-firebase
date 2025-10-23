@@ -8,6 +8,7 @@ import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class OrdersInProgressScreen extends StatelessWidget {
   final String? highlightedOrderId; // Add this parameter
@@ -19,15 +20,6 @@ class OrdersInProgressScreen extends StatelessWidget {
     final orderProvider = Provider.of<OrderProvider>(context);
     final profileProvider = Provider.of<ProfileProvider>(context);
     final user = profileProvider.currentUser;
-
-    // Debug information
-    if (kDebugMode) {
-      print('OrdersInProgressScreen - User ID: ${user?.id}');
-      print('OrdersInProgressScreen - User name: ${user?.name}');
-      if (highlightedOrderId != null) {
-        print('OrdersInProgressScreen - Highlighted Order ID: $highlightedOrderId');
-      }
-    }
 
     // Common color palette
     final Color navy = Color(0xFF0C2340);
@@ -114,12 +106,9 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
     if (widget.highlightedOrderId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Order highlighted - scroll to find it'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
+          CustomFlushbar.showInfo(
+            context,
+            message: 'Order highlighted - scroll to find it',
           );
         }
       });
@@ -127,10 +116,6 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
   }
 
   void _initializeStream() {
-    if (kDebugMode) {
-      print('🔄 Initializing orders stream for user: ${widget.user.id}');
-    }
-    
     _ordersStream = widget.orderProvider.getOrdersStreamForPlant(widget.user.id);
     _streamInitialized = true;
     
@@ -141,9 +126,6 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
         setState(() {
           _timeoutOccurred = true;
         });
-        if (kDebugMode) {
-          print('⏰ Stream timeout - no data received within 10 seconds');
-        }
       }
     });
   }
@@ -167,23 +149,6 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
         // Cancel timeout if we receive any data or error
         if (snapshot.connectionState != ConnectionState.waiting || snapshot.hasData || snapshot.hasError) {
           _timeoutTimer?.cancel();
-        }
-        
-        if (kDebugMode) {
-          print('=== StreamBuilder Debug Info ===');
-          print('User ID: ${widget.user.id}');
-          print('StreamBuilder connection state: ${snapshot.connectionState}');
-          print('StreamBuilder has error: ${snapshot.hasError}');
-          if (snapshot.hasError) {
-            print('StreamBuilder error: ${snapshot.error}');
-            print('StreamBuilder stack trace: ${snapshot.stackTrace}');
-          }
-          print('StreamBuilder has data: ${snapshot.hasData}');
-          if (snapshot.hasData) {
-            print('StreamBuilder data length: ${snapshot.data?.length}');
-          }
-          print('Timeout occurred: $_timeoutOccurred');
-          print('===============================');
         }
         
         // Handle timeout case
@@ -297,135 +262,113 @@ class _OrdersInProgressContentState extends State<_OrdersInProgressContent> {
           );
         }
 
-        final allOrders = snapshot.data ?? [];
-        
-        // Debug information
-        if (kDebugMode) {
-          print('=== Orders Processing Debug ===');
-          print('Total orders loaded: ${allOrders.length}');
-          for (var i = 0; i < allOrders.length; i++) {
-            var order = allOrders[i];
-            print('Order #$i:');
-            print('  ID: ${order.id}');
-            print('  Status Text: ${order.statusText}');
-            print('  Status Enum: ${order.status}');
-            print('  Status Runtime Type: ${order.status.runtimeType}');
-            print('  Plant ID: ${order.plantId}');
-            print('  Status comparison (order.status == OrderStatus.inProgress): ${order.status == OrderStatus.inProgress}');
-          }
+        if (snapshot.hasData) {
+          final allOrders = snapshot.data!;
           
-          // Test the status enum values
-          print('OrderStatus.inProgress value: ${OrderStatus.inProgress}');
-          print('OrderStatus.inProgress runtime type: ${OrderStatus.inProgress.runtimeType}');
-          print('===============================');
-        }
-        
-        final inProgressOrders = allOrders
-            .where((order) => order.status == OrderStatus.inProgress)
-            .toList();
-        
-        if (kDebugMode) {
-          print('=== Filtered Results ===');
-          print('Filtered in progress orders: ${inProgressOrders.length}');
-          for (var i = 0; i < inProgressOrders.length; i++) {
-            var order = inProgressOrders[i];
-            print('InProgress Order #$i: ${order.id}');
-          }
-          print('========================');
+          // Filter for in-progress orders
+          final inProgressOrders = allOrders.where((order) {
+            return order.status == OrderStatus.inProgress;
+          }).toList();
+          
+          // Sort by updated date, newest first
+          inProgressOrders.sort((a, b) => 
+              (b.updatedAt ?? b.createdAt).compareTo(a.updatedAt ?? a.createdAt));
+          
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                // This won't actually refresh the stream, but we can add a manual refresh
+                if (mounted) {
+                  setState(() {
+                    _timeoutOccurred = false;
+                    _initializeStream();
+                  });
+                }
+              },
+              child: ListView(
+                children: [
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(
+                        'Active Orders',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: widget.navy,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      CircleAvatar(
+                        radius: 13,
+                        backgroundColor: widget.navy,
+                        child: Text(
+                          '${inProgressOrders.length}',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
+                  // Display actual orders instead of dummy data
+                  if (inProgressOrders.isEmpty)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.inbox_outlined, size: 80, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text(
+                            'No orders in progress',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Approved orders will appear here',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              // Try to reload the orders
+                              if (mounted) {
+                                setState(() {
+                                  _initializeStream();
+                                });
+                              }
+                            },
+                            child: Text('Refresh Orders'),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ...inProgressOrders.map((order) => OrderCard(
+                          order: order,
+                          navy: widget.navy,
+                          yellow: widget.yellow,
+                          lightCard: widget.lightCard,
+                          isHighlighted: widget.highlightedOrderId == order.id, // Pass highlight status
+                        ))
+                ],
+              ),
+            ),
+          );
         }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: RefreshIndicator(
-            onRefresh: () async {
-              // This won't actually refresh the stream, but we can add a manual refresh
-              if (mounted) {
-                setState(() {
-                  _timeoutOccurred = false;
-                  _initializeStream();
-                });
-              }
-            },
-            child: ListView(
-              children: [
-                SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text(
-                      'Active Orders',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: widget.navy,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    CircleAvatar(
-                      radius: 13,
-                      backgroundColor: widget.navy,
-                      child: Text(
-                        '${inProgressOrders.length}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12),
-                // Display actual orders instead of dummy data
-                if (inProgressOrders.isEmpty)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inbox_outlined, size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'No orders in progress',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Approved orders will appear here',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Try to reload the orders
-                            if (mounted) {
-                              setState(() {
-                                _initializeStream();
-                              });
-                            }
-                          },
-                          child: Text('Refresh Orders'),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  ...inProgressOrders.map((order) => OrderCard(
-                        order: order,
-                        navy: widget.navy,
-                        yellow: widget.yellow,
-                        lightCard: widget.lightCard,
-                        isHighlighted: widget.highlightedOrderId == order.id, // Pass highlight status
-                      ))
-              ],
-            ),
-          ),
-        );
+        return Container();
       },
     );
   }
@@ -646,27 +589,20 @@ class OrderCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                Navigator.pop(context); 
-                
                 final success = await orderProvider.updateOrderStatus(
                   order.id,
                   OrderStatus.cancelled,
                 );
-                                if (context.mounted) {
+                if (context.mounted) {
                   if (success) {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Order cancelled successfully'),
-                        backgroundColor: Colors.green,
-                      ),
+                    CustomFlushbar.showSuccess(
+                      context,
+                      message: 'Order cancelled successfully',
                     );
                   } else {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to cancel order'),
-                        backgroundColor: Colors.red,
-                      ),
+                    CustomFlushbar.showError(
+                      context,
+                      message: 'Failed to cancel order',
                     );
                   }
                 }
@@ -685,11 +621,9 @@ class OrderCard extends StatelessWidget {
     // Check if driver is assigned before allowing completion
     if (order.driverName == null || order.driverName!.isEmpty) {
       // Show error message that driver must be assigned first
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please assign a driver before completing the order'),
-          backgroundColor: Colors.orange,
-        ),
+      CustomFlushbar.showWarning(
+        context,
+        message: 'Please assign a driver before completing the order',
       );
       return;
     }
@@ -719,18 +653,14 @@ class OrderCard extends StatelessWidget {
                 // Show snackbar after dialog is closed
                 if (context.mounted) {
                   if (success) {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Order marked as completed'),
-                        backgroundColor: Colors.green,
-                      ),
+                    CustomFlushbar.showSuccess(
+                      context,
+                      message: 'Order marked as completed',
                     );
                   } else {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to complete order'),
-                        backgroundColor: Colors.red,
-                      ),
+                    CustomFlushbar.showError(
+                      context,
+                      message: 'Failed to complete order',
                     );
                   }
                 }
