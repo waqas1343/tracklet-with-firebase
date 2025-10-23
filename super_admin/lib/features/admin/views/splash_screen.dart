@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../services/firebase_service.dart';
 import '../../../core/providers/splash_provider.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_login_screen.dart';

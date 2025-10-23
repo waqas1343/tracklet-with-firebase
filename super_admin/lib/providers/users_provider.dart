@@ -9,7 +9,7 @@ class UsersProvider with ChangeNotifier {
   List<UserModel> _filteredUsers = [];
   String _searchQuery = '';
   int _currentPage = 0;
-  int _usersPerPage = 10;
+  final int _usersPerPage = 10;
   UserModel? _selectedUser;
 
   final FirebaseService _firebaseService = FirebaseService();

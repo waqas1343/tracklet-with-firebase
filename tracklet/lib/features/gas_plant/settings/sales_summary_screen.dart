@@ -10,6 +10,8 @@ import '../../../core/providers/company_provider.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 
 class SalesSummaryScreen extends StatefulWidget {
+  const SalesSummaryScreen({super.key});
+
   @override
   _SalesSummaryScreenState createState() => _SalesSummaryScreenState();
 }
@@ -702,7 +704,7 @@ class _OrdersChart extends StatelessWidget {
 
 class _ChartLabel extends StatelessWidget {
   final String label;
-  _ChartLabel(this.label);
+  const _ChartLabel(this.label);
   @override
   Widget build(BuildContext context) {
     return Expanded(

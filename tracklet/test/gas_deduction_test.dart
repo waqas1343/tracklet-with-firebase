@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/features/gas_plant/utils/gas_deduction_utils.dart';
-import '../lib/features/gas_plant/view/total_stock_screen.dart';
+import 'package:tracklet/features/gas_plant/view/total_stock_screen.dart';
 
 void main() {
   group('GasDeductionUtils', () {
@@ -8,10 +7,10 @@ void main() {
       // Test the conversion logic used in the implementation
       final double orderKg = 5000; // 5000 kg
       final double orderTons = orderKg / 1000; // Convert to tons
-      
+
       expect(orderTons, equals(5.0));
     });
-    
+
     test('should calculate total gas correctly', () {
       // Test the tank model's totalGas calculation
       final tank = Tank(
@@ -22,7 +21,7 @@ void main() {
         frozenGas: 2.0, // 2.0 tons
         timestamp: DateTime.now(),
       );
-      
+
       expect(tank.totalGas, equals(9.5)); // 7.5 + 2.0 = 9.5 tons
     });
   });

@@ -106,7 +106,7 @@ class UserModel {
 
     return List.generate(count, (index) {
       final name = names[index % names.length];
-      final email = name.toLowerCase().replaceAll(' ', '.') + '@company.com';
+      final email = '${name.toLowerCase().replaceAll(' ', '.')}@company.com';
 
       return UserModel(
         id: 'user_${index + 1}',

@@ -45,17 +45,17 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   // App Header
                   _buildAppHeader(context, theme, loginProvider),
-                  
+
                   const SizedBox(height: 32),
 
                   // Quick Stats
                   _buildQuickStats(context, theme, usersProvider, gridColumns),
-                  
+
                   const SizedBox(height: 32),
 
                   // Quick Actions
                   _buildQuickActions(context, theme),
-                  
+
                   const SizedBox(height: 32),
 
                   // Recent Users
@@ -122,8 +122,8 @@ class DashboardScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-            const SizedBox(height: 8),
-            Text(
+                const SizedBox(height: 8),
+                Text(
                   'Manage your Tracklet users and system',
                   style: theme.bodyLarge.copyWith(
                     color: Colors.white.withValues(alpha: 0.9),
@@ -137,7 +137,10 @@ class DashboardScreen extends StatelessWidget {
               IconButton(
                 onPressed: () async {
                   // Refresh users data
-                  final usersProvider = Provider.of<UsersProvider>(context, listen: false);
+                  final usersProvider = Provider.of<UsersProvider>(
+                    context,
+                    listen: false,
+                  );
                   await usersProvider.refreshUsers();
                 },
                 icon: Icon(Icons.refresh, color: Colors.white),
@@ -167,11 +170,11 @@ class DashboardScreen extends StatelessWidget {
         Text('Quick Stats', style: theme.heading2),
         const SizedBox(height: 16),
         GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: gridColumns,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: gridColumns,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
           childAspectRatio: 1.2,
           children: [
             _buildStatCard(
@@ -284,7 +287,7 @@ class DashboardScreen extends StatelessWidget {
         Text('Quick Actions', style: theme.heading2),
         const SizedBox(height: 16),
         Row(
-                    children: [
+          children: [
             Expanded(
               child: _buildActionButton(
                 context,
@@ -346,9 +349,9 @@ class DashboardScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -363,8 +366,8 @@ class DashboardScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Recent Users', style: theme.heading2),
             TextButton(
@@ -479,9 +482,9 @@ class DashboardScreen extends StatelessWidget {
                               color: theme.textMuted,
                             ),
                           ),
-          ],
-        ),
-      ),
+                        ],
+                      ),
+                    ),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,

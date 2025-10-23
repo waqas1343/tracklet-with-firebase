@@ -157,7 +157,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                   border: Border.all(color: theme.divider),
                 ),
                 child: DropdownButtonFormField<String>(
-                  value: _selectedRole,
+                  initialValue: _selectedRole,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(

@@ -9,11 +9,11 @@ class DriverOrderCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const DriverOrderCard({
-    Key? key,
+    super.key,
     required this.order,
     this.onCompletePressed,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

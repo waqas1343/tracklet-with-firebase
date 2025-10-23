@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
@@ -179,9 +178,11 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
                       text: orderProvider.isLoading
                           ? 'Sending Request...'
                           : 'Request Cylinder',
-                      onPressed: orderProvider.isLoading || !_hasSelectedQuantity()
+                      onPressed:
+                          orderProvider.isLoading || !_hasSelectedQuantity()
                           ? null
-                          : () => _requestCylinder(context, user, orderProvider),
+                          : () =>
+                                _requestCylinder(context, user, orderProvider),
                       width: double.infinity,
                       backgroundColor: AppColors.primary,
                       textColor: AppColors.white,
@@ -367,10 +368,7 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
     OrderProvider orderProvider,
   ) async {
     if (user == null) {
-      CustomFlushbar.showError(
-        context,
-        message: 'User not logged in',
-      );
+      CustomFlushbar.showError(context, message: 'User not logged in');
       return;
     }
 
@@ -405,7 +403,7 @@ class _CylinderRequestScreenState extends State<CylinderRequestScreen> {
         context,
         message: 'Cylinder request sent successfully!',
       );
-      
+
       // Pop back to the previous screen
       if (context.mounted) {
         Navigator.of(context).pop();

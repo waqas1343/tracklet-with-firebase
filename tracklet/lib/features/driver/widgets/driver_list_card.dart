@@ -10,13 +10,13 @@ class DriverListCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const DriverListCard({
-    Key? key,
+    super.key,
     required this.driverName,
     required this.totalOrders,
     required this.activeOrders,
     required this.completedOrders,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class DriverListCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(

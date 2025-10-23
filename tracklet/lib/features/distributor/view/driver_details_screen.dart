@@ -280,7 +280,7 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -483,7 +483,6 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
     return '${dateTime.day}-${months[dateTime.month - 1]}-${dateTime.year}';
   }
 
-
   StatusType _mapOrderStatusToStatusType(OrderStatus status) {
     switch (status) {
       case OrderStatus.pending:
@@ -501,11 +500,9 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
 
   void _makePhoneCall(String phoneNumber) {
     // Implement phone call functionality
-
   }
 
   void _sendMessage(String phoneNumber) {
     // Implement message functionality
-
   }
 }

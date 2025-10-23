@@ -46,7 +46,7 @@ class AdminService {
     try {
       final snapshot = await _firestore.collection('users').get();
       return snapshot.docs
-          .map((doc) => UserModel.fromJson(doc.data()!))
+          .map((doc) => UserModel.fromJson(doc.data()))
           .toList();
     } catch (e) {
       // Removed print statement

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../providers/login_provider.dart';
+import '../shared/widgets/custom_button.dart';
 
 class SideNavigation extends StatelessWidget {
   const SideNavigation({super.key});
@@ -120,41 +122,84 @@ class SideNavigation extends StatelessWidget {
             // User Profile Section
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Row(
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: theme.primary.withOpacity(0.1),
-                    backgroundImage: const NetworkImage(
-                      'https://i.pravatar.cc/150?img=1',
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Admin User',
-                          style: theme.bodyMedium.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: theme.primary.withOpacity(0.1),
+                        backgroundImage: const NetworkImage(
+                          'https://i.pravatar.cc/150?img=1',
                         ),
-                        Text(
-                          'admin@company.com',
-                          style: theme.caption,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Admin User',
+                              style: theme.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              'admin@company.com',
+                              style: theme.caption,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    icon: Icon(Icons.logout_rounded, color: theme.error),
-                    onPressed: () {
-                      // Handle logout
-                    },
-                    tooltip: 'Logout',
+                  const SizedBox(height: 16),
+                  // Logout Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: CustomButton(
+                      text: 'Logout',
+                      onPressed: () {
+                        // Show confirmation dialog
+                        showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Logout'),
+                              content: const Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Logout'),
+                                ),
+                              ],
+                            );
+                          },
+                        ).then((confirm) {
+                          if (confirm == true) {
+                            // Perform logout
+                            Provider.of<LoginProvider>(context, listen: false).logout();
+                            // Navigate to login screen
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/',
+                              (route) => false,
+                            );
+                          }
+                        });
+                      },
+                      backgroundColor: theme.error,
+                      textColor: Colors.white,
+                      borderRadius: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tracklet/core/utils/app_colors.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
@@ -56,7 +57,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
   // List to store tanks - initially empty
   List<Tank> _tanks = [];
   late Stream<QuerySnapshot> _tanksStream;
-  
+
   // Controllers for the dialog form
   final TextEditingController _tankNameController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
@@ -78,7 +79,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
 
   void _loadTanksFromFirebase() {
     _tanksStream = FirebaseFirestore.instance.collection('tanks').snapshots();
-    
+
     // Listen to the stream and update the UI
     _tanksStream.listen((snapshot) {
       setState(() {
@@ -103,7 +104,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     _tankNameController.clear();
     _capacityController.clear();
     _initialGasController.clear();
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -164,13 +165,10 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     final String name = _tankNameController.text.trim();
     final String capacityText = _capacityController.text.trim();
     final String initialGasText = _initialGasController.text.trim();
-    
+
     // Validate inputs
     if (name.isEmpty || capacityText.isEmpty || initialGasText.isEmpty) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Please fill all fields',
-      );
+      CustomFlushbar.showError(context, message: 'Please fill all fields');
       return;
     }
 
@@ -203,15 +201,9 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         'timestamp': Timestamp.now(),
       });
 
-      CustomFlushbar.showSuccess(
-        context,
-        message: 'Tank added successfully',
-      );
+      CustomFlushbar.showSuccess(context, message: 'Tank added successfully');
     } catch (e) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Failed to add tank: $e',
-      );
+      CustomFlushbar.showError(context, message: 'Failed to add tank: $e');
     }
   }
 
@@ -229,24 +221,15 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         'currentGas': FieldValue.increment(amount),
       });
 
-      CustomFlushbar.showSuccess(
-        context,
-        message: 'Gas added successfully',
-      );
+      CustomFlushbar.showSuccess(context, message: 'Gas added successfully');
     } catch (e) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Failed to add gas: $e',
-      );
+      CustomFlushbar.showError(context, message: 'Failed to add gas: $e');
     }
   }
 
   Future<void> _freezeGasInTank(Tank tank, double amount) async {
     if (amount > tank.currentGas) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Not enough gas to freeze',
-      );
+      CustomFlushbar.showError(context, message: 'Not enough gas to freeze');
       return;
     }
 
@@ -256,21 +239,15 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         'frozenGas': FieldValue.increment(amount),
       });
 
-      CustomFlushbar.showSuccess(
-        context,
-        message: 'Gas frozen successfully',
-      );
+      CustomFlushbar.showSuccess(context, message: 'Gas frozen successfully');
     } catch (e) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Failed to freeze gas: $e',
-      );
+      CustomFlushbar.showError(context, message: 'Failed to freeze gas: $e');
     }
   }
 
   void _showAddGasDialog(Tank tank) {
     final TextEditingController amountController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -293,18 +270,12 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
               Text(
                 'Current: ${tank.currentGas.toStringAsFixed(2)} Tons / '
                 'Capacity: ${tank.capacity.toStringAsFixed(2)} Tons',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               Text(
                 'Available space: ${(tank.capacity - tank.currentGas).toStringAsFixed(2)} Tons',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.blue),
               ),
             ],
           ),
@@ -331,7 +302,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
 
   void _showFreezeGasDialog(Tank tank) {
     final TextEditingController amountController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -353,18 +324,12 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
               const SizedBox(height: 8),
               Text(
                 'Current Gas: ${tank.currentGas.toStringAsFixed(2)} Tons',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               Text(
                 'Frozen Gas: ${tank.frozenGas.toStringAsFixed(2)} Tons',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.blue),
               ),
             ],
           ),
@@ -422,12 +387,12 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
   Widget _buildTanksStatusSummarySection() {
     double totalStock = 0.0;
     double freezeGas = 0.0;
-    
+
     for (var tank in _tanks) {
       totalStock += tank.currentGas;
       freezeGas += tank.frozenGas;
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -444,15 +409,14 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () {
-            },
+            onPressed: () {},
             icon: const Icon(Icons.cloud_download, color: Colors.white),
             label: const Text(
               'Download Report',
               style: TextStyle(color: Colors.white),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF87CEEB),
+              backgroundColor: AppColors.buttonPrimary,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -576,18 +540,12 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'No tanks added yet',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF666666),
-                  ),
+                  style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Click "Add Tank" to create a new tank',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF999999),
-                  ),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF999999)),
                 ),
               ],
             ),
@@ -604,7 +562,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
               '${tank.capacity.toStringAsFixed(1)} Tons',
               tank.timestamp.toString(),
             );
-          }).toList(),
+          }),
       ],
     );
   }

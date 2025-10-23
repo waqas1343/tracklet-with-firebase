@@ -91,7 +91,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -106,7 +106,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -238,7 +238,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       if (user != null) {
         await orderProvider.loadOrdersForDriver(user.name);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }

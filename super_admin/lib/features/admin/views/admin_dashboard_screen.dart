@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/providers/admin_provider.dart';
 import '../../../core/providers/admin_dashboard_provider.dart';
 import 'admin_user_creation_form.dart';
 import 'user_list_view.dart';

@@ -673,7 +673,7 @@ class OrderCard extends StatelessWidget {
 class ItemTag extends StatelessWidget {
   final String label;
   final Color navy;
-  const ItemTag({required this.label, required this.navy, Key? key}) : super(key: key);
+  const ItemTag({required this.label, required this.navy, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -37,7 +37,7 @@ class SettingsScreen extends StatelessWidget {
                 trailing: Switch(
                   value: theme.isDarkMode,
                   onChanged: (_) => theme.toggleTheme(),
-                  activeColor: theme.primary,
+                  activeThumbColor: theme.primary,
                 ),
               ),
             ],
@@ -56,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
                 trailing: Switch(
                   value: settings.notificationsEnabled,
                   onChanged: (value) => settings.toggleNotifications(value),
-                  activeColor: theme.primary,
+                  activeThumbColor: theme.primary,
                 ),
               ),
               _SettingsTile(
@@ -67,7 +67,7 @@ class SettingsScreen extends StatelessWidget {
                   value: settings.emailNotifications,
                   onChanged: (value) =>
                       settings.toggleEmailNotifications(value),
-                  activeColor: theme.primary,
+                  activeThumbColor: theme.primary,
                 ),
               ),
               _SettingsTile(
@@ -77,7 +77,7 @@ class SettingsScreen extends StatelessWidget {
                 trailing: Switch(
                   value: settings.pushNotifications,
                   onChanged: (value) => settings.togglePushNotifications(value),
-                  activeColor: theme.primary,
+                  activeThumbColor: theme.primary,
                 ),
               ),
             ],
@@ -126,7 +126,7 @@ class SettingsScreen extends StatelessWidget {
                 trailing: Switch(
                   value: settings.autoSave,
                   onChanged: (value) => settings.toggleAutoSave(value),
-                  activeColor: theme.primary,
+                  activeThumbColor: theme.primary,
                 ),
               ),
               _SettingsTile(

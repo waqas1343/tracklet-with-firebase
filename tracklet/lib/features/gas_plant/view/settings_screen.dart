@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tracklet/core/widgets/custom_appbar.dart';
+import 'package:tracklet/shared/widgets/custom_button.dart';
+import '../../../core/utils/app_colors.dart';
 import '../settings/manage_plant_screen.dart';
 import '../settings/sales_summary_screen.dart';
 import '../settings/profile_settings_screen.dart';
@@ -177,65 +179,48 @@ class SettingsScreen extends StatelessWidget {
 
   // ✅ Logout Button with Confirmation
   Widget _buildLogoutButton(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 50,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A2B4C),
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(25),
-          onTap: () async {
-            final confirm = await showDialog<bool>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Logout'),
-                  content: const Text('Are you sure you want to logout?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Logout'),
-                    ),
-                  ],
-                );
-              },
-            );
+      child: CustomButton(
+        text: 'Logout',
+        onPressed: () async {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Logout'),
+                content: const Text('Are you sure you want to logout?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Logout'),
+                  ),
+                ],
+              );
+            },
+          );
 
-            if (confirm == true) {
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
-              }
+          if (confirm == true) {
+            await FirebaseAuth.instance.signOut();
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
             }
-          },
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Logout',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(width: 8),
-              Icon(Icons.exit_to_app, color: Colors.white, size: 20),
-            ],
-          ),
-        ),
+          }
+        },
+        backgroundColor: AppColors.buttonPrimary, // Using app's error color
+        textColor: AppColors.white,
+        borderRadius: 12, // More rounded corners
+        fontWeight: FontWeight.bold, // Bold text
+        icon: Icons.exit_to_app, // Adding icon
       ),
     );
   }

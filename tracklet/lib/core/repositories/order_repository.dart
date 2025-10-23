@@ -5,6 +5,9 @@ import '../models/order_model.dart';
 class OrderRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Public getter for firestore access
+  FirebaseFirestore get firestore => _firestore;
+
   static const String _ordersCollection = 'orders';
 
   /// Create a new order
@@ -22,7 +25,6 @@ class OrderRepository {
   /// Get all orders for a specific plant
   Future<List<OrderModel>> getOrdersForPlant(String plantId) async {
     try {
-
       final querySnapshot = await _firestore
           .collection(_ordersCollection)
           .where('plantId', isEqualTo: plantId)
@@ -65,7 +67,6 @@ class OrderRepository {
   /// Get all orders for a specific driver
   Future<List<OrderModel>> getOrdersForDriver(String driverName) async {
     try {
-
       final querySnapshot = await _firestore
           .collection(_ordersCollection)
           .where('driverName', isEqualTo: driverName)
@@ -86,37 +87,29 @@ class OrderRepository {
 
   /// Get orders stream for a plant (real-time updates)
   Stream<List<OrderModel>> getOrdersStreamForPlant(String plantId) {
-
     try {
       final collectionRef = _firestore.collection(_ordersCollection);
       final query = collectionRef.where('plantId', isEqualTo: plantId);
 
-      final stream = query
-          .snapshots()
-          .handleError((error) {
+      final stream = query.snapshots().handleError((error) {}).map((snapshot) {
+        final orders = snapshot.docs
+            .map((doc) {
+              try {
+                final data = {...doc.data(), 'id': doc.id};
 
-          })
-          .map((snapshot) {
+                return OrderModel.fromJson(data);
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<OrderModel>()
+            .toList();
 
-            final orders = snapshot.docs
-                .map((doc) {
-                  try {
-                    final data = {...doc.data(), 'id': doc.id};
+        // Sort in memory instead of using Firestore orderBy
+        orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-                    return OrderModel.fromJson(data);
-                  } catch (e) {
-
-                    return null;
-                  }
-                })
-                .whereType<OrderModel>()
-                .toList();
-
-            // Sort in memory instead of using Firestore orderBy
-            orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-            return orders;
-          });
+        return orders;
+      });
 
       return stream;
     } catch (e) {
@@ -126,16 +119,13 @@ class OrderRepository {
 
   /// Get orders stream for a distributor (real-time updates)
   Stream<List<OrderModel>> getOrdersStreamForDistributor(String distributorId) {
-
     try {
       return _firestore
           .collection(_ordersCollection)
           .where('distributorId', isEqualTo: distributorId)
           .snapshots()
-          .handleError((error) {
-          })
+          .handleError((error) {})
           .map((snapshot) {
-
             final orders = snapshot.docs
                 .map((doc) {
                   try {
@@ -196,8 +186,7 @@ class OrderRepository {
         } else {
           // Document doesn't exist, which is expected after deletion
         }
-      } catch (verifyError) {
-      }
+      } catch (verifyError) {}
 
       return true;
     } catch (e) {
@@ -221,7 +210,7 @@ class OrderRepository {
         ...docSnapshot.data()!,
         'id': docSnapshot.id,
       });
-      
+
       return order;
     } catch (e) {
       throw Exception('Failed to fetch order: $e');

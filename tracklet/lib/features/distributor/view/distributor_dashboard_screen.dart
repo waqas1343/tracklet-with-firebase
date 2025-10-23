@@ -12,6 +12,7 @@ import '../../../shared/widgets/section_header_widget.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
 import 'cylinder_request_screen.dart';
+import 'order_analytics_screen.dart';
 import '../widgets/order_card.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 
@@ -168,7 +169,7 @@ class _DistributorDashboardScreenState
             Text('Top Plants', style: AppTextTheme.displaySmall),
             SeeAllButton(
               onTap: () {
-                // TODO: Navigate to see all plants
+                _navigateToAllPlants(context);
               },
             ),
           ],
@@ -293,15 +294,21 @@ class _DistributorDashboardScreenState
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 12),
-                CustomButton(
-                  text: 'Request Cylinder',
-                  onPressed: () => _navigateToCylinderRequest(context, company),
-                  width: double.infinity,
-                  backgroundColor: AppColors.primary,
-                  textColor: AppColors.white,
-                  height: 36,
-                  borderRadius: 8,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Request Cylinder',
+                        onPressed: () =>
+                            _navigateToCylinderRequest(context, company),
+                        backgroundColor: AppColors.primary,
+                        textColor: AppColors.white,
+                        height: 40,
+                        borderRadius: 8,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -434,6 +441,104 @@ class _DistributorDashboardScreenState
     );
   }
 
+  void _navigateToAnalytics(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const OrderAnalyticsScreen()),
+    );
+  }
+
+  void _navigateToAllPlants(BuildContext context) {
+    // Navigate to all plants screen or show all plants in a modal
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'All Gas Plants',
+                      style: AppTextTheme.headlineSmall.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Consumer<CompanyProvider>(
+                  builder: (context, companyProvider, child) {
+                    if (companyProvider.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final allPlants = companyProvider.companies;
+
+                    if (allPlants.isEmpty) {
+                      return const Center(child: Text('No plants available'));
+                    }
+
+                    return ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: allPlants.length,
+                      itemBuilder: (context, index) {
+                        final plant = allPlants[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.primary.withValues(
+                                alpha: 0.1,
+                              ),
+                              child: Icon(
+                                Icons.business,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            title: Text(plant.companyName),
+                            subtitle: Text(plant.address),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.arrow_forward_ios),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _navigateToCylinderRequest(context, plant);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _loadDistributorOrders(
     OrderProvider orderProvider,
     String userId,
@@ -443,10 +548,7 @@ class _DistributorDashboardScreenState
     } catch (e) {
       // Handle error silently or show a snackbar
       if (mounted) {
-        CustomFlushbar.showError(
-          context,
-          message: 'Failed to load orders: $e',
-        );
+        CustomFlushbar.showError(context, message: 'Failed to load orders: $e');
       }
     } finally {
       if (mounted) {

@@ -100,6 +100,24 @@ class OrderProvider extends ChangeNotifier {
     await _viewModel.refreshOrders(plantId);
   }
 
+  /// Search orders by various criteria
+  Future<List<OrderModel>> searchOrders(String query) async {
+    return await _viewModel.searchOrders(query);
+  }
+
+  /// Get filtered orders based on search query
+  List<OrderModel> getFilteredOrders(String query) {
+    if (query.isEmpty) return orders;
+
+    final lowerQuery = query.toLowerCase();
+    return orders.where((order) {
+      return order.id.toLowerCase().contains(lowerQuery) ||
+          order.distributorName.toLowerCase().contains(lowerQuery) ||
+          order.driverName?.toLowerCase().contains(lowerQuery) == true ||
+          order.status.toString().toLowerCase().contains(lowerQuery);
+    }).toList();
+  }
+
   /// Clear all data
   void clearData() {
     _viewModel.clearData();

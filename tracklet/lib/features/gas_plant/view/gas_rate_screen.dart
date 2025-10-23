@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,7 +8,7 @@ import '../../../shared/widgets/custom_flushbar.dart';
 
 class GasRateScreen extends StatefulWidget {
   final CompanyModel company; // Added company parameter
-  const GasRateScreen({Key? key, required this.company}) : super(key: key);
+  const GasRateScreen({super.key, required this.company});
 
   @override
   State<GasRateScreen> createState() => _RatesScreenState();
@@ -42,7 +41,7 @@ class _RatesScreenState extends State<GasRateScreen> {
   void _loadRateHistory() async {
     // Don't try to load if company ID is empty
     if (widget.company.id.isEmpty) return;
-    
+
     try {
       final rateHistorySnapshot = await FirebaseFirestore.instance
           .collection('company')
@@ -79,7 +78,7 @@ class _RatesScreenState extends State<GasRateScreen> {
 
     // Save the new rate to Firestore
     _saveRateToFirestore(newRate);
-    
+
     // Clear input field
     _addRateController.clear();
   }
@@ -96,38 +95,39 @@ class _RatesScreenState extends State<GasRateScreen> {
       }
       return;
     }
-    
+
     try {
       final companyProvider = Provider.of<CompanyProvider>(
         context,
         listen: false,
       );
-      
+
       // Create updated company with new rate
       final updatedCompany = widget.company.copyWith(
         currentRate: newRate,
         updatedAt: DateTime.now(),
       );
-      
+
       // Save company with new rate to Firestore
       final success = await companyProvider.saveCompany(updatedCompany);
-      
+
       if (success) {
         // Add to rate history
         final now = DateTime.now();
-        final dateString = '${now.day}-${_getMonthName(now.month)}-${now.year.toString().substring(2)}';
-        
+        final dateString =
+            '${now.day}-${_getMonthName(now.month)}-${now.year.toString().substring(2)}';
+
         await FirebaseFirestore.instance
             .collection('company')
             .doc(widget.company.id)
             .collection('rateHistory')
             .add({
-          'date': dateString,
-          'sales': 0,
-          'rate': newRate,
-          'timestamp': now,
-        });
-        
+              'date': dateString,
+              'sales': 0,
+              'rate': newRate,
+              'timestamp': now,
+            });
+
         // Update local state
         setState(() {
           _todayRate = newRate;
@@ -142,7 +142,7 @@ class _RatesScreenState extends State<GasRateScreen> {
             _rateHistory = _rateHistory.take(10).toList();
           }
         });
-        
+
         if (mounted) {
           CustomFlushbar.showSuccess(
             context,
@@ -151,26 +151,30 @@ class _RatesScreenState extends State<GasRateScreen> {
         }
       } else {
         if (mounted) {
-          CustomFlushbar.showError(
-            context,
-            message: 'Failed to update rate',
-          );
+          CustomFlushbar.showError(context, message: 'Failed to update rate');
         }
       }
     } catch (e) {
       if (mounted) {
-        CustomFlushbar.showError(
-          context,
-          message: 'Failed to update rate: $e',
-        );
+        CustomFlushbar.showError(context, message: 'Failed to update rate: $e');
       }
     }
   }
 
   String _getMonthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[month - 1];
   }
@@ -199,14 +203,21 @@ class _RatesScreenState extends State<GasRateScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: widget.company.id.isNotEmpty ? () => _showAddRateDialog(context) : null,
+                onPressed: widget.company.id.isNotEmpty
+                    ? () => _showAddRateDialog(context)
+                    : null,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: widget.company.id.isNotEmpty ? navy : Colors.grey,
+                  backgroundColor: widget.company.id.isNotEmpty
+                      ? navy
+                      : Colors.grey,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  textStyle: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 child: Text("Add Rate"),
               ),
@@ -227,9 +238,7 @@ class _RatesScreenState extends State<GasRateScreen> {
             SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _SearchField(hintText: "Search Date"),
-                ),
+                Expanded(child: _SearchField(hintText: "Search Date")),
                 SizedBox(width: 12),
                 _DropdownFilterButton(title: "Month"),
                 SizedBox(width: 12),
@@ -281,8 +290,8 @@ class _RatesScreenState extends State<GasRateScreen> {
               child: _rateHistory.isEmpty
                   ? Center(
                       child: Text(
-                        widget.company.id.isNotEmpty 
-                            ? 'No rate history available' 
+                        widget.company.id.isNotEmpty
+                            ? 'No rate history available'
                             : 'Please navigate here from Manage Plant screen',
                         style: TextStyle(color: Colors.grey),
                       ),
@@ -313,7 +322,9 @@ class _RatesScreenState extends State<GasRateScreen> {
                                 flex: 2,
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
-                                      vertical: 7, horizontal: 14),
+                                    vertical: 7,
+                                    horizontal: 14,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: navy,
                                     borderRadius: BorderRadius.circular(20),
@@ -345,7 +356,7 @@ class _RatesScreenState extends State<GasRateScreen> {
   void _showAddRateDialog(BuildContext context) {
     // Don't show dialog if company ID is empty
     if (widget.company.id.isEmpty) return;
-    
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -381,7 +392,7 @@ class _RatesScreenState extends State<GasRateScreen> {
 
 class _SearchField extends StatelessWidget {
   final String hintText;
-  const _SearchField({required this.hintText, Key? key}) : super(key: key);
+  const _SearchField({required this.hintText, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +423,7 @@ class _SearchField extends StatelessWidget {
 
 class _DropdownFilterButton extends StatelessWidget {
   final String title;
-  const _DropdownFilterButton({required this.title, Key? key}) : super(key: key);
+  const _DropdownFilterButton({required this.title, super.key});
 
   @override
   Widget build(BuildContext context) {

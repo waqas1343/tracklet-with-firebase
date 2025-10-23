@@ -57,6 +57,9 @@ dependencies:
   
   # Local Notifications
   flutter_local_notifications: ^17.1.2
+  
+  # Charts and Analytics
+  fl_chart: ^0.68.0
 
   # PDF Generation
   pdf: ^3.10.7

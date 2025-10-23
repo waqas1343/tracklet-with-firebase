@@ -1,69 +1,58 @@
-// Main Entry Point - Provider setup aur app initialization
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-
-import 'core/config/firebase_options.dart';
 import 'providers/theme_provider.dart';
 import 'providers/dashboard_provider.dart';
-import 'providers/users_provider.dart';
-import 'providers/settings_provider.dart';
 import 'providers/login_provider.dart';
-
 import 'screens/dashboard_screen.dart';
 import 'screens/users_screen.dart';
 import 'screens/settings_screen.dart';
+import 'widgets/custom_app_bar.dart';
+import 'utils/responsive_helper.dart';
+import 'widgets/side_navigation.dart';
 import 'screens/login_screen.dart';
 
-import 'widgets/custom_app_bar.dart';
-import 'widgets/side_navigation.dart';
-
-import 'utils/responsive_helper.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const SuperAdminApp());
+void main() {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
-class SuperAdminApp extends StatelessWidget {
-  const SuperAdminApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => LoginProvider()),
-        ChangeNotifierProvider(create: (_) => DashboardProvider()),
-        ChangeNotifierProvider(create: (_) => UsersProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
-      ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) {
-          if (themeProvider.isLoading) {
-            return const MaterialApp(
-              debugShowCheckedModeBanner: false,
-              home: Scaffold(body: Center(child: CircularProgressIndicator())),
-            );
-          }
-
-          return MaterialApp(
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        if (themeProvider.isLoading) {
+          return const MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Super Admin Dashboard',
-            theme: themeProvider.themeData,
-            home: Consumer<LoginProvider>(
-              builder: (context, loginProvider, _) {
-                if (loginProvider.isLoggedIn) {
-                  return const MainLayout();
-                } else {
-                  return const LoginScreen();
-                }
-              },
-            ),
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
           );
-        },
-      ),
+        }
+
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Super Admin Dashboard',
+          theme: themeProvider.themeData,
+          home: Consumer<LoginProvider>(
+            builder: (context, loginProvider, _) {
+              if (loginProvider.isLoggedIn) {
+                return const MainLayout();
+              } else {
+                return const LoginScreen();
+              }
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -87,6 +76,7 @@ class _MobileLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context);
     final dashboardProvider = Provider.of<DashboardProvider>(context);
+    final loginProvider = Provider.of<LoginProvider>(context);
 
     final screens = [
       const DashboardScreen(),
@@ -97,8 +87,48 @@ class _MobileLayout extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.background,
-      appBar: CustomAppBar(
-        title: _getTitle(dashboardProvider.currentPageIndex),
+      appBar: AppBar(
+        title: Text(_getTitle(dashboardProvider.currentPageIndex)),
+        backgroundColor: theme.surface,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout, color: theme.error),
+            onPressed: () {
+              // Show confirmation dialog
+              showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  );
+                },
+              ).then((confirm) {
+                if (confirm == true) {
+                  // Perform logout
+                  loginProvider.logout();
+                  // Navigate to login screen
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/',
+                    (route) => false,
+                  );
+                }
+              });
+            },
+            tooltip: 'Logout',
+          ),
+        ],
       ),
       body: IndexedStack(
         index: dashboardProvider.currentPageIndex,

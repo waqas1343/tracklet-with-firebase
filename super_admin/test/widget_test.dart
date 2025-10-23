@@ -7,7 +7,7 @@ import 'package:super_admin/main.dart';
 void main() {
   testWidgets('App starts and shows dashboard', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const SuperAdminApp());
+    await tester.pumpWidget(const MyApp());
 
     // Wait for theme to load
     await tester.pumpAndSettle();
@@ -21,7 +21,7 @@ void main() {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1.0;
 
-    await tester.pumpWidget(const SuperAdminApp());
+    await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
     // Verify bottom navigation exists
@@ -32,7 +32,7 @@ void main() {
   });
 
   testWidgets('Dashboard shows summary cards', (WidgetTester tester) async {
-    await tester.pumpWidget(const SuperAdminApp());
+    await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
     // Wait for shimmer to complete and data to load

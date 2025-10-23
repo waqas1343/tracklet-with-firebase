@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tracklet/features/distributor/view/distributor_change_password.dart';
+import 'package:tracklet/features/distributor/view/order_analaytics.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../common/view/profile_screen.dart';
+import '../../../core/utils/app_colors.dart';
 
 class DistributorSettingsScreen extends StatelessWidget {
   const DistributorSettingsScreen({super.key});
@@ -30,12 +33,16 @@ class DistributorSettingsScreen extends StatelessWidget {
               // Order Analytics
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.analytics),
                   title: const Text('Order Analytics'),
-                  subtitle: const Text('View order statistics and analytics'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // TODO: Implement navigation to order analytics screen
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>  OrderAnalyticsScreen(),
+                      ),
+                    );
+
                   },
                 ),
               ),
@@ -44,15 +51,13 @@ class DistributorSettingsScreen extends StatelessWidget {
               // Profile Settings
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.person),
                   title: const Text('Profile Settings'),
-                  subtitle: const Text('View and edit your profile'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
+                        builder: (context) => const distributorprofileSeting(),
                       ),
                     );
                   },
@@ -63,12 +68,15 @@ class DistributorSettingsScreen extends StatelessWidget {
               // Change Password
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.lock),
                   title: const Text('Change Password'),
-                  subtitle: const Text('Update your password'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // TODO: Implement navigation to change password screen
+                     Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DistributorChangePassword(),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -112,8 +120,10 @@ class DistributorSettingsScreen extends StatelessWidget {
                       }
                     }
                   },
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.buttonPrimary, // Explicitly using red color
                   textColor: Colors.white,
+                  borderRadius: 12, // More rounded corners
+                  fontWeight: FontWeight.bold, // Bold text
                 ),
               ),
             ],

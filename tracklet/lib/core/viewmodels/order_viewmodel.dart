@@ -215,6 +215,18 @@ class OrderViewModel extends ChangeNotifier {
       if (success) {
         // Removed kDebugMode print statement
 
+        // Handle driver status update when order is completed
+        if (status == OrderStatus.completed) {
+          final orderIndex = _orders.indexWhere((order) => order.id == orderId);
+          if (orderIndex != -1) {
+            final order = _orders[orderIndex];
+            // Update driver status to available when order is completed
+            if (order.driverName != null && order.driverName!.isNotEmpty) {
+              await _updateDriverStatus(order.driverName!, 'available');
+            }
+          }
+        }
+
         // Send notification to distributor when order is approved (status changed to inProgress)
         if (status == OrderStatus.inProgress) {
           final orderIndex = _orders.indexWhere((order) => order.id == orderId);
@@ -230,7 +242,6 @@ class OrderViewModel extends ChangeNotifier {
                     plantName: order.plantName,
                     orderId: orderId,
                   );
-
             } catch (e) {
               // Removed kDebugMode print statement
             }
@@ -238,7 +249,7 @@ class OrderViewModel extends ChangeNotifier {
             // Also try FCM notification as backup
             try {
               // Removed kDebugMode print statement
-              
+
               await _fcmService.sendNotificationToUser(
                 userId: order.distributorId,
                 title: 'Order Approved',
@@ -352,8 +363,7 @@ class OrderViewModel extends ChangeNotifier {
       _setError('Failed to delete order: ${e.toString()}');
       // Removed kDebugMode print statement
       return false;
-    }
-    finally {
+    } finally {
       _setLoading(false);
     }
   }
@@ -376,6 +386,33 @@ class OrderViewModel extends ChangeNotifier {
     // Removed kDebugMode print statements
   }
 
+  /// Search orders by various criteria
+  Future<List<OrderModel>> searchOrders(String query) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      if (query.isEmpty) {
+        return _orders;
+      }
+
+      final lowerQuery = query.toLowerCase();
+      final filteredOrders = _orders.where((order) {
+        return order.id.toLowerCase().contains(lowerQuery) ||
+            order.distributorName.toLowerCase().contains(lowerQuery) ||
+            order.driverName?.toLowerCase().contains(lowerQuery) == true ||
+            order.status.toString().toLowerCase().contains(lowerQuery);
+      }).toList();
+
+      return filteredOrders;
+    } catch (e) {
+      _setError('Failed to search orders: ${e.toString()}');
+      return [];
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   /// Clear all data
   void clearData() {
     _orders = [];
@@ -392,6 +429,29 @@ class OrderViewModel extends ChangeNotifier {
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
+  }
+
+  /// Update driver status in Firestore
+  Future<void> _updateDriverStatus(String driverName, String status) async {
+    try {
+      // Find driver by name in Firestore
+      final driversSnapshot = await _repository.firestore
+          .collection('drivers')
+          .where('name', isEqualTo: driverName)
+          .get();
+
+      if (driversSnapshot.docs.isNotEmpty) {
+        final driverDoc = driversSnapshot.docs.first;
+        await driverDoc.reference.update({
+          'status': status,
+          'isAvailable': status == 'available',
+          'lastUpdated': DateTime.now().toIso8601String(),
+        });
+      }
+    } catch (e) {
+      // Handle error silently or log it
+      print('Error updating driver status: $e');
+    }
   }
 
   void _setError(String error) {

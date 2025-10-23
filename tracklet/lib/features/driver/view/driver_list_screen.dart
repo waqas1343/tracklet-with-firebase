@@ -24,6 +24,13 @@ class _DriverListScreenState extends State<DriverListScreen> {
     super.initState();
   }
 
+  void _refreshDriversList() {
+    // Refresh the drivers list by reloading data
+    setState(() {
+      _initialLoadCompleted = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,16 +59,16 @@ class _DriverListScreenState extends State<DriverListScreen> {
         SectionHeaderWidget(
           title: 'All Drivers',
           onSeeAllPressed: () {
-            // Refresh drivers list
+            _refreshDriversList();
           },
         ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -173,8 +180,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
         // Load orders for the current user's plant
         await orderProvider.loadOrdersForPlant(user.id);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void _showDriverOrders(String driverName, List<OrderModel> orders) {
@@ -259,7 +265,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
                                   decoration: BoxDecoration(
                                     color: _getStatusColor(
                                       order.status,
-                                    ).withOpacity(0.1),
+                                    ).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: _getStatusColor(order.status),

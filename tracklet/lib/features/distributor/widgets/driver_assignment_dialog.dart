@@ -12,10 +12,10 @@ class DriverAssignmentDialog extends StatefulWidget {
   final VoidCallback onAssignmentComplete;
 
   const DriverAssignmentDialog({
-    Key? key,
+    super.key,
     required this.order,
     required this.onAssignmentComplete,
-  }) : super(key: key);
+  });
 
   @override
   State<DriverAssignmentDialog> createState() => _DriverAssignmentDialogState();

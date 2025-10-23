@@ -179,7 +179,7 @@ class FirebaseService {
       final QuerySnapshot snapshot = await _firestore
           .collection('users')
           .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThan: query + 'z')
+          .where('name', isLessThan: '${query}z')
           .get();
 
       return snapshot.docs.map((doc) {

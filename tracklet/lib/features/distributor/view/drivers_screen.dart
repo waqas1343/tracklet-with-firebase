@@ -46,8 +46,12 @@ class _DriversScreenState extends State<DriversScreen> {
             List<DriverModel> filteredDrivers = driverProvider.drivers;
             if (_searchQuery.isNotEmpty) {
               filteredDrivers = driverProvider.drivers.where((driver) {
-                return driver.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    driver.licenseNumber.toLowerCase().contains(_searchQuery.toLowerCase());
+                return driver.name.toLowerCase().contains(
+                      _searchQuery.toLowerCase(),
+                    ) ||
+                    driver.licenseNumber.toLowerCase().contains(
+                      _searchQuery.toLowerCase(),
+                    );
               }).toList();
             }
 
@@ -92,10 +96,10 @@ class _DriversScreenState extends State<DriversScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(17),
                 border: Border.all(
-                  color: const Color(0xFF002455).withOpacity(0.24),
+                  color: const Color(0xFF002455).withValues(alpha: 0.24),
                   width: 1,
                 ),
-                color: const Color(0xFF002455).withOpacity(0.2),
+                color: const Color(0xFF002455).withValues(alpha: 0.2),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -108,11 +112,7 @@ class _DriversScreenState extends State<DriversScreen> {
                       borderRadius: BorderRadius.circular(10),
                       color: const Color(0xFF002455),
                     ),
-                    child: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 16),
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -138,7 +138,7 @@ class _DriversScreenState extends State<DriversScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(7.5),
         border: Border.all(
-          color: Colors.black.withOpacity(0.24),
+          color: Colors.black.withValues(alpha: 0.24),
           width: 1,
         ),
       ),
@@ -147,7 +147,7 @@ class _DriversScreenState extends State<DriversScreen> {
           const SizedBox(width: 16),
           Icon(
             Icons.search,
-            color: Colors.black.withOpacity(0.24),
+            color: Colors.black.withValues(alpha: 0.24),
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -162,7 +162,7 @@ class _DriversScreenState extends State<DriversScreen> {
               decoration: InputDecoration(
                 hintText: 'Search drivers...',
                 hintStyle: TextStyle(
-                  color: Colors.black.withOpacity(0.24),
+                  color: Colors.black.withValues(alpha: 0.24),
                   fontSize: 16,
                 ),
                 border: InputBorder.none,
@@ -184,7 +184,10 @@ class _DriversScreenState extends State<DriversScreen> {
     );
   }
 
-  Widget _buildDriverList(DriverProvider driverProvider, List<DriverModel> drivers) {
+  Widget _buildDriverList(
+    DriverProvider driverProvider,
+    List<DriverModel> drivers,
+  ) {
     if (driverProvider.isLoading && drivers.isEmpty) {
       return const Center(
         child: Padding(
@@ -208,20 +211,14 @@ class _DriversScreenState extends State<DriversScreen> {
               const SizedBox(height: 16),
               const Text(
                 'No drivers found',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               Text(
                 _searchQuery.isNotEmpty
                     ? 'No drivers match your search'
                     : 'Add your first driver to get started',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
             ],
           ),
@@ -252,7 +249,7 @@ class _DriversScreenState extends State<DriversScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.black.withOpacity(0.24),
+            color: Colors.black.withValues(alpha: 0.24),
             width: 1,
           ),
         ),
@@ -298,7 +295,7 @@ class _DriversScreenState extends State<DriversScreen> {
                     driver.licenseNumber,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -312,29 +309,32 @@ class _DriversScreenState extends State<DriversScreen> {
                 children: [
                   StatusChip(
                     status: driver.isActive ? 'Active' : 'Inactive',
-                    statusType: driver.isActive ? StatusType.active : StatusType.cancelled,
+                    statusType: driver.isActive
+                        ? StatusType.active
+                        : StatusType.cancelled,
                     fontSize: 12,
                   ),
                   const SizedBox(height: 8),
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: Colors.black.withOpacity(0.24),
+                      color: Colors.black.withValues(alpha: 0.24),
                       size: 20,
                     ),
                     onSelected: (String result) {
                       // Handle menu item selection
                     },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Text('Edit'),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ],
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                          const PopupMenuItem<String>(
+                            value: 'edit',
+                            child: Text('Edit'),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                        ],
                   ),
                 ],
               ),
@@ -407,7 +407,7 @@ class _DriversScreenState extends State<DriversScreen> {
                               isActive = value;
                             });
                           },
-                          activeColor: const Color(0xFF219653),
+                          activeThumbColor: const Color(0xFF219653),
                         ),
                       ],
                     ),
@@ -427,10 +427,12 @@ class _DriversScreenState extends State<DriversScreen> {
                         phoneController.text.isNotEmpty &&
                         licenseController.text.isNotEmpty &&
                         vehicleController.text.isNotEmpty) {
-                      
                       // Get the driver provider
-                      final driverProvider = Provider.of<DriverProvider>(context, listen: false);
-                      
+                      final driverProvider = Provider.of<DriverProvider>(
+                        context,
+                        listen: false,
+                      );
+
                       // Create a new driver model
                       final newDriver = DriverModel(
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -443,10 +445,12 @@ class _DriversScreenState extends State<DriversScreen> {
                         joinedDate: DateTime.now(),
                         isActive: isActive,
                       );
-                      
+
                       // Save the driver
-                      final success = await driverProvider.createDriver(newDriver);
-                      
+                      final success = await driverProvider.createDriver(
+                        newDriver,
+                      );
+
                       if (success) {
                         if (context.mounted) {
                           Navigator.of(context).pop();

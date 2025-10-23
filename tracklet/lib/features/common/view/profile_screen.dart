@@ -1,342 +1,232 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../../../core/services/firebase_service.dart';
-import '../../../core/providers/user_role_provider.dart';
-import '../../../shared/widgets/custom_button.dart';
-import '../../../shared/widgets/custom_flushbar.dart';
+import '../../../../core/widgets/custom_appbar.dart';
+import '../../../../shared/widgets/custom_button.dart';
+import '../../../../shared/widgets/custom_flushbar.dart';
+import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../core/providers/profile_provider.dart';
+import '../../../../core/utils/app_text_theme.dart';
+import '../../../../core/utils/app_colors.dart';
+import '../../../../core/utils/validators.dart';
+import '../../../../core/utils/constants.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  final _currentPasswordController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  
-  bool _isLoading = false;
-  bool _obscureCurrentPassword = true;
-  bool _obscureNewPassword = true;
-  bool _obscureConfirmPassword = true;
-  String? _errorMessage;
-  String? _successMessage;
-
-  @override
-  void dispose() {
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _changePassword() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-        _successMessage = null;
-      });
-
-      try {
-        final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-        final user = firebaseService.auth.currentUser;
-        
-        if (user == null) {
-          throw Exception('No user is currently signed in');
-        }
-
-        // Re-authenticate user with current password
-        final credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: _currentPasswordController.text,
-        );
-        
-        await user.reauthenticateWithCredential(credential);
-        
-        // Update password
-        await user.updatePassword(_newPasswordController.text);
-        
-        // Clear form
-        _currentPasswordController.clear();
-        _newPasswordController.clear();
-        _confirmPasswordController.clear();
-        
-        setState(() {
-          _successMessage = 'Password changed successfully';
-        });
-        
-        // Show success message
-        if (context.mounted) {
-          CustomFlushbar.showSuccess(
-            context,
-            message: 'Password changed successfully',
-          );
-        }
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'wrong-password') {
-          setState(() {
-            _errorMessage = 'Current password is incorrect';
-          });
-          if (context.mounted) {
-            CustomFlushbar.showError(
-              context,
-              message: 'Current password is incorrect',
-            );
-          }
-        } else if (e.code == 'weak-password') {
-          setState(() {
-            _errorMessage = 'New password is too weak';
-          });
-          if (context.mounted) {
-            CustomFlushbar.showError(
-              context,
-              message: 'New password is too weak',
-            );
-          }
-        } else {
-          setState(() {
-            _errorMessage = 'Failed to change password: ${e.message}';
-          });
-          if (context.mounted) {
-            CustomFlushbar.showError(
-              context,
-              message: 'Failed to change password: ${e.message}',
-            );
-          }
-        }
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Failed to change password: ${e.toString()}';
-        });
-        if (context.mounted) {
-          CustomFlushbar.showError(
-            context,
-            message: 'Failed to change password: ${e.toString()}',
-          );
-        }
-      }
-    }
-  }
+class distributorprofileSeting extends StatelessWidget {
+  const distributorprofileSeting({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userRoleProvider = Provider.of<UserRoleProvider>(context);
-    
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final user = profileProvider.currentUser;
+    final isLoading = profileProvider.isLoading;
+    final error = profileProvider.error;
+
+    // Initialize controllers with current data
+    final fullNameController = TextEditingController(text: user?.name ?? '');
+    final emailController = TextEditingController(text: user?.email ?? '');
+    final contactController = TextEditingController(text: user?.phone ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    // Initialize profile if not already loaded
+    if (user == null && !isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        profileProvider.initializeProfile();
+      });
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      backgroundColor: AppColors.background,
+      appBar: CustomAppBar(
+        userName: 'Gas Plant Admin',
+        showBackButton: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User Info Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'User Information',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Edit Profile Title
+                Text('Edit Profile', style: AppTextTheme.displaySmall),
+                const SizedBox(height: 24),
+
+                // Error Message
+                if (error != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    FutureBuilder<User?>(
-                      future: Provider.of<FirebaseService>(context, listen: false)
-                          .auth
-                          .currentUser
-                          ?.reload()
-                          .then((_) => Provider.of<FirebaseService>(context, listen: false).auth.currentUser),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        }
-                        
-                        final user = snapshot.data;
-                        if (user == null) {
-                          return const Text('No user information available');
-                        }
-                        
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Email: ${user.email ?? 'N/A'}'),
-                            const SizedBox(height: 8),
-                            Text('Role: ${userRoleProvider.currentRole.toString().split('.').last}'),
-                          ],
-                        );
-                      },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            error,
+                            style: AppTextTheme.bodyMedium.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+
+                // Profile Picture Section
+                Center(
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            user?.name.isNotEmpty == true
+                                ? user!.name.substring(0, 1).toUpperCase()
+                                : 'U',
+                            style: AppTextTheme.displayMedium.copyWith(
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: AppColors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                // User Name Display
+                Center(
+                  child: Text(
+                    user?.name ?? 'Loading...',
+                    style: AppTextTheme.headlineMedium,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Form Fields
+                CustomTextField(
+                  label: AppConstants.nameLabel,
+                  controller: fullNameController,
+                  hint: 'Enter Full Name',
+                  validator: Validators.validateName,
+                ),
+                const SizedBox(height: 20),
+
+                CustomTextField(
+                  label: AppConstants.emailLabel,
+                  controller: emailController,
+                  hint: 'Enter Email Address',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.validateEmail,
+                ),
+                const SizedBox(height: 20),
+
+                CustomTextField(
+                  label: AppConstants.phoneLabel,
+                  controller: contactController,
+                  hint: 'Enter Contact Number',
+                  keyboardType: TextInputType.phone,
+                  validator: Validators.validatePhone,
+                ),
+                const SizedBox(height: 32),
+
+                // Save Changes Button
+                CustomButton(
+                  text: isLoading ? 'Saving...' : AppConstants.saveButton,
+                  onPressed: isLoading
+                      ? null
+                      : () => _saveProfile(
+                          context,
+                          formKey,
+                          fullNameController,
+                          emailController,
+                          contactController,
+                        ),
+                  width: double.infinity,
+                  backgroundColor: AppColors.primary,
+                  textColor: AppColors.white,
+                  height: 50,
+                  borderRadius: 12,
+                ),
+              ],
             ),
-            
-            const SizedBox(height: 24),
-            
-            // Change Password Section
-            const Text(
-              'Change Password',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // Current Password
-                  TextFormField(
-                    controller: _currentPasswordController,
-                    obscureText: _obscureCurrentPassword,
-                    decoration: InputDecoration(
-                      labelText: 'Current Password',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureCurrentPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureCurrentPassword = !_obscureCurrentPassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your current password';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // New Password
-                  TextFormField(
-                    controller: _newPasswordController,
-                    obscureText: _obscureNewPassword,
-                    decoration: InputDecoration(
-                      labelText: 'New Password',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureNewPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureNewPassword = !_obscureNewPassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a new password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Confirm New Password
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm New Password',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your new password';
-                      }
-                      if (value != _newPasswordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Error message
-                  if (_errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  
-                  // Success message
-                  if (_successMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(
-                        _successMessage!,
-                        style: const TextStyle(
-                          color: Colors.green,
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  
-                  // Change Password Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: CustomButton(
-                      text: _isLoading ? 'Changing Password...' : 'Change Password',
-                      onPressed: _isLoading ? null : _changePassword,
-                      backgroundColor: const Color(0xFF1A2B4C),
-                      textColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  /// Save profile changes
+  Future<void> _saveProfile(
+    BuildContext context,
+    GlobalKey<FormState> formKey,
+    TextEditingController fullNameController,
+    TextEditingController emailController,
+    TextEditingController contactController,
+  ) async {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    final profileProvider = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    );
+
+    // Ensure profile is initialized before updating
+    if (profileProvider.currentUser == null) {
+      await profileProvider.initializeProfile();
+    }
+
+    final success = await profileProvider.updateProfile(
+      name: fullNameController.text.trim(),
+      email: emailController.text.trim(),
+      phone: contactController.text.trim(),
+    );
+
+    if (success) {
+      CustomFlushbar.showSuccess(
+        context,
+        message: AppConstants.updateSuccess,
+      );
+    } else {
+      CustomFlushbar.showError(
+        context,
+        message: profileProvider.error ?? 'Failed to update profile',
+      );
+    }
   }
 }
