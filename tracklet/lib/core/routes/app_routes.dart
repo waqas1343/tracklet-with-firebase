@@ -15,6 +15,8 @@ import '../../features/distributor/view/distributor_dashboard_screen.dart';
 import '../../features/distributor/view/distributor_orders_screen.dart';
 import '../../features/distributor/view/drivers_screen.dart';
 import '../../features/distributor/view/distributor_settings_screen.dart';
+import '../../features/driver/view/driver_dashboard_screen.dart';
+import '../../features/driver/view/driver_orders_screen.dart'; // Add this import
 import '../../core/models/company_model.dart'; // Added import
 import '../screens/unified_main_screen.dart';
 
@@ -44,6 +46,12 @@ class AppRoutes {
   static const String distributorOrders = '/distributor/orders';
   static const String distributorDrivers = '/distributor/drivers';
   static const String distributorSettings = '/distributor/settings';
+
+  // Driver Routes
+  static const String driverDashboard = '/driver/dashboard';
+  static const String driverOrders = '/driver/orders';
+  static const String driverHistory = '/driver/history';
+  static const String driverSettings = '/driver/settings';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -79,6 +87,12 @@ class AppRoutes {
       distributorOrders: (context) => const DistributorOrdersScreen(),
       distributorDrivers: (context) => const DriversScreen(),
       distributorSettings: (context) => const DistributorSettingsScreen(),
+      
+      // Driver Routes
+      driverDashboard: (context) => const DriverDashboardScreen(),
+      driverOrders: (context) => const DriverOrdersScreen(), // Use the new screen
+      driverHistory: (context) => const DriverOrdersScreen(), // For now, use the same screen
+      driverSettings: (context) => const DriverDashboardScreen(),
     };
   }
 
@@ -97,6 +111,36 @@ class AppRoutes {
       final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
         builder: (context) => OrdersInProgressScreen(
+          highlightedOrderId: args?['highlightedOrderId'] as String?,
+        ),
+      );
+    }
+    
+    // Handle distributor orders with highlighted order ID
+    if (settings.name == distributorOrders) {
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute(
+        builder: (context) => DistributorOrdersScreen(
+          highlightedOrderId: args?['highlightedOrderId'] as String?,
+        ),
+      );
+    }
+    
+    // Handle driver orders with highlighted order ID
+    if (settings.name == driverOrders || settings.name == driverHistory) {
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute(
+        builder: (context) => DriverOrdersScreen(
+          highlightedOrderId: args?['highlightedOrderId'] as String?,
+        ),
+      );
+    }
+    
+    // Handle driver dashboard with highlighted order ID
+    if (settings.name == driverDashboard || settings.name == driverSettings) {
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute(
+        builder: (context) => DriverDashboardScreen(
           highlightedOrderId: args?['highlightedOrderId'] as String?,
         ),
       );

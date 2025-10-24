@@ -4,10 +4,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'dart:convert';
 
 // Callback type for handling notification taps
 typedef NotificationTapCallback = void Function(String orderId);
+typedef NavigationCallback = void Function(String route, {Map<String, dynamic>? arguments});
 
 // Top-level function for background message handling
 @pragma('vm:entry-point')
@@ -39,6 +41,7 @@ class FCMService {
   
   // Callback for handling notification taps
   NotificationTapCallback? _onNotificationTap;
+  NavigationCallback? _navigatorCallback;
 
   FCMService._();
 
@@ -55,6 +58,11 @@ class FCMService {
   // Setter for notification tap callback
   set onNotificationTap(NotificationTapCallback? callback) {
     _onNotificationTap = callback;
+  }
+  
+  // Setter for navigation callback
+  set navigatorCallback(NavigationCallback? callback) {
+    _navigatorCallback = callback;
   }
 
   /// Initialize FCM service
@@ -220,16 +228,8 @@ class FCMService {
       final orderId = data['orderId'] as String?;
       // Removed kDebugMode print statements
       if (orderId != null && orderId.isNotEmpty) {
-        // Call the callback if set
-        // Removed kDebugMode print statements
-        if (_onNotificationTap != null) {
-          // Removed kDebugMode print statement
-          _onNotificationTap!(orderId);
-        } else {
-          // Fallback to showing driver assignment dialog directly
-          // Removed kDebugMode print statement
-          _showDriverAssignmentDialog(orderId);
-        }
+        // Navigate to the order screen with the order ID
+        _navigateToOrder(orderId);
       } else {
         // Removed kDebugMode print statement
       }
@@ -238,11 +238,29 @@ class FCMService {
     }
   }
 
+  /// Navigate to the order screen
+  void _navigateToOrder(String orderId) {
+    // This method navigates to the appropriate order screen
+    // Removed kDebugMode print statements
+    
+    if (_navigatorCallback != null) {
+      // Pass the order ID to the main app to handle navigation based on user role
+      _navigatorCallback!('/main', arguments: {
+        'action': 'navigate_to_order',
+        'orderId': orderId,
+      });
+    } else {
+      // Fallback if no navigator callback is set
+      // Removed kDebugMode print statements
+    }
+  }
+  
   /// Show driver assignment dialog
   void _showDriverAssignmentDialog(String orderId) {
     // This method would be called when we have access to the context
     // For now, we'll handle this in the main app widget
     // Removed kDebugMode print statements
+    _navigateToOrder(orderId);
   }
 
   /// Show local notification
@@ -301,14 +319,8 @@ class FCMService {
         final orderId = payloadData['orderId'] as String?;
         
         if (type == 'order_approved' && orderId != null && orderId.isNotEmpty) {
-          // Removed kDebugMode print statements
-          // Call the callback if set
-          if (_onNotificationTap != null) {
-            _onNotificationTap!(orderId);
-          } else {
-            // Fallback to showing driver assignment dialog directly
-            _showDriverAssignmentDialog(orderId);
-          }
+          // Navigate to the order
+          _navigateToOrder(orderId);
         } else {
           // Removed kDebugMode print statements
         }
@@ -327,14 +339,8 @@ class FCMService {
             final orderId = payload.substring(startIndex, endIndex).replaceAll("'", "").trim();
             
             if (orderId.isNotEmpty) {
-              // Removed kDebugMode print statements
-              // Call the callback if set
-              if (_onNotificationTap != null) {
-                _onNotificationTap!(orderId);
-              } else {
-                // Fallback to showing driver assignment dialog directly
-                _showDriverAssignmentDialog(orderId);
-              }
+              // Navigate to the order
+              _navigateToOrder(orderId);
             } else {
               // Removed kDebugMode print statement
             }

@@ -19,20 +19,26 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToNextScreen() async {
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (!mounted) return;
-    
-    final firebaseAuth = Provider.of<FirebaseAuthProvider>(context, listen: false);
-    final profileProvider = Provider.of<ProfileProvider>(context, listen: false); // Add this
+
+    final firebaseAuth = Provider.of<FirebaseAuthProvider>(
+      context,
+      listen: false,
+    );
+    final profileProvider = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ); // Add this
     await firebaseAuth.checkAuthStatus();
-    
+
     if (!mounted) return;
-    
+
     // Check if user is already authenticated
     if (firebaseAuth.isAuthenticated) {
       // Initialize profile provider with current user data
       await profileProvider.loadUserProfile(firebaseAuth.currentUser!.uid);
-      
+
       // Navigate to main screen
       Navigator.pushReplacementNamed(context, '/main');
     } else {
@@ -49,11 +55,12 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // App Logo or Icon
-            Icon(
-              Icons.local_shipping,
-              size: 80,
-              color: Colors.white,
+            // App Logo
+            Image.asset(
+              'assets/images/OBJECTS.png',
+              width: 120,
+              height: 120,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
             const Text(
@@ -67,10 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 10),
             const Text(
               'Gas Delivery Management System',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.white70),
             ),
             const SizedBox(height: 40),
             const CircularProgressIndicator(

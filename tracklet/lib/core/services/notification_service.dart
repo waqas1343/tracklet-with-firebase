@@ -93,7 +93,10 @@ class NotificationService {
   }
 
   /// Send local notification with proper payload for FCM service
-  Future<void> _sendLocalNotification(String orderId, String distributorId) async {
+  Future<void> _sendLocalNotification(
+    String orderId,
+    String distributorId,
+  ) async {
     try {
       print('🔔 NotificationService: Sending local notification');
       print('   Order ID: $orderId');
@@ -142,6 +145,145 @@ class NotificationService {
       print('   Payload: $payload');
     } catch (e) {
       print('❌ NotificationService: Error sending local notification: $e');
+      rethrow;
+    }
+  }
+
+  /// Create driver assignment notification for distributor
+  Future<void> createDriverAssignmentNotification({
+    required String distributorId,
+    required String plantName,
+    required String orderId,
+    required String driverName,
+  }) async {
+    try {
+      print('🔔 NotificationService: Creating driver assignment notification');
+      print('   Distributor ID: $distributorId');
+      print('   Plant Name: $plantName');
+      print('   Order ID: $orderId');
+      print('   Driver Name: $driverName');
+
+      final notification = NotificationModel(
+        id: '',
+        title: 'Driver Assigned',
+        message: 'Driver $driverName has been assigned to your order.',
+        type: NotificationType.order,
+        relatedId: orderId,
+        recipientId: distributorId,
+        senderId: null,
+        createdAt: DateTime.now(),
+      );
+
+      await _repository.createNotification(notification);
+      print('✅ NotificationService: Driver assignment notification created');
+    } catch (e) {
+      print(
+        '❌ NotificationService: Error creating driver assignment notification: $e',
+      );
+      rethrow;
+    }
+  }
+
+  /// Create order completion notification for distributor
+  Future<void> createOrderCompletionNotification({
+    required String distributorId,
+    required String plantName,
+    required String orderId,
+  }) async {
+    try {
+      print('🔔 NotificationService: Creating order completion notification');
+      print('   Distributor ID: $distributorId');
+      print('   Plant Name: $plantName');
+      print('   Order ID: $orderId');
+
+      final notification = NotificationModel(
+        id: '',
+        title: 'Order Completed',
+        message: 'Your order from $plantName has been completed successfully.',
+        type: NotificationType.order,
+        relatedId: orderId,
+        recipientId: distributorId,
+        senderId: null,
+        createdAt: DateTime.now(),
+      );
+
+      await _repository.createNotification(notification);
+      print('✅ NotificationService: Order completion notification created');
+    } catch (e) {
+      print(
+        '❌ NotificationService: Error creating order completion notification: $e',
+      );
+      rethrow;
+    }
+  }
+
+  /// Create driver assignment notification for gas plant
+  Future<void> createDriverAssignmentNotificationForGasPlant({
+    required String plantId,
+    required String distributorName,
+    required String orderId,
+    required String driverName,
+  }) async {
+    try {
+      print(
+        '🔔 NotificationService: Creating driver assignment notification for gas plant',
+      );
+      print('   Plant ID: $plantId');
+      print('   Distributor Name: $distributorName');
+      print('   Order ID: $orderId');
+      print('   Driver Name: $driverName');
+
+      final notification = NotificationModel(
+        id: '',
+        title: 'Driver Assigned',
+        message:
+            'Driver $driverName has been assigned to order from $distributorName.',
+        type: NotificationType.order,
+        relatedId: orderId,
+        recipientId: plantId,
+        senderId: null,
+        createdAt: DateTime.now(),
+      );
+
+      await _repository.createNotification(notification);
+      print(
+        '✅ NotificationService: Driver assignment notification for gas plant created',
+      );
+    } catch (e) {
+      print(
+        '❌ NotificationService: Error creating driver assignment notification for gas plant: $e',
+      );
+      rethrow;
+    }
+  }
+
+  /// Create new order notification for gas plant
+  Future<void> createNewOrderNotification({
+    required String plantId,
+    required String distributorName,
+    required String orderId,
+  }) async {
+    try {
+      print('🔔 NotificationService: Creating new order notification');
+      print('   Plant ID: $plantId');
+      print('   Distributor Name: $distributorName');
+      print('   Order ID: $orderId');
+
+      final notification = NotificationModel(
+        id: '',
+        title: 'New Order Request',
+        message: '$distributorName has requested cylinders from your plant.',
+        type: NotificationType.order,
+        relatedId: orderId,
+        recipientId: plantId,
+        senderId: null,
+        createdAt: DateTime.now(),
+      );
+
+      await _repository.createNotification(notification);
+      print('✅ NotificationService: New order notification created');
+    } catch (e) {
+      print('❌ NotificationService: Error creating new order notification: $e');
       rethrow;
     }
   }

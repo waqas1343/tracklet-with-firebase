@@ -61,12 +61,21 @@ class OrderViewModel extends ChangeNotifier {
       if (orderId.isNotEmpty) {
         // Removed kDebugMode print statement
 
-        // Create notification for gas plant
-        await _notificationRepository.createOrderNotification(
-          plantId: order.plantId,
-          distributorName: order.distributorName,
-          orderId: orderId,
-        );
+        // Create notification for gas plant using the new notification service
+        try {
+          await NotificationService.instance.createNewOrderNotification(
+            plantId: order.plantId,
+            distributorName: order.distributorName,
+            orderId: orderId,
+          );
+        } catch (e) {
+          // Fallback to old method if new service fails
+          await _notificationRepository.createOrderNotification(
+            plantId: order.plantId,
+            distributorName: order.distributorName,
+            orderId: orderId,
+          );
+        }
 
         // Removed kDebugMode print statement
 

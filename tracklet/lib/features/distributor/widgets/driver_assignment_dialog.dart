@@ -6,6 +6,7 @@ import '../../../core/models/order_model.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../distributor/provider/driver_provider.dart';
 import '../../../core/utils/app_colors.dart';
+import '../../../core/services/notification_service.dart';
 
 class DriverAssignmentDialog extends StatefulWidget {
   final OrderModel order;
@@ -203,6 +204,33 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
           DriverStatus.busy,
         );
 
+        // Send notification to distributor about driver assignment
+        try {
+          await NotificationService.instance.createDriverAssignmentNotification(
+            distributorId: widget.order.distributorId,
+            plantName: widget.order.plantName,
+            orderId: widget.order.id,
+            driverName: _selectedDriver!.name,
+          );
+        } catch (e) {
+          print('Failed to send driver assignment notification: $e');
+        }
+
+        // Send notification to gas plant about driver assignment
+        try {
+          await NotificationService.instance
+              .createDriverAssignmentNotificationForGasPlant(
+                plantId: widget.order.plantId,
+                distributorName: widget.order.distributorName,
+                orderId: widget.order.id,
+                driverName: _selectedDriver!.name,
+              );
+        } catch (e) {
+          print(
+            'Failed to send driver assignment notification to gas plant: $e',
+          );
+        }
+
         if (mounted) {
           Navigator.of(context).pop();
           widget.onAssignmentComplete();
@@ -228,10 +256,7 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
         _errorMessage = 'Error: ${e.toString()}';
       });
       if (mounted) {
-        CustomFlushbar.showError(
-          context,
-          message: 'Error: ${e.toString()}',
-        );
+        CustomFlushbar.showError(context, message: 'Error: ${e.toString()}');
       }
     } finally {
       setState(() {

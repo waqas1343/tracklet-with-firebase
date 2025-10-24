@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import 'package:tracklet/core/utils/app_colors.dart';
 import 'package:tracklet/core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
@@ -22,6 +23,8 @@ class _OrdersScreenState extends State<OrdersScreen>
   bool _initialLoadCompleted = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isHighlighting = false;
+  Timer? _highlightTimer;
 
   final Color navy = const Color(0xFF0C2340);
   final Color tabGrey = const Color(0xFFF0F0F0);
@@ -35,6 +38,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     _tabController = TabController(length: 2, vsync: this);
 
     if (widget.highlightedOrderId != null) {
+      _startHighlighting();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           CustomFlushbar.showInfo(
@@ -50,7 +54,23 @@ class _OrdersScreenState extends State<OrdersScreen>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _highlightTimer?.cancel();
     super.dispose();
+  }
+
+  void _startHighlighting() {
+    setState(() {
+      _isHighlighting = true;
+    });
+
+    // Stop highlighting after 1 second
+    _highlightTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _isHighlighting = false;
+        });
+      }
+    });
   }
 
   /// 🔍 Search Bar Widget
@@ -220,9 +240,14 @@ class _OrdersScreenState extends State<OrdersScreen>
                             border: _tabController.index == 0
                                 ? null
                                 : Border.all(color: Colors.grey, width: 1),
-                            color: _tabController.index == 0 ? navy : Colors.transparent,
+                            color: _tabController.index == 0
+                                ? navy
+                                : Colors.transparent,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -253,9 +278,14 @@ class _OrdersScreenState extends State<OrdersScreen>
                             border: _tabController.index == 1
                                 ? null
                                 : Border.all(color: Colors.grey, width: 1),
-                            color: _tabController.index == 1 ? navy : Colors.transparent,
+                            color: _tabController.index == 1
+                                ? navy
+                                : Colors.transparent,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -334,9 +364,10 @@ class _OrdersScreenState extends State<OrdersScreen>
                                 statusColor: green,
                                 cardBg: cardBg,
                                 isHighlighted:
+                                    _isHighlighting &&
                                     widget.highlightedOrderId ==
-                                    completedOrders[index]
-                                        .id, // Pass highlight status
+                                        completedOrders[index]
+                                            .id, // Pass highlight status
                               ),
                             ),
 
@@ -383,9 +414,10 @@ class _OrdersScreenState extends State<OrdersScreen>
                                 statusColor: red,
                                 cardBg: cardBg,
                                 isHighlighted:
+                                    _isHighlighting &&
                                     widget.highlightedOrderId ==
-                                    cancelledOrders[index]
-                                        .id, // Pass highlight status
+                                        cancelledOrders[index]
+                                            .id, // Pass highlight status
                               ),
                             ),
                     ],
@@ -445,7 +477,9 @@ class OrderHistoryCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: isHighlighted
+            ? Colors.orange.withValues(alpha: 0.1)
+            : cardBg, // Light orange background when highlighted
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isHighlighted ? Colors.orange : Colors.grey.shade200,

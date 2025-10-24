@@ -81,20 +81,43 @@ class NotificationScreen extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: const Text(
-                      'Order Updates & Alerts',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E1E1E),
-                      ),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Order Updates & Alerts',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E1E1E),
+                            ),
+                          ),
+                        ),
+
+                        // Test button for debugging
+
+                        // Show notification count
+                      ],
                     ),
                   ),
 
                   // Notifications list
                   Expanded(
-                    child: notificationProvider.notifications.isEmpty
-                        ? Center(
+                    child: Builder(
+                      builder: (context) {
+                        print(
+                          '🔔 Notifications count: ${notificationProvider.notifications.length}',
+                        );
+                        // Debug: Print first notification details
+                        if (notificationProvider.notifications.isNotEmpty) {
+                          final firstNotification =
+                              notificationProvider.notifications.first;
+                          print(
+                            '🔔 First notification: ${firstNotification.title} - ${firstNotification.relatedId}',
+                          );
+                        }
+                        if (notificationProvider.notifications.isEmpty) {
+                          return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -123,8 +146,9 @@ class NotificationScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-                          )
-                        : RefreshIndicator(
+                          );
+                        } else {
+                          return RefreshIndicator(
                             onRefresh: () => notificationProvider
                                 .refreshNotifications(user.id),
                             child: ListView.separated(
@@ -150,7 +174,10 @@ class NotificationScreen extends StatelessWidget {
                                 );
                               },
                             ),
-                          ),
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -158,13 +185,15 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-
-
   void _onNotificationTap(
     BuildContext context,
     NotificationModel notification,
     NotificationProvider notificationProvider,
   ) async {
+    print('🔔 ===== NOTIFICATION TAP METHOD CALLED =====');
+    print('🔔 Notification tapped: ${notification.title}');
+    print('   Related ID: ${notification.relatedId}');
+    print('   Type: ${notification.type}');
 
     // Mark as read if not already read
     if (!notification.isRead) {
@@ -183,17 +212,17 @@ class NotificationScreen extends StatelessWidget {
       final user = profileProvider.currentUser;
 
       if (user != null) {
+        print('   User role: ${user.role}');
         try {
           final order = await orderProvider.getOrderById(
             notification.relatedId!,
           );
+          print('   Order found: ${order?.id}, Status: ${order?.status}');
 
           if (order != null) {
-
             // Check if this is a Distributor user and the order is approved (inProgress)
             if ((user.role == 'distributor' || user.role == 'Distributor') &&
                 order.status == OrderStatus.inProgress) {
-
               // Show driver assignment dialog for Distributor users
               if (context.mounted) {
                 showDialog(
@@ -219,7 +248,6 @@ class NotificationScreen extends StatelessWidget {
             if (notification.title == 'Order Approved' &&
                 notification.message.contains('assign a driver') &&
                 order.status == OrderStatus.inProgress) {
-
               // Show driver assignment dialog
               if (context.mounted) {
                 showDialog(
@@ -246,6 +274,7 @@ class NotificationScreen extends StatelessWidget {
 
             // Navigate to the appropriate screen based on order status and user role
             if (user.role == 'gas_plant') {
+              print('   Navigating for gas plant user');
               // Gas Plant user navigation
               switch (order.status) {
                 case OrderStatus.pending:
@@ -257,34 +286,58 @@ class NotificationScreen extends StatelessWidget {
                     if (context.mounted) {
                       CustomFlushbar.showInfo(
                         context,
-                        message: 'Check new orders for order from ${order.distributorName}',
+                        message:
+                            'Check new orders for order from ${order.distributorName}',
                       );
                     }
                   }
                   break;
                 case OrderStatus.inProgress:
                   // Navigate to orders in progress screen with highlighted order
+                  print(
+                    '   Navigating to orders in progress with highlighted order: ${order.id}',
+                  );
                   if (context.mounted) {
                     Navigator.pushNamed(
                       context,
                       '/gas-plant/orders-in-progress',
                       arguments: {'highlightedOrderId': order.id},
                     );
+                    // Show success message
+                    if (context.mounted) {
+                      CustomFlushbar.showSuccess(
+                        context,
+                        message:
+                            'Navigated to order from ${order.distributorName}',
+                      );
+                    }
                   }
                   break;
                 case OrderStatus.completed:
                 case OrderStatus.cancelled:
                   // Navigate to orders history screen with highlighted order
+                  print(
+                    '   Navigating to orders history with highlighted order: ${order.id}',
+                  );
                   if (context.mounted) {
                     Navigator.pushNamed(
                       context,
                       '/gas-plant/orders',
                       arguments: {'highlightedOrderId': order.id},
                     );
+                    // Show success message
+                    if (context.mounted) {
+                      CustomFlushbar.showSuccess(
+                        context,
+                        message:
+                            'Navigated to order from ${order.distributorName}',
+                      );
+                    }
                   }
                   break;
               }
             } else if (user.role == 'distributor') {
+              print('   Navigating for distributor user to orders screen');
               // Distributor user navigation
               if (context.mounted) {
                 Navigator.pushNamed(context, '/distributor/orders');
@@ -297,6 +350,7 @@ class NotificationScreen extends StatelessWidget {
               }
             }
           } else {
+            print('   Order not found, navigating to orders screen');
             // If order not found, navigate to the appropriate screen based on user role
             if (context.mounted) {
               if (user.role == 'gas_plant') {
@@ -313,6 +367,7 @@ class NotificationScreen extends StatelessWidget {
             }
           }
         } catch (e) {
+          print('   Error loading order: $e');
           // Navigate to appropriate orders screen as fallback
           if (context.mounted) {
             if (user.role == 'gas_plant') {
@@ -328,7 +383,11 @@ class NotificationScreen extends StatelessWidget {
             }
           }
         }
+      } else {
+        print('   User is null');
       }
+    } else {
+      print('   Notification type is not order or relatedId is null');
     }
   }
 }

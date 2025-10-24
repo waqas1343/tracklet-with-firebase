@@ -392,7 +392,7 @@ class _RatesScreenState extends State<GasRateScreen> {
 
 class _SearchField extends StatelessWidget {
   final String hintText;
-  const _SearchField({required this.hintText, super.key});
+  const _SearchField({required this.hintText});
 
   @override
   Widget build(BuildContext context) {
@@ -423,7 +423,7 @@ class _SearchField extends StatelessWidget {
 
 class _DropdownFilterButton extends StatelessWidget {
   final String title;
-  const _DropdownFilterButton({required this.title, super.key});
+  const _DropdownFilterButton({required this.title});
 
   @override
   Widget build(BuildContext context) {

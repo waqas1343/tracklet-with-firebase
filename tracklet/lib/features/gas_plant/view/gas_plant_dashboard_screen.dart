@@ -49,7 +49,6 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
           ),
         ),
       ),
-    
     );
   }
 
@@ -57,18 +56,25 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeaderWidget(title: 'Plant Summary', onSeeAllPressed: () {}),
+        SectionHeaderWidget(
+          title: 'Plant Summary',
+          onSeeAllPressed: () {
+            Navigator.pushNamed(context, '/gas-plant/total-stock');
+          },
+        ),
         SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('tanks').snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection('tanks')
+                    .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return PlantSummaryCard(
                       title: 'Total',
-                      subtitle: "card",
+                      subtitle: "Gass",
                       value: '0.00 Tons',
                       icon: Icons.local_drink,
                       backgroundColor: const Color(0xFF1A2B4C),
@@ -79,11 +85,11 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                       },
                     );
                   }
-                  
+
                   if (snapshot.hasError) {
                     return PlantSummaryCard(
                       title: 'Total',
-                      subtitle: "card",
+                      subtitle: "Gass",
                       value: '0.00 Tons',
                       icon: Icons.local_drink,
                       backgroundColor: const Color(0xFF1A2B4C),
@@ -94,22 +100,18 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                       },
                     );
                   }
-                  
-                  // Calculate total gas from all tanks and convert to tons
-                  // Assuming 1 ton = 1000 liters
-                  double totalGasInLiters = 0;
+
+                  // Calculate total gas from all tanks (already in tons)
+                  double totalGasInTons = 0;
                   if (snapshot.hasData) {
                     for (var doc in snapshot.data!.docs) {
                       final data = doc.data() as Map<String, dynamic>;
                       final currentGas = (data['currentGas'] ?? 0).toDouble();
                       final frozenGas = (data['frozenGas'] ?? 0).toDouble();
-                      totalGasInLiters += currentGas + frozenGas;
+                      totalGasInTons += currentGas + frozenGas;
                     }
                   }
-                  
-                  // Convert liters to tons
-                  double totalGasInTons = totalGasInLiters / 1000;
-                  
+
                   return PlantSummaryCard(
                     title: 'Total',
                     subtitle: "card",
@@ -134,7 +136,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                 icon: Icons.person,
                 iconColor: const Color(0xFF1A2B4C),
                 onTap: () {
-                  Navigator.pushNamed(context, '/gas-plant/employees' );
+                  Navigator.pushNamed(context, '/gas-plant/employees');
                 },
               ),
             ),
@@ -150,7 +152,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                   if (snapshot.hasData) {
                     orderCount = snapshot.data!.docs.length;
                   }
-                  
+
                   return PlantSummaryCard(
                     title: 'Orders',
                     subtitle: "in progress",
@@ -158,7 +160,10 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                     icon: Icons.shopping_cart,
                     iconColor: const Color(0xFF1A2B4C),
                     onTap: () {
-                      Navigator.pushNamed(context, '/gas-plant/orders-in-progress');
+                      Navigator.pushNamed(
+                        context,
+                        '/gas-plant/orders-in-progress',
+                      );
                     },
                   );
                 },
@@ -193,7 +198,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
         SectionHeaderWidget(
           title: 'New Orders',
           onSeeAllPressed: () {
-            Navigator.pushNamed(context, '/gas-plant/new-orders');
+            Navigator.pushNamed(context, '/gas-plant/orders');
           },
         ),
         const SizedBox(height: 16),
@@ -229,17 +234,19 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                     customerImage: 'assets/images/customer.png',
                     onApprovePressed: () {
                       // Check if we have enough gas before approving the order
-                      GasDeductionUtils.hasEnoughGasForOrder(order.totalKg / 1000)
-                          .then((hasEnoughGas) {
+                      GasDeductionUtils.hasEnoughGasForOrder(
+                        order.totalKg / 1000,
+                      ).then((hasEnoughGas) {
                         if (!hasEnoughGas) {
                           // Not enough gas, show error and don't approve the order
                           CustomFlushbar.showError(
                             context,
-                            message: 'Not enough gas available to fulfill this order. Required: ${(order.totalKg / 1000).toStringAsFixed(2)} tons',
+                            message:
+                                'Not enough gas available to fulfill this order. Required: ${(order.totalKg / 1000).toStringAsFixed(2)} tons',
                           );
                           return;
                         }
-                        
+
                         // Update the order status to inProgress and send notification for driver assignment
                         orderProvider
                             .updateOrderStatus(
@@ -252,20 +259,20 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                                 // Deduct gas from tanks after successful approval
                                 GasDeductionUtils.deductGasFromTanks(
                                   context: context,
-                                  amountInTons: order.totalKg / 1000, // Convert kg to tons
+                                  amountInTons:
+                                      order.totalKg /
+                                      1000, // Convert kg to tons
                                   orderId: order.id,
                                 ).then((deductionSuccess) {
                                   if (deductionSuccess) {
-                                    // Show success message
-                                    CustomFlushbar.showSuccess(
-                                      context,
-                                      message: 'Order approved successfully! Please assign a driver.',
-                                    );
+                                    // Success message is already shown in GasDeductionUtils
+                                    // No need to show another message here
                                   } else {
                                     // Show error message about gas deduction failure
                                     CustomFlushbar.showError(
                                       context,
-                                      message: 'Order approved but failed to deduct gas from tanks',
+                                      message:
+                                          'Order approved but failed to deduct gas from tanks',
                                     );
                                   }
                                 });
@@ -273,7 +280,9 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                                 // Show error message
                                 CustomFlushbar.showError(
                                   context,
-                                  message: orderProvider.error ?? 'Failed to approve order',
+                                  message:
+                                      orderProvider.error ??
+                                      'Failed to approve order',
                                 );
                               }
                             })
@@ -300,7 +309,9 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                               // Show error message
                               CustomFlushbar.showError(
                                 context,
-                                message: orderProvider.error ?? 'Failed to cancel order',
+                                message:
+                                    orderProvider.error ??
+                                    'Failed to cancel order',
                               );
                             }
                           });
@@ -419,7 +430,7 @@ class _PreviousOrdersSection extends StatelessWidget {
         SectionHeaderWidget(
           title: 'Previous Orders',
           onSeeAllPressed: () {
-            Navigator.pushNamed(context, '/gas-plant/orders-history');
+            Navigator.pushNamed(context, '/gas-plant/orders');
           },
         ),
         const SizedBox(height: 16),

@@ -10,7 +10,6 @@ import '../../../../core/utils/app_text_theme.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/custom_flushbar.dart';
-import '../../../../core/routes/app_routes.dart';
 
 class ManagePlantScreen extends StatefulWidget {
   const ManagePlantScreen({super.key});
@@ -56,17 +55,11 @@ class _ManagePlantScreenState extends State<ManagePlantScreen> {
       plantNameController.text = user.companyName ?? '';
       contactController.text = user.phone;
       addressController.text = user.address ?? '';
-      operatingHoursController.text =
-          user.operatingHours ?? '8:00 AM - 6:00 PM';
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        userName: 'Gas Plant Admin',
-        
-      ),
-
+      appBar: CustomAppBar(userName: 'Gas Plant Admin'),
 
       body: SafeArea(
         child: SingleChildScrollView(
@@ -115,24 +108,14 @@ class _ManagePlantScreenState extends State<ManagePlantScreen> {
                 const SizedBox(height: 20),
 
                 CustomTextField(
-                  label: 'Operating Hours',
+                  label: 'Today Gass Rate',
                   controller: operatingHoursController,
-                  hint: 'Enter Operating Hours',
+                  hint: 'Enter your gass rate',
                   validator: (value) =>
                       Validators.validateRequired(value, 'Operating Hours'),
                 ),
                 const SizedBox(height: 20),
-                
-                // Add Rate Management Button
-                CustomButton(
-                  text: 'Manage Rates',
-                  onPressed: () => _navigateToRateManagement(context, user),
-                  width: double.infinity,
-                  backgroundColor: AppColors.primary,
-                  textColor: AppColors.white,
-                  height: 50,
-                  borderRadius: 12,
-                ),
+
                 const SizedBox(height: 20),
 
                 // Save Changes Button
@@ -195,29 +178,6 @@ class _ManagePlantScreenState extends State<ManagePlantScreen> {
         ),
       ],
     );
-  }
-
-  /// Navigate to rate management screen
-  void _navigateToRateManagement(BuildContext context, dynamic user) {
-    if (user != null) {
-      // Create a company model from user data
-      final company = CompanyModel(
-        id: user.id,
-        companyName: user.companyName ?? '',
-        contactNumber: user.phone,
-        address: user.address ?? '',
-        operatingHours: user.operatingHours ?? '',
-        createdAt: user.createdAt,
-        updatedAt: DateTime.now(),
-      );
-      
-      // Navigate to rate management screen
-      Navigator.pushNamed(
-        context, 
-        AppRoutes.gasPlantGasRate,
-        arguments: company,
-      );
-    }
   }
 
   /// Save plant information

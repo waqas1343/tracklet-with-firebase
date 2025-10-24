@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async'; // Add Timer import
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../shared/widgets/section_header_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
+import '../../../shared/widgets/custom_flushbar.dart'; // Add flushbar import
 import '../widgets/driver_order_card.dart';
 import '../../../core/utils/app_colors.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
-  const DriverDashboardScreen({super.key});
+  final String? highlightedOrderId; // Add highlighted order ID parameter
+
+  const DriverDashboardScreen({super.key, this.highlightedOrderId});
 
   @override
   State<DriverDashboardScreen> createState() => _DriverDashboardScreenState();
@@ -17,10 +21,46 @@ class DriverDashboardScreen extends StatefulWidget {
 
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   bool _initialLoadCompleted = false;
+  bool _isHighlighting = false;
+  Timer? _highlightTimer;
 
   @override
   void initState() {
     super.initState();
+    
+    // Start highlighting if we have a highlighted order ID
+    if (widget.highlightedOrderId != null) {
+      _startHighlighting();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          CustomFlushbar.showInfo(
+            context,
+            message: 'Order highlighted - scroll to find it',
+          );
+        }
+      });
+    }
+  }
+  
+  void _startHighlighting() {
+    setState(() {
+      _isHighlighting = true;
+    });
+
+    // Stop highlighting after 1 second
+    _highlightTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _isHighlighting = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _highlightTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -210,6 +250,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           onTap: () {
                             // Navigate to order details if needed
                           },
+                          isHighlighted: _isHighlighting && widget.highlightedOrderId == order.id, // Pass highlight status
                         ),
                       ),
                     ),

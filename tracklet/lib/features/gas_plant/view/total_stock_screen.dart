@@ -168,7 +168,9 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
 
     // Validate inputs
     if (name.isEmpty || capacityText.isEmpty || initialGasText.isEmpty) {
-      CustomFlushbar.showError(context, message: 'Please fill all fields');
+      if (mounted) {
+        CustomFlushbar.showError(context, message: 'Please fill all fields');
+      }
       return;
     }
 
@@ -176,18 +178,22 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     final double? initialGas = double.tryParse(initialGasText);
 
     if (capacity == null || initialGas == null) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Please enter valid numbers for capacity and gas',
-      );
+      if (mounted) {
+        CustomFlushbar.showError(
+          context,
+          message: 'Please enter valid numbers for capacity and gas',
+        );
+      }
       return;
     }
 
     if (initialGas > capacity) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Initial gas cannot exceed tank capacity',
-      );
+      if (mounted) {
+        CustomFlushbar.showError(
+          context,
+          message: 'Initial gas cannot exceed tank capacity',
+        );
+      }
       return;
     }
 
@@ -201,18 +207,24 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         'timestamp': Timestamp.now(),
       });
 
-      CustomFlushbar.showSuccess(context, message: 'Tank added successfully');
+      if (mounted) {
+        CustomFlushbar.showSuccess(context, message: 'Tank added successfully');
+      }
     } catch (e) {
-      CustomFlushbar.showError(context, message: 'Failed to add tank: $e');
+      if (mounted) {
+        CustomFlushbar.showError(context, message: 'Failed to add tank: $e');
+      }
     }
   }
 
   Future<void> _addGasToTank(Tank tank, double amount) async {
     if (tank.currentGas + amount > tank.capacity) {
-      CustomFlushbar.showError(
-        context,
-        message: 'Adding this amount would exceed tank capacity',
-      );
+      if (mounted) {
+        CustomFlushbar.showError(
+          context,
+          message: 'Adding this amount would exceed tank capacity',
+        );
+      }
       return;
     }
 
@@ -221,15 +233,21 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         'currentGas': FieldValue.increment(amount),
       });
 
-      CustomFlushbar.showSuccess(context, message: 'Gas added successfully');
+      if (mounted) {
+        CustomFlushbar.showSuccess(context, message: 'Gas added successfully');
+      }
     } catch (e) {
-      CustomFlushbar.showError(context, message: 'Failed to add gas: $e');
+      if (mounted) {
+        CustomFlushbar.showError(context, message: 'Failed to add gas: $e');
+      }
     }
   }
 
   Future<void> _freezeGasInTank(Tank tank, double amount) async {
     if (amount > tank.currentGas) {
-      CustomFlushbar.showError(context, message: 'Not enough gas to freeze');
+      if (mounted) {
+        CustomFlushbar.showError(context, message: 'Not enough gas to freeze');
+      }
       return;
     }
 
@@ -239,9 +257,13 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
         'frozenGas': FieldValue.increment(amount),
       });
 
-      CustomFlushbar.showSuccess(context, message: 'Gas frozen successfully');
+      if (mounted) {
+        CustomFlushbar.showSuccess(context, message: 'Gas frozen successfully');
+      }
     } catch (e) {
-      CustomFlushbar.showError(context, message: 'Failed to freeze gas: $e');
+      if (mounted) {
+        CustomFlushbar.showError(context, message: 'Failed to freeze gas: $e');
+      }
     }
   }
 
@@ -289,7 +311,10 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                 final amount = double.tryParse(amountController.text);
                 if (amount != null && amount > 0) {
                   Navigator.of(context).pop();
-                  _addGasToTank(tank, amount);
+                  // Check if the parent widget is still mounted before calling async method
+                  if (mounted) {
+                    _addGasToTank(tank, amount);
+                  }
                 }
               },
               child: const Text('Add Gas'),
@@ -343,14 +368,19 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                 final amount = double.tryParse(amountController.text);
                 if (amount != null && amount > 0) {
                   if (amount > tank.currentGas) {
-                    CustomFlushbar.showError(
-                      context,
-                      message: 'Not enough gas to freeze',
-                    );
+                    if (mounted) {
+                      CustomFlushbar.showError(
+                        context,
+                        message: 'Not enough gas to freeze',
+                      );
+                    }
                     return;
                   }
                   Navigator.of(context).pop();
-                  _freezeGasInTank(tank, amount);
+                  // Check if the parent widget is still mounted before calling async method
+                  if (mounted) {
+                    _freezeGasInTank(tank, amount);
+                  }
                 }
               },
               child: const Text('Freeze Gas'),
@@ -389,7 +419,9 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     double freezeGas = 0.0;
 
     for (var tank in _tanks) {
-      totalStock += tank.currentGas;
+      totalStock +=
+          tank.currentGas +
+          tank.frozenGas; // Total stock includes both current and frozen gas
       freezeGas += tank.frozenGas;
     }
 
@@ -435,7 +467,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                 Icons.local_drink,
                 const Color(0xFF1A2B4C),
                 Colors.white,
-              ),
+              )
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -552,7 +584,6 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
           )
         else
           ..._tanks.asMap().entries.map((entry) {
-            final index = entry.key;
             final tank = entry.value;
             return _buildTankCard(
               tank,

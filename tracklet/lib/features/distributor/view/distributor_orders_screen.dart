@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async'; // Add this import for Timer
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/order_model.dart';
@@ -7,9 +8,12 @@ import '../../../core/utils/app_colors.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../widgets/order_card.dart';
+import '../../../shared/widgets/custom_flushbar.dart';
 
 class DistributorOrdersScreen extends StatefulWidget {
-  const DistributorOrdersScreen({super.key});
+  final String? highlightedOrderId; // Add highlighted order ID parameter
+
+  const DistributorOrdersScreen({super.key, this.highlightedOrderId});
 
   @override
   State<DistributorOrdersScreen> createState() =>
@@ -20,16 +24,47 @@ class _DistributorOrdersScreenState extends State<DistributorOrdersScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   bool _initialLoadCompleted = false;
+  bool _isHighlighting = false;
+  Timer? _highlightTimer;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    
+    // Start highlighting if we have a highlighted order ID
+    if (widget.highlightedOrderId != null) {
+      _startHighlighting();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          CustomFlushbar.showInfo(
+            context,
+            message: 'Order highlighted - scroll to find it',
+          );
+        }
+      });
+    }
+  }
+  
+  void _startHighlighting() {
+    setState(() {
+      _isHighlighting = true;
+    });
+
+    // Stop highlighting after 1 second
+    _highlightTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _isHighlighting = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _highlightTimer?.cancel();
     super.dispose();
   }
 
@@ -124,6 +159,7 @@ class _DistributorOrdersScreenState extends State<DistributorOrdersScreen>
             return OrderCard(
               order: order,
               onTap: () => _showOrderDetails(order),
+              isHighlighted: _isHighlighting && widget.highlightedOrderId == order.id, // Pass highlight status
             );
           },
         );

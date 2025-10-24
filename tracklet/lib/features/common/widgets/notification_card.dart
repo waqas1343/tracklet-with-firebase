@@ -9,71 +9,86 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Icon with circular background
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: _getIconBackgroundColor(),
-                borderRadius: BorderRadius.circular(24),
+    return GestureDetector(
+      onTap: () {
+        print('🔔 NotificationCard tapped - ${notification.title}');
+        if (onTap != null) {
+          print('🔔 Calling onTap callback');
+          onTap!();
+        } else {
+          print('🔔 onTap is null!');
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icon with circular background
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: _getIconBackgroundColor(),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  _getNotificationIcon(),
+                  color: _getIconColor(),
+                  size: 24,
+                ),
               ),
-              child: Icon(
-                _getNotificationIcon(),
-                color: _getIconColor(),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          notification.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1E1E1E),
+              const SizedBox(width: 16),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E1E1E),
+                            ),
                           ),
                         ),
-                      ),
-                      Text(
-                        _formatTime(notification.createdAt),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                          fontWeight: FontWeight.w400,
+                        Text(
+                          _formatTime(notification.createdAt),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[400],
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    notification.message,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.w400,
-                      height: 1.4,
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      notification.message,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w400,
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

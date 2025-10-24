@@ -19,6 +19,7 @@ import '../../features/gas_plant/view/gas_rate_screen.dart';
 import '../../features/gas_plant/view/orders_screen.dart';
 import '../../features/gas_plant/view/expenses_screen.dart';
 import '../../features/gas_plant/view/settings_screen.dart';
+import '../../features/gas_plant/view/orders_in_progress_screen.dart';
 
 // Distributor Screens
 import '../../features/distributor/view/distributor_dashboard_screen.dart';
@@ -28,6 +29,7 @@ import '../../features/distributor/view/distributor_settings_screen.dart';
 
 // Driver Screens
 import '../../features/driver/view/driver_dashboard_screen.dart';
+import '../../features/driver/view/driver_orders_screen.dart'; // Add this import
 import '../../features/driver/view/driver_list_screen.dart';
 
 class UnifiedMainScreen extends StatefulWidget {
@@ -39,6 +41,7 @@ class UnifiedMainScreen extends StatefulWidget {
 
 class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
   CompanyModel? _company;
+  String? _pendingOrderId; // To store order ID from notification tap
 
   @override
   void initState() {
@@ -48,6 +51,16 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
 
     // Save FCM token for current user
     _saveFCMToken();
+    
+    // Set up navigation callback for FCM service
+    _setupNavigationCallback();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Check if we have a pending order ID from notification tap
+    _handlePendingOrderNavigation();
   }
 
   void _setupNotificationHandler() {
@@ -57,6 +70,61 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
       _showDriverAssignmentDialog(orderId);
     };
     
+  }
+  
+  void _setupNavigationCallback() {
+    // Set up navigation callback for FCM service
+    FCMService.instance.navigatorCallback = (String route, {Map<String, dynamic>? arguments}) {
+      if (mounted) {
+        // Check if this is a navigation action for order
+        if (arguments != null && arguments['action'] == 'navigate_to_order') {
+          final orderId = arguments['orderId'] as String?;
+          if (orderId != null) {
+            // Store the order ID and handle navigation after widget is built
+            setState(() {
+              _pendingOrderId = orderId;
+            });
+          }
+        } else {
+          Navigator.pushNamed(context, route, arguments: arguments);
+        }
+      }
+    };
+  }
+
+  void _handlePendingOrderNavigation() {
+    // Handle navigation to order if we have a pending order ID
+    if (_pendingOrderId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _navigateToOrderScreen(_pendingOrderId!);
+          // Clear the pending order ID
+          setState(() {
+            _pendingOrderId = null;
+          });
+        }
+      });
+    }
+  }
+
+  void _navigateToOrderScreen(String orderId) {
+    final userRoleProvider = Provider.of<UserRoleProvider>(context, listen: false);
+    
+    // Determine the correct route based on user role
+    String route;
+    if (userRoleProvider.isGasPlant) {
+      route = '/gas-plant/orders-in-progress';
+    } else if (userRoleProvider.isDistributor) {
+      route = '/distributor/orders';
+    } else {
+      // For driver or other roles, navigate to driver orders screen
+      route = '/driver/orders';
+    }
+    
+    // Navigate to the appropriate order screen with the highlighted order ID
+    Navigator.pushNamed(context, route, arguments: {
+      'highlightedOrderId': orderId,
+    });
   }
 
   void _showDriverAssignmentDialog(String orderId) {
@@ -209,11 +277,12 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
         DistributorSettingsScreen(),
       ];
     } else if (role == UserRole.driver) {
+      // For drivers, use the appropriate screens
       return const [
         DriverDashboardScreen(),
-        DriverListScreen(), // Show list of drivers and their orders
-        DriverDashboardScreen(), // For now, using dashboard for history
-        DriverDashboardScreen(), // For now, using dashboard for settings
+        DriverOrdersScreen(), // Use the new orders screen
+        DriverOrdersScreen(), // For history, use the same screen for now
+        DriverDashboardScreen(), // Settings
       ];
     } else {
       // Fallback to distributor
@@ -230,6 +299,7 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
   void dispose() {
     // Clear the callback when widget is disposed
     FCMService.instance.onNotificationTap = null;
+    FCMService.instance.navigatorCallback = null;
     super.dispose();
   }
 }

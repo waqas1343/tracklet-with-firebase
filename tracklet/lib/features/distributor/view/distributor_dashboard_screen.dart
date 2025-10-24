@@ -12,7 +12,6 @@ import '../../../shared/widgets/section_header_widget.dart';
 import '../../../core/utils/app_text_theme.dart';
 import '../../../core/utils/app_colors.dart';
 import 'cylinder_request_screen.dart';
-import 'order_analytics_screen.dart';
 import '../widgets/order_card.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 
@@ -441,11 +440,6 @@ class _DistributorDashboardScreenState
     );
   }
 
-  void _navigateToAnalytics(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const OrderAnalyticsScreen()),
-    );
-  }
 
   void _navigateToAllPlants(BuildContext context) {
     // Navigate to all plants screen or show all plants in a modal
