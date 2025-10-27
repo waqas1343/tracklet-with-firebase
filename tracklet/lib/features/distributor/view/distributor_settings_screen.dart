@@ -23,31 +23,27 @@ class DistributorSettingsScreen extends StatelessWidget {
             children: [
               const Text(
                 'Settings',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
-              
+
               // Order Analytics
               Card(
                 child: ListTile(
                   title: const Text('Order Analytics'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>  OrderAnalyticsScreen(),
+                        builder: (context) => OrderAnalyticsScreen(),
                       ),
                     );
-
                   },
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Profile Settings
               Card(
                 child: ListTile(
@@ -57,21 +53,21 @@ class DistributorSettingsScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const distributorprofileSeting(),
+                        builder: (context) => const DistributorProfileSetting(),
                       ),
                     );
                   },
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Change Password
               Card(
                 child: ListTile(
                   title: const Text('Change Password'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                     Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const DistributorChangePassword(),
@@ -81,7 +77,7 @@ class DistributorSettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Logout Button
               SizedBox(
                 width: double.infinity,
@@ -94,7 +90,9 @@ class DistributorSettingsScreen extends StatelessWidget {
                       builder: (BuildContext context) {
                         return AlertDialog(
                           title: const Text('Logout'),
-                          content: const Text('Are you sure you want to logout?'),
+                          content: const Text(
+                            'Are you sure you want to logout?',
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(false),
@@ -108,7 +106,7 @@ class DistributorSettingsScreen extends StatelessWidget {
                         );
                       },
                     );
-                    
+
                     if (confirm == true) {
                       await FirebaseAuth.instance.signOut();
                       if (context.mounted) {
@@ -120,7 +118,8 @@ class DistributorSettingsScreen extends StatelessWidget {
                       }
                     }
                   },
-                  backgroundColor: AppColors.buttonPrimary, // Explicitly using red color
+                  backgroundColor:
+                      AppColors.buttonPrimary, // Explicitly using red color
                   textColor: Colors.white,
                   borderRadius: 12, // More rounded corners
                   fontWeight: FontWeight.bold, // Bold text

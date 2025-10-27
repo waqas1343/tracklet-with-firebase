@@ -180,7 +180,10 @@ class _DriverListScreenState extends State<DriverListScreen> {
         // Load orders for the current user's plant
         await orderProvider.loadOrdersForPlant(user.id);
       }
-    } catch (e) {}
+    } catch (e) {
+      // Silently ignore errors to prevent UI disruption
+      // In a production app, you might want to log this error
+    }
   }
 
   void _showDriverOrders(String driverName, List<OrderModel> orders) {

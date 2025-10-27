@@ -79,7 +79,7 @@ class ModernSettingsScreen extends StatelessWidget {
                       Switch(
                         value: theme.isDarkMode,
                         onChanged: (value) => theme.toggleTheme(),
-                        activeColor: theme.modernPrimaryStart,
+                        activeThumbColor: theme.modernPrimaryStart,
                       ),
                     ],
                   ),
@@ -287,7 +287,7 @@ class ModernSettingsScreen extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: theme.modernPrimaryStart,
+          activeThumbColor: theme.modernPrimaryStart,
         ),
       ],
     );

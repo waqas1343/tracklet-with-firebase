@@ -4,6 +4,7 @@ import '../../../core/providers/notification_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/notification_model.dart';
 import '../../../core/models/order_model.dart';
+import '../../../core/models/user_model.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
@@ -231,14 +232,7 @@ class NotificationScreen extends StatelessWidget {
                 notification.message.toLowerCase().contains('assign a driver');
             bool isOrderInProgress = order.status == OrderStatus.inProgress;
 
-            print('   Is distributor: $isDistributor');
-            print(
-              '   Is order approved notification: $isOrderApprovedNotification',
-            );
-            print('   Is order in progress: $isOrderInProgress');
-
             if (isDistributor && isOrderApprovedNotification) {
-              print('   Showing driver assignment dialog');
               // Show driver assignment dialog for Distributor users when order is approved
               if (context.mounted) {
                 showDialog(
@@ -261,8 +255,8 @@ class NotificationScreen extends StatelessWidget {
             }
 
             // Navigate to the appropriate screen based on order status and user role
-            if (user.role == 'gas_plant') {
-              print('   Navigating for gas plant user');
+            if (user.role == UserRole.gasPlant) {
+              // print('   Navigating for gas plant user'); // Removed to avoid avoid_print warning
               // Gas Plant user navigation
               switch (order.status) {
                 case OrderStatus.pending:
@@ -282,9 +276,9 @@ class NotificationScreen extends StatelessWidget {
                   break;
                 case OrderStatus.inProgress:
                   // Navigate to orders in progress screen with highlighted order
-                  print(
-                    '   Navigating to orders in progress with highlighted order: ${order.id}',
-                  );
+                  // print(
+                  //   '   Navigating to orders in progress with highlighted order: ${order.id}',
+                  // ); // Removed to avoid avoid_print warning
                   if (context.mounted) {
                     Navigator.pushNamed(
                       context,
@@ -304,9 +298,9 @@ class NotificationScreen extends StatelessWidget {
                 case OrderStatus.completed:
                 case OrderStatus.cancelled:
                   // Navigate to orders history screen with highlighted order
-                  print(
-                    '   Navigating to orders history with highlighted order: ${order.id}',
-                  );
+                  // print(
+                  //   '   Navigating to orders history with highlighted order: ${order.id}',
+                  // ); // Removed to avoid avoid_print warning
                   if (context.mounted) {
                     Navigator.pushNamed(
                       context,
@@ -324,8 +318,7 @@ class NotificationScreen extends StatelessWidget {
                   }
                   break;
               }
-            } else if (user.role == 'distributor') {
-              print('   Navigating for distributor user to orders screen');
+            } else if (user.role == UserRole.distributor) {
               // Distributor user navigation
               if (context.mounted) {
                 Navigator.pushNamed(context, '/distributor/orders');
@@ -338,12 +331,11 @@ class NotificationScreen extends StatelessWidget {
               }
             }
           } else {
-            print('   Order not found, navigating to orders screen');
             // If order not found, navigate to the appropriate screen based on user role
             if (context.mounted) {
-              if (user.role == 'gas_plant') {
+              if (user.role == UserRole.gasPlant) {
                 Navigator.pushNamed(context, '/gas-plant/orders');
-              } else if (user.role == 'distributor') {
+              } else if (user.role == UserRole.distributor) {
                 Navigator.pushNamed(context, '/distributor/orders');
               }
               if (context.mounted) {
@@ -355,12 +347,11 @@ class NotificationScreen extends StatelessWidget {
             }
           }
         } catch (e) {
-          print('   Error loading order: $e');
           // Navigate to appropriate orders screen as fallback
           if (context.mounted) {
-            if (user.role == 'gas_plant') {
+            if (user.role == UserRole.gasPlant) {
               Navigator.pushNamed(context, '/gas-plant/orders');
-            } else if (user.role == 'distributor') {
+            } else if (user.role == UserRole.distributor) {
               Navigator.pushNamed(context, '/distributor/orders');
             }
             if (context.mounted) {
@@ -371,11 +362,7 @@ class NotificationScreen extends StatelessWidget {
             }
           }
         }
-      } else {
-        print('   User is null');
-      }
-    } else {
-      print('   Notification type is not order or relatedId is null');
-    }
+      } else {}
+    } else {}
   }
 }

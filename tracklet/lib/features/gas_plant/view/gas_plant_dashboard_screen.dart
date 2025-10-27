@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/providers/order_provider.dart';
 import '../../../core/providers/profile_provider.dart';
@@ -67,9 +68,19 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
           children: [
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('tanks')
-                    .snapshots(),
+                stream: () {
+                  final String? currentUserId =
+                      FirebaseAuth.instance.currentUser?.uid;
+                  if (currentUserId != null) {
+                    return FirebaseFirestore.instance
+                        .collection('tanks')
+                        .where('userId', isEqualTo: currentUserId)
+                        .snapshots();
+                  } else {
+                    // Return an empty stream when user is not authenticated
+                    return const Stream<QuerySnapshot>.empty();
+                  }
+                }(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return PlantSummaryCard(
@@ -101,7 +112,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
                     );
                   }
 
-                  // Calculate total gas from all tanks (already in tons)
+                  // Calculate total gas from user's tanks (already in tons)
                   double totalGasInTons = 0;
                   if (snapshot.hasData) {
                     for (var doc in snapshot.data!.docs) {
@@ -114,7 +125,7 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
 
                   return PlantSummaryCard(
                     title: 'Total',
-                    subtitle: "card",
+                    subtitle: "Gass",
                     value: '${totalGasInTons.toStringAsFixed(2)} Tons',
                     icon: Icons.local_drink,
                     backgroundColor: const Color(0xFF1A2B4C),
@@ -129,14 +140,26 @@ class _GasPlantDashboardScreenState extends State<GasPlantDashboardScreen> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: PlantSummaryCard(
-                title: 'Active',
-                subtitle: "Employees",
-                value: '20',
-                icon: Icons.person,
-                iconColor: const Color(0xFF1A2B4C),
-                onTap: () {
-                  Navigator.pushNamed(context, '/gas-plant/employees');
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('employees')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  int employeeCount = 0;
+                  if (snapshot.hasData) {
+                    employeeCount = snapshot.data!.docs.length;
+                  }
+
+                  return PlantSummaryCard(
+                    title: 'Active',
+                    subtitle: "Employees",
+                    value: employeeCount.toString(),
+                    icon: Icons.person,
+                    iconColor: const Color(0xFF1A2B4C),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/gas-plant/employees');
+                    },
+                  );
                 },
               ),
             ),

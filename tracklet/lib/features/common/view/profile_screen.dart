@@ -10,8 +10,8 @@ import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/utils/constants.dart';
 
-class distributorprofileSeting extends StatelessWidget {
-  const distributorprofileSeting({super.key});
+class DistributorProfileSetting extends StatelessWidget {
+  const DistributorProfileSetting({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +35,7 @@ class distributorprofileSeting extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        userName: 'Gas Plant Admin',
-        showBackButton: true,
-      ),
+      appBar: CustomAppBar(userName: 'Gas Plant Admin', showBackButton: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -218,10 +215,7 @@ class distributorprofileSeting extends StatelessWidget {
     );
 
     if (success) {
-      CustomFlushbar.showSuccess(
-        context,
-        message: AppConstants.updateSuccess,
-      );
+      CustomFlushbar.showSuccess(context, message: AppConstants.updateSuccess);
     } else {
       CustomFlushbar.showError(
         context,

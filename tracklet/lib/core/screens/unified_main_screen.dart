@@ -11,7 +11,6 @@ import '../models/company_model.dart';
 import '../services/fcm_service.dart';
 import '../../features/distributor/widgets/driver_assignment_dialog.dart';
 import '../providers/order_provider.dart';
-import '../models/order_model.dart';
 import '../../features/distributor/provider/driver_provider.dart';
 
 // Gas Plant Screens

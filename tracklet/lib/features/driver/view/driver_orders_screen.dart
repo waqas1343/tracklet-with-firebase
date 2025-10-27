@@ -169,6 +169,9 @@ class _DriverOrdersScreenState extends State<DriverOrdersScreen> {
       if (user != null) {
         await orderProvider.loadOrdersForDriver(user.name);
       }
-    } catch (e) {}
+    } catch (e) {
+      // Silently ignore errors to prevent UI disruption
+      // In a production app, you might want to log this error
+    }
   }
 }

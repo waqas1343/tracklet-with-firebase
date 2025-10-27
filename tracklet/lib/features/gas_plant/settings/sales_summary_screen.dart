@@ -34,7 +34,6 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
       _errorMessage = '';
     });
 
-    print('Starting data load...');
     try {
       // Load orders from Firebase with multiple fallback strategies
       QuerySnapshot ordersSnapshot;
@@ -47,7 +46,6 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
             .orderBy('createdAt', descending: true)
             .get();
       } catch (e) {
-        print('OrderBy failed, trying without: $e');
         // Strategy 2: Try without orderBy
         try {
           ordersSnapshot = await FirebaseFirestore.instance
@@ -55,7 +53,6 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
               .where('status', isEqualTo: 'completed')
               .get();
         } catch (e2) {
-          print('Status filter failed, trying all orders: $e2');
           // Strategy 3: Get all orders and filter in code
           ordersSnapshot = await FirebaseFirestore.instance
               .collection('orders')
@@ -74,15 +71,12 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
               }
               return null;
             } catch (e) {
-              print('Error parsing order ${doc.id}: $e');
               return null;
             }
           })
           .where((order) => order != null)
           .cast<OrderModel>()
           .toList();
-
-      print('Loaded ${_orders.length} completed orders');
 
       // Load current gas rate with fallback
       try {
@@ -105,17 +99,13 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
           }
         }
       } catch (e) {
-        print('Error loading gas rate: $e');
         _currentGasRate = 0.0; // Default fallback
       }
 
-      print('Gas rate loaded: $_currentGasRate');
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error in _loadData: $e');
-
       // Fallback: Show sample data if Firebase completely fails
       _orders = [
         OrderModel(
@@ -145,11 +135,11 @@ class _SalesSummaryScreenState extends State<SalesSummaryScreen> {
   }
 
   double get _totalGasSold {
-    return _orders.fold(0.0, (sum, order) => sum + order.totalKg);
+    return _orders.fold(0.0, (total, order) => total + order.totalKg);
   }
 
   double get _totalSalesAmount {
-    return _orders.fold(0.0, (sum, order) => sum + order.finalPrice);
+    return _orders.fold(0.0, (total, order) => total + order.finalPrice);
   }
 
   double get _calculatedSalesAmount {

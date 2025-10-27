@@ -213,7 +213,7 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
             driverName: _selectedDriver!.name,
           );
         } catch (e) {
-          print('Failed to send driver assignment notification: $e');
+          // print('Failed to send driver assignment notification: $e'); // Removed to avoid avoid_print warning
         }
 
         // Send notification to gas plant about driver assignment
@@ -226,9 +226,9 @@ class _DriverAssignmentDialogState extends State<DriverAssignmentDialog> {
                 driverName: _selectedDriver!.name,
               );
         } catch (e) {
-          print(
-            'Failed to send driver assignment notification to gas plant: $e',
-          );
+          // print(
+          //   'Failed to send driver assignment notification to gas plant: $e',
+          // ); // Removed to avoid avoid_print warning
         }
 
         if (mounted) {

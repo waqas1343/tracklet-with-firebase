@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tracklet/core/utils/app_colors.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../shared/widgets/custom_button.dart';
@@ -13,6 +14,7 @@ class Tank {
   final double currentGas; // available gas in tons
   final double frozenGas; // frozen gas in tons
   final DateTime timestamp;
+  final String userId; // Add userId to associate tank with user
 
   Tank({
     required this.id,
@@ -21,6 +23,7 @@ class Tank {
     required this.currentGas,
     required this.frozenGas,
     required this.timestamp,
+    required this.userId, // Add userId parameter
   });
 
   // Get total gas (current + frozen)
@@ -34,6 +37,7 @@ class Tank {
     double? currentGas,
     double? frozenGas,
     DateTime? timestamp,
+    String? userId,
   }) {
     return Tank(
       id: id ?? this.id,
@@ -42,6 +46,7 @@ class Tank {
       currentGas: currentGas ?? this.currentGas,
       frozenGas: frozenGas ?? this.frozenGas,
       timestamp: timestamp ?? this.timestamp,
+      userId: userId ?? this.userId,
     );
   }
 }
@@ -78,7 +83,13 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
   }
 
   void _loadTanksFromFirebase() {
-    _tanksStream = FirebaseFirestore.instance.collection('tanks').snapshots();
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) return;
+
+    _tanksStream = FirebaseFirestore.instance
+        .collection('tanks')
+        .where('userId', isEqualTo: currentUserId)
+        .snapshots();
 
     // Listen to the stream and update the UI
     _tanksStream.listen((snapshot) {
@@ -92,6 +103,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
             currentGas: (data['currentGas'] ?? 0).toDouble(),
             frozenGas: (data['frozenGas'] ?? 0).toDouble(),
             timestamp: (data['timestamp'] as Timestamp).toDate(),
+            userId: data['userId'] ?? '', // Add this line
           );
         }).toList();
       });
@@ -162,6 +174,14 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
 
   // Method to add a new tank
   void _addTank() async {
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) {
+      if (mounted) {
+        CustomFlushbar.showError(context, message: 'User not authenticated');
+      }
+      return;
+    }
+
     final String name = _tankNameController.text.trim();
     final String capacityText = _capacityController.text.trim();
     final String initialGasText = _initialGasController.text.trim();
@@ -198,13 +218,14 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
     }
 
     try {
-      // Save to Firebase
+      // Save to Firebase with userId
       await FirebaseFirestore.instance.collection('tanks').add({
         'tankName': name,
         'capacity': capacity,
         'currentGas': initialGas,
         'frozenGas': 0.0,
         'timestamp': Timestamp.now(),
+        'userId': currentUserId, // Add this line
       });
 
       if (mounted) {
@@ -333,6 +354,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Freeze Gas'),
+          titleTextStyle: TextStyle(color: Colors.black),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -467,7 +489,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                 Icons.local_drink,
                 const Color(0xFF1A2B4C),
                 Colors.white,
-              )
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -690,7 +712,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                     _showFreezeGasDialog(tank);
                   },
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white),
+                    side: const BorderSide(color: Colors.grey),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -698,7 +720,7 @@ class _TotalStockScreenState extends State<TotalStockScreen> {
                   ),
                   child: const Text(
                     'Freeze Gas',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
               ),

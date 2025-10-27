@@ -27,7 +27,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Start highlighting if we have a highlighted order ID
     if (widget.highlightedOrderId != null) {
       _startHighlighting();
@@ -41,7 +41,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       });
     }
   }
-  
+
   void _startHighlighting() {
     setState(() {
       _isHighlighting = true;
@@ -250,7 +250,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           onTap: () {
                             // Navigate to order details if needed
                           },
-                          isHighlighted: _isHighlighting && widget.highlightedOrderId == order.id, // Pass highlight status
+                          isHighlighted:
+                              _isHighlighting &&
+                              widget.highlightedOrderId ==
+                                  order.id, // Pass highlight status
                         ),
                       ),
                     ),
@@ -279,6 +282,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       if (user != null) {
         await orderProvider.loadOrdersForDriver(user.name);
       }
-    } catch (e) {}
+    } catch (e) {
+      // Silently ignore errors to prevent UI disruption
+      // In a production app, you might want to log this error
+    }
   }
 }

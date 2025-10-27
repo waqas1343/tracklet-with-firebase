@@ -459,7 +459,6 @@ class OrderViewModel extends ChangeNotifier {
       }
     } catch (e) {
       // Handle error silently or log it
-      print('Error updating driver status: $e');
     }
   }
 

@@ -11,13 +11,9 @@ class NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print('🔔 NotificationCard tapped - ${notification.title}');
         if (onTap != null) {
-          print('🔔 Calling onTap callback');
           onTap!();
-        } else {
-          print('🔔 onTap is null!');
-        }
+        } else {}
       },
       child: Container(
         decoration: BoxDecoration(

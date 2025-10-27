@@ -27,6 +27,7 @@ class GasDeductionUtils {
           currentGas: (data['currentGas'] ?? 0).toDouble(),
           frozenGas: (data['frozenGas'] ?? 0).toDouble(),
           timestamp: (data['timestamp'] as Timestamp).toDate(),
+          userId: data['userId'] ?? '', // Add this line
         );
       }).toList();
 
@@ -36,7 +37,9 @@ class GasDeductionUtils {
       // Check if we have enough total gas
       final double totalAvailableGas = tanks.fold(
         0,
-        (sum, tank) => sum + tank.currentGas,
+        (total, tank) =>
+            total +
+            tank.currentGas, // Changed 'sum' to 'total' to avoid avoid_types_as_parameter_names warning
       );
 
       if (totalAvailableGas < amountInTons) {

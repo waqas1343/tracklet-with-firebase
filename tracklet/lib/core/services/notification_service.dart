@@ -428,9 +428,6 @@ class NotificationService {
   /// Test the complete notification flow
   Future<void> testCompleteNotificationFlow(String distributorId) async {
     try {
-      print('🧪 NotificationService: Testing complete notification flow');
-      print('   Distributor ID: $distributorId');
-
       // Create test order approval notification
       await createOrderApprovalNotification(
         distributorId: distributorId,
@@ -454,7 +451,7 @@ class NotificationService {
         );
       }
     } catch (e) {
-      print('❌ NotificationService: Error in test flow: $e');
+      // print('❌ NotificationService: Error in test flow: $e'); // Removed to avoid avoid_print warning
     }
   }
 }

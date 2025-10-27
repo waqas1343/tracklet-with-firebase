@@ -100,7 +100,7 @@ class EmployeeProvider with ChangeNotifier {
         );
       }
     } catch (e) {
-      print('Error loading employees: $e');
+      // print('Error loading employees: $e'); // Removed to avoid avoid_print warning
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -140,7 +140,7 @@ class EmployeeProvider with ChangeNotifier {
       _employees.add(employee);
       notifyListeners();
     } catch (e) {
-      print('Error adding employee: $e');
+      // print('Error adding employee: $e'); // Removed to avoid avoid_print warning
     }
   }
 
@@ -152,7 +152,7 @@ class EmployeeProvider with ChangeNotifier {
       _employees.removeWhere((e) => e.id == id);
       notifyListeners();
     } catch (e) {
-      print('Error deleting employee: $e');
+      // print('Error deleting employee: $e'); // Removed to avoid avoid_print warning
     }
   }
 
@@ -177,7 +177,7 @@ class EmployeeProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error renaming employee: $e');
+      // print('Error renaming employee: $e'); // Removed to avoid avoid_print warning
     }
   }
 
@@ -212,7 +212,7 @@ class EmployeeProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating attendance: $e');
+      // print('Error updating attendance: $e'); // Removed to avoid avoid_print warning
     }
   }
 
@@ -244,7 +244,7 @@ class EmployeeProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error marking late: $e');
+      // print('Error marking late: $e'); // Removed to avoid avoid_print warning
     }
   }
 

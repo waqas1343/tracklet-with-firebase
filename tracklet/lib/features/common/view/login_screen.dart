@@ -81,7 +81,10 @@ class LoginScreen extends StatelessWidget {
           try {
             final fcmService = Provider.of<FCMService>(context, listen: false);
             await fcmService.saveFCMToken(userCredential.user!.uid);
-          } catch (e) {}
+          } catch (e) {
+            // Silently ignore FCM token saving errors to prevent UI disruption
+            // In a production app, you might want to log this error
+          }
 
           // Update last login time
           await firebaseService.firestore

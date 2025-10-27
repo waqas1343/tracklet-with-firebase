@@ -732,7 +732,7 @@ class OrderCard extends StatelessWidget {
                           orderId: order.id,
                         );
                   } catch (e) {
-                    print('Failed to send order completion notification: $e');
+                    // print('Failed to send order completion notification: $e'); // Removed to avoid avoid_print warning
                   }
                 }
 

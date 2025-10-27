@@ -37,6 +37,13 @@ class _OrdersScreenState extends State<OrdersScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
+    // Add listener to rebuild when tab changes
+    _tabController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
     if (widget.highlightedOrderId != null) {
       _startHighlighting();
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -218,7 +225,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                 ),
                 const SizedBox(height: 14),
 
-                /// ✅ TabBar (Completed / Cancelled)
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
@@ -230,19 +236,19 @@ class _OrdersScreenState extends State<OrdersScreen>
                       borderRadius: BorderRadius.circular(26),
                     ),
                     labelColor: Colors.white,
-                    unselectedLabelColor: AppColors.black,
+                    unselectedLabelColor: Colors.grey,
                     dividerColor: Colors.transparent,
                     tabs: [
                       Tab(
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(26),
-                            border: _tabController.index == 0
-                                ? null
-                                : Border.all(color: Colors.grey, width: 1),
                             color: _tabController.index == 0
                                 ? navy
                                 : Colors.transparent,
+                            border: _tabController.index == 0
+                                ? null
+                                : Border.all(color: Colors.grey, width: 1),
                           ),
                           padding: const EdgeInsets.symmetric(
                             vertical: 12,
@@ -251,10 +257,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.check_circle_outline,
                                 size: 18,
-                                color: Colors.white,
+                                color: _tabController.index == 0
+                                    ? Colors.white
+                                    : Colors.grey,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -264,7 +272,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   fontWeight: FontWeight.w600,
                                   color: _tabController.index == 0
                                       ? Colors.white
-                                      : AppColors.black,
+                                      : Colors.grey,
                                 ),
                               ),
                             ],
@@ -275,12 +283,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(26),
-                            border: _tabController.index == 1
-                                ? null
-                                : Border.all(color: Colors.grey, width: 1),
                             color: _tabController.index == 1
                                 ? navy
                                 : Colors.transparent,
+                            border: _tabController.index == 1
+                                ? null
+                                : Border.all(color: Colors.grey, width: 1),
                           ),
                           padding: const EdgeInsets.symmetric(
                             vertical: 12,
@@ -289,10 +297,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.cancel_outlined,
                                 size: 18,
-                                color: Colors.white,
+                                color: _tabController.index == 1
+                                    ? Colors.white
+                                    : Colors.grey,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -302,7 +312,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   fontWeight: FontWeight.w600,
                                   color: _tabController.index == 1
                                       ? Colors.white
-                                      : AppColors.black,
+                                      : Colors.grey,
                                 ),
                               ),
                             ],

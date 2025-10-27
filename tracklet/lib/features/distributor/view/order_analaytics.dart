@@ -110,7 +110,7 @@ class _OrderAnalyticsScreenState extends State<OrderAnalyticsScreen> {
     List<OrderModel> orders,
   ) {
     final topPlants = _getTopPlants(orders);
-    final totalOrders = orders.length > 0
+    final totalOrders = orders.isNotEmpty
         ? orders.length
         : 1; // Avoid division by zero
 
@@ -133,7 +133,6 @@ class _OrderAnalyticsScreenState extends State<OrderAnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final darkBlue = const Color(0xFF13324B);
-    final lightBlue = const Color(0xFFB6D2F5);
     final backGray = const Color(0xFFEFF2F7);
 
     return Scaffold(
@@ -474,7 +473,7 @@ class _OrderAnalyticsScreenState extends State<OrderAnalyticsScreen> {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          topPlantsWithPercentages.length > 0
+                                          topPlantsWithPercentages.isNotEmpty
                                               ? topPlantsWithPercentages[0]['name']
                                                     as String
                                               : "Tracklet.CO",
@@ -484,7 +483,7 @@ class _OrderAnalyticsScreenState extends State<OrderAnalyticsScreen> {
                                     ),
                                     Center(
                                       child: Text(
-                                        topPlantsWithPercentages.length > 0
+                                        topPlantsWithPercentages.isNotEmpty
                                             ? '${topPlantsWithPercentages[0]['orders']}'
                                             : "0",
                                         style: const TextStyle(fontSize: 13),
@@ -492,7 +491,7 @@ class _OrderAnalyticsScreenState extends State<OrderAnalyticsScreen> {
                                     ),
                                     Center(
                                       child: Text(
-                                        topPlantsWithPercentages.length > 0
+                                        topPlantsWithPercentages.isNotEmpty
                                             ? '${(topPlantsWithPercentages[0]['percentage'] as double).toStringAsFixed(1)}%'
                                             : "0%",
                                         style: const TextStyle(fontSize: 13),
