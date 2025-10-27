@@ -6,13 +6,14 @@ import 'providers/dashboard_provider.dart';
 import 'providers/login_provider.dart';
 import 'providers/users_provider.dart';
 import 'providers/settings_provider.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/users_screen.dart';
+import 'screens/new_dashboard_screen.dart';
+import 'screens/new_users_screen.dart';
+import 'screens/new_analytics_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/login_screen.dart';
 import 'widgets/custom_app_bar.dart';
 import 'utils/responsive_helper.dart';
 import 'widgets/side_navigation.dart';
-import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,20 +90,30 @@ class _MobileLayout extends StatelessWidget {
     final loginProvider = Provider.of<LoginProvider>(context);
 
     final screens = [
-      const DashboardScreen(),
-      const UsersScreen(),
-      const Placeholder(), // Analytics placeholder
+      const NewDashboardScreen(),
+      const NewUsersScreen(),
+      const NewAnalyticsScreen(),
       const SettingsScreen(),
     ];
 
     return Scaffold(
-      backgroundColor: theme.background,
+      backgroundColor: theme.modernBackground,
       appBar: AppBar(
         title: Text(_getTitle(dashboardProvider.currentPageIndex)),
-        backgroundColor: theme.surface,
+        backgroundColor: theme.modernSurface,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout, color: theme.error),
+            icon: Icon(
+              theme.isDarkMode
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+              color: theme.modernTextPrimary,
+            ),
+            onPressed: () => theme.toggleTheme(),
+            tooltip: theme.isDarkMode ? 'Light Mode' : 'Dark Mode',
+          ),
+          IconButton(
+            icon: Icon(Icons.logout_rounded, color: theme.error),
             onPressed: () {
               // Show confirmation dialog
               showDialog<bool>(
@@ -145,18 +156,18 @@ class _MobileLayout extends StatelessWidget {
         children: screens,
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(boxShadow: theme.shadowMd),
+        decoration: BoxDecoration(boxShadow: theme.shadowLevel2),
         child: BottomNavigationBar(
           currentIndex: dashboardProvider.currentPageIndex,
           onTap: (index) => dashboardProvider.setCurrentPage(index),
           type: BottomNavigationBarType.fixed,
-          backgroundColor: theme.surface,
-          selectedItemColor: theme.primary,
-          unselectedItemColor: theme.textMuted,
-          selectedLabelStyle: theme.caption.copyWith(
+          backgroundColor: theme.modernSurface,
+          selectedItemColor: theme.modernPrimaryStart,
+          unselectedItemColor: theme.modernTextSecondary,
+          selectedLabelStyle: theme.labelMedium.copyWith(
             fontWeight: FontWeight.w600,
           ),
-          unselectedLabelStyle: theme.caption,
+          unselectedLabelStyle: theme.labelMedium,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_rounded),
@@ -206,14 +217,14 @@ class _DesktopLayout extends StatelessWidget {
     final dashboardProvider = Provider.of<DashboardProvider>(context);
 
     final screens = [
-      const DashboardScreen(),
-      const UsersScreen(),
-      const Placeholder(), // Analytics placeholder
+      const NewDashboardScreen(),
+      const NewUsersScreen(),
+      const NewAnalyticsScreen(),
       const SettingsScreen(),
     ];
 
     return Scaffold(
-      backgroundColor: theme.background,
+      backgroundColor: theme.modernBackground,
       body: Row(
         children: [
           // Side Navigation

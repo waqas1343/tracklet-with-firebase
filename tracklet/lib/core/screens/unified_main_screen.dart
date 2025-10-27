@@ -19,7 +19,6 @@ import '../../features/gas_plant/view/gas_rate_screen.dart';
 import '../../features/gas_plant/view/orders_screen.dart';
 import '../../features/gas_plant/view/expenses_screen.dart';
 import '../../features/gas_plant/view/settings_screen.dart';
-import '../../features/gas_plant/view/orders_in_progress_screen.dart';
 
 // Distributor Screens
 import '../../features/distributor/view/distributor_dashboard_screen.dart';
@@ -30,7 +29,6 @@ import '../../features/distributor/view/distributor_settings_screen.dart';
 // Driver Screens
 import '../../features/driver/view/driver_dashboard_screen.dart';
 import '../../features/driver/view/driver_orders_screen.dart'; // Add this import
-import '../../features/driver/view/driver_list_screen.dart';
 
 class UnifiedMainScreen extends StatefulWidget {
   const UnifiedMainScreen({super.key});
@@ -51,7 +49,7 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
 
     // Save FCM token for current user
     _saveFCMToken();
-    
+
     // Set up navigation callback for FCM service
     _setupNavigationCallback();
   }
@@ -69,12 +67,13 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
       // Show driver assignment dialog when notification is tapped
       _showDriverAssignmentDialog(orderId);
     };
-    
   }
-  
+
   void _setupNavigationCallback() {
     // Set up navigation callback for FCM service
-    FCMService.instance.navigatorCallback = (String route, {Map<String, dynamic>? arguments}) {
+    FCMService
+        .instance
+        .navigatorCallback = (String route, {Map<String, dynamic>? arguments}) {
       if (mounted) {
         // Check if this is a navigation action for order
         if (arguments != null && arguments['action'] == 'navigate_to_order') {
@@ -108,8 +107,11 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
   }
 
   void _navigateToOrderScreen(String orderId) {
-    final userRoleProvider = Provider.of<UserRoleProvider>(context, listen: false);
-    
+    final userRoleProvider = Provider.of<UserRoleProvider>(
+      context,
+      listen: false,
+    );
+
     // Determine the correct route based on user role
     String route;
     if (userRoleProvider.isGasPlant) {
@@ -120,11 +122,13 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
       // For driver or other roles, navigate to driver orders screen
       route = '/driver/orders';
     }
-    
+
     // Navigate to the appropriate order screen with the highlighted order ID
-    Navigator.pushNamed(context, route, arguments: {
-      'highlightedOrderId': orderId,
-    });
+    Navigator.pushNamed(
+      context,
+      route,
+      arguments: {'highlightedOrderId': orderId},
+    );
   }
 
   void _showDriverAssignmentDialog(String orderId) {
@@ -186,8 +190,7 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
         final fcmService = FCMService.instance;
         await fcmService.saveFCMToken(profileProvider.currentUser!.id);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   @override

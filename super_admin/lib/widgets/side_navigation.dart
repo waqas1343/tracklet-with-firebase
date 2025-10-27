@@ -17,24 +17,22 @@ class SideNavigation extends StatelessWidget {
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: theme.surface,
-        boxShadow: theme.shadowMd,
+        color: theme.modernSurface,
+        boxShadow: theme.shadowLevel3,
       ),
       child: SafeArea(
         child: Column(
           children: [
             // Logo & Title
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(theme.spacingLg),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(theme.spacingMd),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [theme.primary, theme.secondary],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: theme.primaryGradient,
+                      borderRadius: BorderRadius.circular(theme.radiusMd),
                     ),
                     child: const Icon(
                       Icons.admin_panel_settings_rounded,
@@ -43,7 +41,12 @@ class SideNavigation extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('Super Admin', style: theme.heading3),
+                  Text(
+                    'Super Admin',
+                    style: theme.headlineSmall.copyWith(
+                      color: theme.modernTextPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -55,7 +58,7 @@ class SideNavigation extends StatelessWidget {
             // Navigation Items
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: theme.spacingMd),
                 children: [
                   _NavItem(
                     icon: Icons.dashboard_rounded,
@@ -84,11 +87,11 @@ class SideNavigation extends StatelessWidget {
 
                   const SizedBox(height: 24),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: theme.spacingLg),
                     child: Text(
                       'MANAGEMENT',
-                      style: theme.caption.copyWith(
-                        color: theme.textMuted,
+                      style: theme.labelSmall.copyWith(
+                        color: theme.modernTextSecondary,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -121,16 +124,21 @@ class SideNavigation extends StatelessWidget {
 
             // User Profile Section
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(theme.spacingLg),
               child: Column(
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: theme.primary.withOpacity(0.1),
-                        backgroundImage: const NetworkImage(
-                          'https://i.pravatar.cc/150?img=1',
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: theme.primaryGradient,
+                          borderRadius: BorderRadius.circular(theme.radiusFull),
+                        ),
+                        child: const Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
+                          size: 24,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -140,13 +148,16 @@ class SideNavigation extends StatelessWidget {
                           children: [
                             Text(
                               'Admin User',
-                              style: theme.bodyMedium.copyWith(
+                              style: theme.titleMedium.copyWith(
                                 fontWeight: FontWeight.w600,
+                                color: theme.modernTextPrimary,
                               ),
                             ),
                             Text(
                               'admin@company.com',
-                              style: theme.caption,
+                              style: theme.bodySmall.copyWith(
+                                color: theme.modernTextSecondary,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -157,48 +168,69 @@ class SideNavigation extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   // Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: CustomButton(
-                      text: 'Logout',
-                      onPressed: () {
-                        // Show confirmation dialog
-                        showDialog<bool>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Logout'),
-                              content: const Text('Are you sure you want to logout?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: const Text('Cancel'),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.error.withValues(alpha: 0.8),
+                          theme.error,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(theme.radiusMd),
+                      boxShadow: theme.shadowLevel2,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 45,
+                      child: CustomButton(
+                        text: 'Logout',
+                        onPressed: () {
+                          // Show confirmation dialog
+                          showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Logout'),
+                                content: const Text(
+                                  'Are you sure you want to logout?',
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: const Text('Logout'),
-                                ),
-                              ],
-                            );
-                          },
-                        ).then((confirm) {
-                          if (confirm == true) {
-                            // Perform logout
-                            Provider.of<LoginProvider>(context, listen: false).logout();
-                            // Navigate to login screen
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/',
-                              (route) => false,
-                            );
-                          }
-                        });
-                      },
-                      backgroundColor: theme.error,
-                      textColor: Colors.white,
-                      borderRadius: 12,
-                      fontWeight: FontWeight.bold,
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: const Text('Logout'),
+                                  ),
+                                ],
+                              );
+                            },
+                          ).then((confirm) {
+                            if (confirm == true) {
+                              // Perform logout
+                              Provider.of<LoginProvider>(
+                                context,
+                                listen: false,
+                              ).logout();
+                              // Navigate to login screen
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/',
+                                (route) => false,
+                              );
+                            }
+                          });
+                        },
+                        backgroundColor: Colors.transparent,
+                        textColor: Colors.white,
+                        borderRadius: theme.radiusMd,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -234,17 +266,23 @@ class _NavItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(theme.radiusMd),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: theme.spacingLg,
+              vertical: theme.spacingMd,
+            ),
             decoration: BoxDecoration(
               color: isSelected
-                  ? theme.primary.withOpacity(0.1)
+                  ? theme.modernPrimaryStart.withValues(alpha: 0.1)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(theme.radiusMd),
               border: isSelected
-                  ? Border.all(color: theme.primary.withOpacity(0.3), width: 1)
+                  ? Border.all(
+                      color: theme.modernPrimaryStart.withValues(alpha: 0.3),
+                      width: 1,
+                    )
                   : null,
             ),
             child: Row(
@@ -252,14 +290,18 @@ class _NavItem extends StatelessWidget {
                 Icon(
                   icon,
                   size: 22,
-                  color: isSelected ? theme.primary : theme.textMuted,
+                  color: isSelected
+                      ? theme.modernPrimaryStart
+                      : theme.modernTextSecondary,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     label,
-                    style: theme.bodyMedium.copyWith(
-                      color: isSelected ? theme.primary : theme.textSecondary,
+                    style: theme.labelLarge.copyWith(
+                      color: isSelected
+                          ? theme.modernPrimaryStart
+                          : theme.modernTextSecondary,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w400,
@@ -268,10 +310,10 @@ class _NavItem extends StatelessWidget {
                 ),
                 if (isSelected)
                   Container(
-                    width: 6,
-                    height: 6,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: theme.primary,
+                      color: theme.modernPrimaryStart,
                       shape: BoxShape.circle,
                     ),
                   ),

@@ -8,7 +8,6 @@ import '../../../shared/widgets/section_header_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/custom_flushbar.dart';
 import '../widgets/driver_order_card.dart';
-import '../../../core/utils/app_colors.dart';
 
 class DriverOrdersScreen extends StatefulWidget {
   final String? highlightedOrderId; // Add highlighted order ID parameter
@@ -27,7 +26,7 @@ class _DriverOrdersScreenState extends State<DriverOrdersScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Start highlighting if we have a highlighted order ID
     if (widget.highlightedOrderId != null) {
       _startHighlighting();
@@ -41,7 +40,7 @@ class _DriverOrdersScreenState extends State<DriverOrdersScreen> {
       });
     }
   }
-  
+
   void _startHighlighting() {
     setState(() {
       _isHighlighting = true;
@@ -76,9 +75,7 @@ class _DriverOrdersScreenState extends State<DriverOrdersScreen> {
             children: [
               SectionHeaderWidget(title: 'My Orders', onSeeAllPressed: () {}),
               const SizedBox(height: 16),
-              Expanded(
-                child: _buildOrdersList(),
-              ),
+              Expanded(child: _buildOrdersList()),
             ],
           ),
         ),
@@ -143,7 +140,10 @@ class _DriverOrdersScreenState extends State<DriverOrdersScreen> {
                 onTap: () {
                   // Navigate to order details if needed
                 },
-                isHighlighted: _isHighlighting && widget.highlightedOrderId == order.id, // Pass highlight status
+                isHighlighted:
+                    _isHighlighting &&
+                    widget.highlightedOrderId ==
+                        order.id, // Pass highlight status
               ),
             );
           },

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/style_tokens.dart';
+import '../utils/modern_design_system.dart';
 
 class ThemeProvider with ChangeNotifier {
   bool _isDarkMode = false;
@@ -46,6 +47,24 @@ class ThemeProvider with ChangeNotifier {
   Color get onPrimary =>
       _isDarkMode ? AppColorsDark.onPrimary : AppColorsLight.onPrimary;
 
+  // Modern Colors
+  Color get modernPrimaryStart => ModernColors.primaryStart;
+  Color get modernPrimaryEnd => ModernColors.primaryEnd;
+  Color get modernSecondary => ModernColors.secondary;
+  Color get modernAccent => ModernColors.accent;
+  Color get modernBackground =>
+      _isDarkMode ? ModernColors.backgroundDark : ModernColors.backgroundLight;
+  Color get modernSurface =>
+      _isDarkMode ? ModernColors.surfaceDark : ModernColors.surfaceLight;
+  Color get modernTextPrimary => _isDarkMode
+      ? ModernColors.textPrimaryDark
+      : ModernColors.textPrimaryLight;
+  Color get modernTextSecondary => _isDarkMode
+      ? ModernColors.textSecondaryDark
+      : ModernColors.textSecondaryLight;
+  Color get modernBorder =>
+      _isDarkMode ? ModernColors.borderDark : ModernColors.borderLight;
+
   // Text Styles
   TextStyle get heading1 => StyleTokens.heading1(_isDarkMode);
   TextStyle get heading2 => StyleTokens.heading2(_isDarkMode);
@@ -55,13 +74,54 @@ class ThemeProvider with ChangeNotifier {
   TextStyle get bodySmall => StyleTokens.bodySmall(_isDarkMode);
   TextStyle get caption => StyleTokens.caption(_isDarkMode);
 
+  // Modern Text Styles
+  TextStyle get displayLarge => ModernTypography.displayLarge(_isDarkMode);
+  TextStyle get displayMedium => ModernTypography.displayMedium(_isDarkMode);
+  TextStyle get displaySmall => ModernTypography.displaySmall(_isDarkMode);
+  TextStyle get headlineLarge => ModernTypography.headlineLarge(_isDarkMode);
+  TextStyle get headlineMedium => ModernTypography.headlineMedium(_isDarkMode);
+  TextStyle get headlineSmall => ModernTypography.headlineSmall(_isDarkMode);
+  TextStyle get titleLarge => ModernTypography.titleLarge(_isDarkMode);
+  TextStyle get titleMedium => ModernTypography.titleMedium(_isDarkMode);
+  TextStyle get titleSmall => ModernTypography.titleSmall(_isDarkMode);
+  TextStyle get labelLarge => ModernTypography.labelLarge(_isDarkMode);
+  TextStyle get labelMedium => ModernTypography.labelMedium(_isDarkMode);
+  TextStyle get labelSmall => ModernTypography.labelSmall(_isDarkMode);
+
   // Spacing
   double spacing(String key) => StyleTokens.spacing[key] ?? 16.0;
+  double get spacingXs => ModernSpacing.xs;
+  double get spacingSm => ModernSpacing.sm;
+  double get spacingMd => ModernSpacing.md;
+  double get spacingLg => ModernSpacing.lg;
+  double get spacingXl => ModernSpacing.xl;
+  double get spacingXxl => ModernSpacing.xxl;
+  double get spacingXxxl => ModernSpacing.xxxl;
+  double get spacingXxxxl => ModernSpacing.xxxxl;
+
+  // Border Radius
+  double get radiusSm => ModernRadius.sm;
+  double get radiusMd => ModernRadius.md;
+  double get radiusLg => ModernRadius.lg;
+  double get radiusXl => ModernRadius.xl;
+  double get radiusXxl => ModernRadius.xxl;
+  double get radiusFull => ModernRadius.full;
 
   // Shadows
   List<BoxShadow> get shadowSm => StyleTokens.shadowSm(_isDarkMode);
   List<BoxShadow> get shadowMd => StyleTokens.shadowMd(_isDarkMode);
   List<BoxShadow> get shadowLg => StyleTokens.shadowLg(_isDarkMode);
+  List<BoxShadow> get shadowLevel1 => ModernShadows.level1(_isDarkMode);
+  List<BoxShadow> get shadowLevel2 => ModernShadows.level2(_isDarkMode);
+  List<BoxShadow> get shadowLevel3 => ModernShadows.level3(_isDarkMode);
+  List<BoxShadow> get shadowLevel4 => ModernShadows.level4(_isDarkMode);
+
+  // Gradients
+  LinearGradient get primaryGradient => ModernGradients.primary(_isDarkMode);
+  LinearGradient get successGradient => ModernGradients.success(_isDarkMode);
+  LinearGradient get warningGradient => ModernGradients.warning(_isDarkMode);
+  LinearGradient get errorGradient => ModernGradients.error(_isDarkMode);
+  LinearGradient get infoGradient => ModernGradients.info(_isDarkMode);
 
   // Glass Decoration
   BoxDecoration get glassDecoration => StyleTokens.glassDecoration(_isDarkMode);

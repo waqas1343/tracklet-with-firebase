@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class OrderAnalyticsScreen extends StatelessWidget {
+  const OrderAnalyticsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final darkBlue = Color(0xFF13324B);
@@ -24,7 +26,11 @@ class OrderAnalyticsScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black54),
+                      icon: Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 18,
+                        color: Colors.black54,
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -36,7 +42,7 @@ class OrderAnalyticsScreen extends StatelessWidget {
                       fontSize: 16,
                       color: Colors.black,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -47,7 +53,11 @@ class OrderAnalyticsScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Text(
                 'Orders Summary',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.black),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
               ),
             ),
             SizedBox(height: 14),
@@ -73,12 +83,22 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Total Orders\nDelivered Today',
-                                    style: TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500, height: 1.2),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.2,
+                                    ),
                                   ),
                                   Spacer(),
                                   Text(
                                     '08',
-                                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold, height: 1.1),
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.1,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -90,8 +110,12 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                 shape: BoxShape.circle,
                               ),
                               padding: EdgeInsets.all(7),
-                              child: Icon(Icons.local_shipping_outlined, size: 18, color: Colors.white),
-                            )
+                              child: Icon(
+                                Icons.local_shipping_outlined,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -117,12 +141,22 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Total Gas\nOrdered',
-                                    style: TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.w500, height: 1.2),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.2,
+                                    ),
                                   ),
                                   Spacer(),
                                   Text(
                                     '1.2 Tons',
-                                    style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold, height: 1.1),
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.1,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -134,7 +168,11 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                 shape: BoxShape.circle,
                               ),
                               padding: EdgeInsets.all(7),
-                              child: Icon(Icons.calendar_today_outlined, size: 16, color: Colors.black54),
+                              child: Icon(
+                                Icons.calendar_today_outlined,
+                                size: 16,
+                                color: Colors.black54,
+                              ),
                             ),
                           ],
                         ),
@@ -151,7 +189,11 @@ class OrderAnalyticsScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Text(
                 'Top Plant This Month',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.black),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
               ),
             ),
             SizedBox(height: 10),
@@ -167,21 +209,32 @@ class OrderAnalyticsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(13),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18.0,
+                    horizontal: 8,
+                  ),
                   child: Column(
                     children: [
                       Row(
                         children: [
                           Text(
                             'Most Ordered',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.black,
+                            ),
                           ),
                           Spacer(),
                           Text(
                             'View Details ',
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: darkBlue),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                              color: darkBlue,
+                            ),
                           ),
-                          Icon(Icons.open_in_new, size: 14, color: darkBlue)
+                          Icon(Icons.open_in_new, size: 14, color: darkBlue),
                         ],
                       ),
                       SizedBox(height: 8),
@@ -194,9 +247,7 @@ class OrderAnalyticsScreen extends StatelessWidget {
                             SizedBox(
                               width: 120,
                               height: 120,
-                              child: CustomPaint(
-                                painter: _DonutChartPainter(),
-                              ),
+                              child: CustomPaint(painter: _DonutChartPainter()),
                             ),
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -235,8 +286,24 @@ class OrderAnalyticsScreen extends StatelessWidget {
                           TableRow(
                             children: [
                               SizedBox(),
-                              Center(child: Text("Orders", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-                              Center(child: Text("%", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                              Center(
+                                child: Text(
+                                  "Orders",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Center(
+                                child: Text(
+                                  "%",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           TableRow(
@@ -252,11 +319,24 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(width: 8),
-                                  Text("Tracklet.CO", style: TextStyle(fontSize: 13)),
+                                  Text(
+                                    "Tracklet.CO",
+                                    style: TextStyle(fontSize: 13),
+                                  ),
                                 ],
                               ),
-                              Center(child: Text("28", style: TextStyle(fontSize: 13))),
-                              Center(child: Text("62.5%", style: TextStyle(fontSize: 13))),
+                              Center(
+                                child: Text(
+                                  "28",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              Center(
+                                child: Text(
+                                  "62.5%",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
                             ],
                           ),
                           TableRow(
@@ -279,11 +359,24 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(width: 8),
-                                  Text("BlueFlame", style: TextStyle(fontSize: 13)),
+                                  Text(
+                                    "BlueFlame",
+                                    style: TextStyle(fontSize: 13),
+                                  ),
                                 ],
                               ),
-                              Center(child: Text("15", style: TextStyle(fontSize: 13))),
-                              Center(child: Text("25%", style: TextStyle(fontSize: 13))),
+                              Center(
+                                child: Text(
+                                  "15",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              Center(
+                                child: Text(
+                                  "25%",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
                             ],
                           ),
                           TableRow(
@@ -306,15 +399,28 @@ class OrderAnalyticsScreen extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(width: 8),
-                                  Text("PureGas", style: TextStyle(fontSize: 13)),
+                                  Text(
+                                    "PureGas",
+                                    style: TextStyle(fontSize: 13),
+                                  ),
                                 ],
                               ),
-                              Center(child: Text("8", style: TextStyle(fontSize: 13))),
-                              Center(child: Text("12.5%", style: TextStyle(fontSize: 13))),
+                              Center(
+                                child: Text(
+                                  "8",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              Center(
+                                child: Text(
+                                  "12.5%",
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
                             ],
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -352,12 +458,24 @@ class _DonutChartPainter extends CustomPainter {
 
     double startRadian = -1.55;
     double trackletSweep = 3.93; // 62.5%
-    double blueSweep = 1.57;     // 25%
-    double pureSweep = 0.785;    // 12.5%
+    double blueSweep = 1.57; // 25%
+    double pureSweep = 0.785; // 12.5%
 
     canvas.drawArc(rect, startRadian, trackletSweep, false, trackletPaint);
-    canvas.drawArc(rect, startRadian + trackletSweep, blueSweep, false, blueFlamePaint);
-    canvas.drawArc(rect, startRadian + trackletSweep + blueSweep, pureSweep, false, pureGasPaint);
+    canvas.drawArc(
+      rect,
+      startRadian + trackletSweep,
+      blueSweep,
+      false,
+      blueFlamePaint,
+    );
+    canvas.drawArc(
+      rect,
+      startRadian + trackletSweep + blueSweep,
+      pureSweep,
+      false,
+      pureGasPaint,
+    );
   }
 
   @override
