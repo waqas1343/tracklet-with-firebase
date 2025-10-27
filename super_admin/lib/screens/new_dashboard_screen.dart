@@ -18,7 +18,6 @@ class NewDashboardScreen extends StatelessWidget {
     final theme = Provider.of<ThemeProvider>(context);
     final dashboardProvider = Provider.of<DashboardProvider>(context);
     final loginProvider = Provider.of<LoginProvider>(context);
-    final gridColumns = ResponsiveHelper.getGridColumns(context);
 
     return Scaffold(
       backgroundColor: theme.modernBackground,
@@ -408,8 +407,6 @@ class NewDashboardScreen extends StatelessWidget {
         return Icons.download_rounded;
       case ActivityType.notification:
         return Icons.notifications_rounded;
-      default:
-        return Icons.info_rounded;
     }
   }
 
@@ -431,8 +428,6 @@ class NewDashboardScreen extends StatelessWidget {
         return theme.info;
       case ActivityType.notification:
         return theme.modernPrimaryEnd;
-      default:
-        return theme.modernTextSecondary;
     }
   }
 
