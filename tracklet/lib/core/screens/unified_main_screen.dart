@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
 import '../providers/user_role_provider.dart';
 import '../providers/navigation_view_model.dart';
 import '../widgets/unified_bottom_nav_bar.dart';
@@ -10,8 +11,8 @@ import '../models/company_model.dart';
 import '../services/fcm_service.dart';
 import '../../features/distributor/widgets/driver_assignment_dialog.dart';
 import '../providers/order_provider.dart';
+import '../models/order_model.dart';
 import '../../features/distributor/provider/driver_provider.dart';
-import '../../shared/widgets/custom_flushbar.dart';
 
 // Gas Plant Screens
 import '../../features/gas_plant/view/gas_plant_dashboard_screen.dart';
@@ -28,7 +29,7 @@ import '../../features/distributor/view/distributor_settings_screen.dart';
 
 // Driver Screens
 import '../../features/driver/view/driver_dashboard_screen.dart';
-import '../../features/driver/view/driver_orders_screen.dart'; // Add this import
+import '../../features/driver/view/driver_list_screen.dart';
 
 class UnifiedMainScreen extends StatefulWidget {
   const UnifiedMainScreen({super.key});
@@ -39,7 +40,6 @@ class UnifiedMainScreen extends StatefulWidget {
 
 class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
   CompanyModel? _company;
-  String? _pendingOrderId; // To store order ID from notification tap
 
   @override
   void initState() {
@@ -49,89 +49,28 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
 
     // Save FCM token for current user
     _saveFCMToken();
-
-    // Set up navigation callback for FCM service
-    _setupNavigationCallback();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Check if we have a pending order ID from notification tap
-    _handlePendingOrderNavigation();
   }
 
   void _setupNotificationHandler() {
     // Set up callback for notification taps
     FCMService.instance.onNotificationTap = (String orderId) {
+      if (kDebugMode) {
+        print('🔔 Notification tap callback triggered for order: $orderId');
+      }
       // Show driver assignment dialog when notification is tapped
       _showDriverAssignmentDialog(orderId);
     };
-  }
 
-  void _setupNavigationCallback() {
-    // Set up navigation callback for FCM service
-    FCMService
-        .instance
-        .navigatorCallback = (String route, {Map<String, dynamic>? arguments}) {
-      if (mounted) {
-        // Check if this is a navigation action for order
-        if (arguments != null && arguments['action'] == 'navigate_to_order') {
-          final orderId = arguments['orderId'] as String?;
-          if (orderId != null) {
-            // Store the order ID and handle navigation after widget is built
-            setState(() {
-              _pendingOrderId = orderId;
-            });
-          }
-        } else {
-          Navigator.pushNamed(context, route, arguments: arguments);
-        }
-      }
-    };
-  }
-
-  void _handlePendingOrderNavigation() {
-    // Handle navigation to order if we have a pending order ID
-    if (_pendingOrderId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _navigateToOrderScreen(_pendingOrderId!);
-          // Clear the pending order ID
-          setState(() {
-            _pendingOrderId = null;
-          });
-        }
-      });
+    if (kDebugMode) {
+      print('✅ Notification tap callback set');
     }
-  }
-
-  void _navigateToOrderScreen(String orderId) {
-    final userRoleProvider = Provider.of<UserRoleProvider>(
-      context,
-      listen: false,
-    );
-
-    // Determine the correct route based on user role
-    String route;
-    if (userRoleProvider.isGasPlant) {
-      route = '/gas-plant/orders-in-progress';
-    } else if (userRoleProvider.isDistributor) {
-      route = '/distributor/orders';
-    } else {
-      // For driver or other roles, navigate to driver orders screen
-      route = '/driver/orders';
-    }
-
-    // Navigate to the appropriate order screen with the highlighted order ID
-    Navigator.pushNamed(
-      context,
-      route,
-      arguments: {'highlightedOrderId': orderId},
-    );
   }
 
   void _showDriverAssignmentDialog(String orderId) {
+    if (kDebugMode) {
+      print('🔍 _showDriverAssignmentDialog called for order: $orderId');
+    }
+
     // Get the order from the repository
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
@@ -139,7 +78,17 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
     orderProvider
         .getOrderById(orderId)
         .then((order) {
+          if (kDebugMode) {
+            print('🔍 Order fetched: ${order?.id}');
+          }
+
           if (order != null && mounted) {
+            if (kDebugMode) {
+              print(
+                '✅ Showing driver assignment dialog for order: ${order.id}',
+              );
+            }
+
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -164,17 +113,28 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
               },
             );
           } else if (mounted) {
-            CustomFlushbar.showError(
-              context,
-              message: 'Failed to load order details',
+            if (kDebugMode) {
+              print('❌ Order is null or context not mounted');
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to load order details'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         })
         .catchError((error) {
+          if (kDebugMode) {
+            print('❌ Error fetching order: $error');
+          }
+
           if (mounted) {
-            CustomFlushbar.showError(
-              context,
-              message: 'Error loading order: $error',
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error loading order: $error'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         });
@@ -189,8 +149,17 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
       if (profileProvider.currentUser != null) {
         final fcmService = FCMService.instance;
         await fcmService.saveFCMToken(profileProvider.currentUser!.id);
+        if (kDebugMode) {
+          print(
+            '✅ FCM token saved for current user: ${profileProvider.currentUser!.id}',
+          );
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ Failed to save FCM token: $e');
+      }
+    }
   }
 
   @override
@@ -280,12 +249,11 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
         DistributorSettingsScreen(),
       ];
     } else if (role == UserRole.driver) {
-      // For drivers, use the appropriate screens
       return const [
         DriverDashboardScreen(),
-        DriverOrdersScreen(), // Use the new orders screen
-        DriverOrdersScreen(), // For history, use the same screen for now
-        DriverDashboardScreen(), // Settings
+        DriverListScreen(), // Show list of drivers and their orders
+        DriverDashboardScreen(), // For now, using dashboard for history
+        DriverDashboardScreen(), // For now, using dashboard for settings
       ];
     } else {
       // Fallback to distributor
@@ -302,7 +270,6 @@ class _UnifiedMainScreenState extends State<UnifiedMainScreen> {
   void dispose() {
     // Clear the callback when widget is disposed
     FCMService.instance.onNotificationTap = null;
-    FCMService.instance.navigatorCallback = null;
     super.dispose();
   }
 }

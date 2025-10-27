@@ -7,7 +7,12 @@ class OrderCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isHighlighted; // Add isHighlighted parameter
 
-  const OrderCard({super.key, required this.order, this.onTap, this.isHighlighted = false});
+  const OrderCard({
+    super.key,
+    required this.order,
+    this.onTap,
+    this.isHighlighted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,9 @@ class OrderCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: isHighlighted ? Colors.orange.withValues(alpha: 0.1) : Colors.transparent,
+          color: isHighlighted
+              ? Colors.orange.withValues(alpha: 0.1)
+              : Colors.transparent,
         ),
         child: InkWell(
           onTap: onTap,
@@ -66,7 +73,11 @@ class OrderCard extends StatelessWidget {
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(width: 16),
-                    Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(order.createdAt),
@@ -78,10 +89,14 @@ class OrderCard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Driver Name (if assigned)
-                if (order.driverName != null && order.driverName!.isNotEmpty) ...[
+                if (order.driverName != null &&
+                    order.driverName!.isNotEmpty) ...[
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
                       children: [
                         const TextSpan(text: 'Driver Name: '),
                         TextSpan(
@@ -99,7 +114,10 @@ class OrderCard extends StatelessWidget {
                     order.specialInstructions!.isNotEmpty) ...[
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
                       children: [
                         const TextSpan(
                           text: 'Special Instructions: ',
@@ -121,9 +139,7 @@ class OrderCard extends StatelessWidget {
                         text: 'Location: ',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const TextSpan(
-                        text: 'Plot #45, Industrial Area, Lahore, Pakistan',
-                      ),
+                      TextSpan(text: order.plantAddress),
                     ],
                   ),
                 ),
@@ -222,7 +238,6 @@ class OrderCard extends StatelessWidget {
     ];
     return '${dateTime.day}-${months[dateTime.month - 1]}-${dateTime.year}';
   }
-
 
   StatusType _mapOrderStatusToStatusType(OrderStatus status) {
     switch (status) {

@@ -192,6 +192,7 @@ class NotificationScreen extends StatelessWidget {
   ) async {
     print('🔔 ===== NOTIFICATION TAP METHOD CALLED =====');
     print('🔔 Notification tapped: ${notification.title}');
+    print('   Message: ${notification.message}');
     print('   Related ID: ${notification.relatedId}');
     print('   Type: ${notification.type}');
 
@@ -220,10 +221,25 @@ class NotificationScreen extends StatelessWidget {
           print('   Order found: ${order?.id}, Status: ${order?.status}');
 
           if (order != null) {
-            // Check if this is a Distributor user and the order is approved (inProgress)
-            if ((user.role == 'distributor' || user.role == 'Distributor') &&
-                order.status == OrderStatus.inProgress) {
-              // Show driver assignment dialog for Distributor users
+            // Check if this is a Distributor user and the notification is about order approval
+            // Simplified condition to make it more robust
+            bool isDistributor =
+                (user.role == 'distributor' || user.role == 'Distributor');
+            bool isOrderApprovedNotification =
+                notification.title.toLowerCase().contains('approved') ||
+                notification.message.toLowerCase().contains('approved') ||
+                notification.message.toLowerCase().contains('assign a driver');
+            bool isOrderInProgress = order.status == OrderStatus.inProgress;
+
+            print('   Is distributor: $isDistributor');
+            print(
+              '   Is order approved notification: $isOrderApprovedNotification',
+            );
+            print('   Is order in progress: $isOrderInProgress');
+
+            if (isDistributor && isOrderApprovedNotification) {
+              print('   Showing driver assignment dialog');
+              // Show driver assignment dialog for Distributor users when order is approved
               if (context.mounted) {
                 showDialog(
                   context: context,
@@ -235,34 +251,6 @@ class NotificationScreen extends StatelessWidget {
                         onAssignmentComplete: () {
                           // Refresh orders after assignment
                           orderProvider.loadOrdersForDistributor(user.id);
-                        },
-                      ),
-                    );
-                  },
-                );
-              }
-              return;
-            }
-
-            // Fallback: Check if this is an order approval notification for any user
-            if (notification.title == 'Order Approved' &&
-                notification.message.contains('assign a driver') &&
-                order.status == OrderStatus.inProgress) {
-              // Show driver assignment dialog
-              if (context.mounted) {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return ChangeNotifierProvider(
-                      create: (context) => DriverProvider(),
-                      child: DriverAssignmentDialog(
-                        order: order,
-                        onAssignmentComplete: () {
-                          // Refresh orders after assignment
-                          if (user.role == 'distributor' ||
-                              user.role == 'Distributor') {
-                            orderProvider.loadOrdersForDistributor(user.id);
-                          }
                         },
                       ),
                     );
